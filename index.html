@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI懂我 - 心智障碍者动态支持档案</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- ========== 顶部导航栏 ========== -->
+  <nav class="top-nav">
+    <div class="brand">
+      <div class="logo-icon">AI</div>
+      <div class="brand-text">
+        <div class="brand-title">AI懂我</div>
+        <div class="brand-subtitle">心智障碍者动态支持档案</div>
+      </div>
+    </div>
+    <div class="nav-actions" id="nav-actions">
+      <!-- 用户信息区域，登录后由JS动态渲染 -->
+      <div id="nav-user-info" style="display:none;align-items:center;gap:8px;">
+        <span id="nav-user-avatar" style="font-size:1.3rem;"></span>
+        <span id="nav-user-name" style="font-weight:500;color:#333;font-size:0.9rem;"></span>
+        <span id="nav-user-role-badge" style="font-size:0.75rem;color:#fff;background:var(--color-primary);padding:2px 8px;border-radius:10px;"></span>
+        <button id="btn-nav-logout" style="background:transparent;border:1px solid #ddd;border-radius:16px;padding:4px 12px;font-size:0.8rem;color:#666;cursor:pointer;font-family:var(--font-body);">退出</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ========== 主内容区 ========== -->
+  <main class="main-content">
+
+    <!-- ===== 登录/注册页面 #login ===== -->
+    <section id="login" class="page-section">
+      <div class="login-container">
+        <div class="login-header">
+          <h1 class="login-title">AI懂我 - 心智障碍者动态支持档案</h1>
+          <p class="login-subtitle">多角色协同记录</p>
+        </div>
+
+        <!-- 登录视图 -->
+        <div id="login-view" class="login-view-container">
+          <p style="text-align:center;font-size:1rem;color:var(--text-secondary);margin-bottom:20px;font-weight:500;">请输入您的账号信息</p>
+          <div class="login-form">
+            <div class="form-group">
+              <label class="form-label">姓名</label>
+              <div class="login-combo">
+                <select class="form-input login-select" id="login-name-select">
+                  <option value="">-- 选择已有账号 --</option>
+                </select>
+                <input class="form-input login-text-input" type="text" id="login-name" placeholder="或输入姓名" style="display:none;">
+              </div>
+              <a href="#" id="btn-toggle-name-input" class="login-toggle-link" style="font-size:0.78rem;color:var(--color-primary);margin-top:4px;display:inline-block;">手动输入姓名</a>
+            </div>
+            <div class="form-group">
+              <label class="form-label">PIN码</label>
+              <input class="form-input" type="password" id="login-pin" placeholder="请输入4-6位数字PIN码" maxlength="6" inputmode="numeric" pattern="[0-9]*">
+              <p id="login-pin-hint" class="login-pin-hint" style="display:none;font-size:0.75rem;color:#52C41A;margin-top:4px;">PIN码已自动填入</p>
+            </div>
+            <button class="btn btn-primary" id="btn-login" style="width:100%;justify-content:center;padding:14px;font-size:1rem;">登录</button>
+            <p style="text-align:center;margin-top:16px;color:#999;font-size:0.85rem;">
+              没有账号？
+              <a href="#" id="btn-show-register" style="color:var(--color-primary);">去注册</a>
+            </p>
+          </div>
+        </div>
+
+        <!-- 注册视图 - 步骤1：选择角色 -->
+        <div id="register-step1" style="display:none;">
+          <p style="text-align:center;font-size:1rem;color:#555;margin-bottom:20px;font-weight:500;">选择您的角色，开始注册</p>
+          <div class="role-select-grid" id="role-select-grid">
+            <div class="role-select-card" data-role="self">
+              <div class="role-avatar">👦</div>
+              <div class="role-name">心青年本人</div>
+              <div class="role-desc">记录自己的心情和感受</div>
+            </div>
+            <div class="role-select-card" data-role="parent">
+              <div class="role-avatar">👩</div>
+              <div class="role-name">家长/照护人</div>
+              <div class="role-desc">记录日常照护和家庭情况</div>
+            </div>
+            <div class="role-select-card" data-role="teacher">
+              <div class="role-avatar">👩‍🏫</div>
+              <div class="role-name">机构老师</div>
+              <div class="role-desc">记录教学和活动情况</div>
+            </div>
+            <div class="role-select-card" data-role="caregiver">
+              <div class="role-avatar">👵</div>
+              <div class="role-name">护理员</div>
+              <div class="role-desc">记录日常护理和健康情况</div>
+            </div>
+            <div class="role-select-card" data-role="volunteer">
+              <div class="role-avatar">👷</div>
+              <div class="role-name">志愿者</div>
+              <div class="role-desc">记录陪伴和观察情况</div>
+            </div>
+          </div>
+          <p style="text-align:center;margin-top:20px;color:#999;font-size:0.85rem;">
+            已有账号？
+            <a href="#" id="btn-show-login" style="color:var(--color-primary);">去登录</a>
+          </p>
+        </div>
+
+        <!-- 注册视图 - 步骤2：设置姓名和PIN码 -->
+        <div id="register-step2" class="login-view-container" style="display:none;">
+          <p style="text-align:center;font-size:1rem;color:var(--text-secondary);margin-bottom:20px;font-weight:500;">设置您的账号信息</p>
+          <div class="login-form">
+            <div style="text-align:center;margin-bottom:16px;" id="register-role-display">
+              <span id="register-role-avatar" style="font-size:2.5rem;"></span>
+              <div id="register-role-label" style="font-weight:600;color:#333;margin-top:4px;"></div>
+            </div>
+            <div class="form-group">
+              <label class="form-label">您的姓名</label>
+              <input class="form-input" type="text" id="register-name" placeholder="请输入您的姓名">
+            </div>
+            <div class="form-group">
+              <label class="form-label">设置PIN码</label>
+              <input class="form-input" type="password" id="register-pin" placeholder="4-6位数字" maxlength="6" inputmode="numeric" pattern="[0-9]*">
+            </div>
+            <div class="form-group">
+              <label class="form-label">确认PIN码</label>
+              <input class="form-input" type="password" id="register-pin-confirm" placeholder="再次输入PIN码" maxlength="6" inputmode="numeric" pattern="[0-9]*">
+            </div>
+            <button class="btn btn-success" id="btn-register" style="width:100%;justify-content:center;padding:14px;font-size:1rem;border-radius:12px;">完成注册</button>
+            <p style="text-align:center;margin-top:12px;">
+              <a href="#" id="btn-back-to-role" style="color:#999;font-size:0.85rem;">← 返回选择角色</a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 首页 #home ===== -->
+    <section id="home" class="page-section active">
+      <!-- Hero区 -->
+      <div class="hero-section">
+        <div class="container">
+          <div class="hero-avatar">
+            <svg viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="36" cy="36" r="36" fill="#E8F4FD"/>
+              <path d="M20 28 C20 18, 36 14, 36 14 C36 14, 52 18, 52 28 C52 24, 50 20, 46 18 C42 16, 36 16, 36 16 C36 16, 30 16, 26 18 C22 20, 20 24, 20 28Z" fill="#5B9BD5"/>
+              <ellipse cx="36" cy="34" rx="14" ry="15" fill="#FDDCB5"/>
+              <path d="M22 28 C22 20, 30 16, 36 16 C42 16, 50 20, 50 28 C50 26, 48 22, 44 20 C40 18, 36 18, 36 18 C36 18, 32 18, 28 20 C24 22, 22 26, 22 28Z" fill="#5B9BD5"/>
+              <circle cx="30" cy="33" r="2" fill="#333"/>
+              <circle cx="42" cy="33" r="2" fill="#333"/>
+              <path d="M32 38 Q36 42 40 38" stroke="#C0785A" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <h1 class="hero-name" id="hero-name">小雨</h1>
+          <p class="hero-age" id="hero-age">24岁 · 男</p>
+          <p class="hero-intro" id="hero-intro">喜欢烘焙、对公交车路线了如指掌的安静男孩</p>
+          <div class="hero-tags" id="hero-tags"></div>
+          <div class="hero-quick-actions">
+            <button class="btn btn-primary" id="btn-quick-card">📋 打开速读卡</button>
+            <button class="btn btn-outline" id="btn-collect">🤖 对话采集</button>
+          </div>
+        </div>
+      </div>
+      <!-- 今日重点 -->
+      <div class="alert-banner" id="alert-banner"></div>
+      <!-- 最新动态 -->
+      <div class="container" id="latest-activity"></div>
+      <!-- 导航卡片 -->
+      <div class="card-grid" id="card-grid"></div>
+      <!-- 底部 -->
+      <div class="footer">
+        AI懂我 - 心智障碍者动态可视化支持档案 · 小雨虚拟案例原型 v1.0
+      </div>
+    </section>
+
+    <!-- ===== 我喜欢的生活 #life ===== -->
+    <section id="life" class="page-section">
+      <div class="page-header">
+        <button class="back-btn">&larr;</button>
+        <span class="page-title">我喜欢的生活</span>
+      </div>
+      <div class="container" id="life-content" style="padding-top:24px;"></div>
+    </section>
+
+    <!-- ===== 沟通说明书 #communication ===== -->
+    <section id="communication" class="page-section">
+      <div class="page-header">
+        <button class="back-btn">&larr;</button>
+        <span class="page-title">沟通说明书</span>
+      </div>
+      <div class="container" id="communication-content" style="padding-top:24px;"></div>
+    </section>
+
+    <!-- ===== 情绪与行为 #emotion ===== -->
+    <section id="emotion" class="page-section">
+      <div class="page-header">
+        <button class="back-btn">&larr;</button>
+        <span class="page-title">情绪与行为支持</span>
+      </div>
+      <div class="container" id="emotion-content" style="padding-top:24px;"></div>
+    </section>
+
+    <!-- ===== 照护与医疗 #care ===== -->
+    <section id="care" class="page-section">
+      <div class="page-header">
+        <button class="back-btn">&larr;</button>
+        <span class="page-title">照护与医疗提醒</span>
+      </div>
+      <div class="container" id="care-content" style="padding-top:24px;"></div>
+    </section>
+
+    <!-- ===== 工作支持 #work ===== -->
+    <section id="work" class="page-section">
+      <div class="page-header">
+        <button class="back-btn">&larr;</button>
+        <span class="page-title">工作支持</span>
+      </div>
+      <div class="container" id="work-content" style="padding-top:24px;"></div>
+    </section>
+
+    <!-- ===== 关系地图 #relations ===== -->
+    <section id="relations" class="page-section">
+      <div class="page-header">
+        <button class="back-btn">&larr;</button>
+        <span class="page-title">关系地图</span>
+      </div>
+      <div id="relations-content" style="padding-top:24px;"></div>
+    </section>
+
+    <!-- ===== 日常作息/记录时间轴 #timeline ===== -->
+    <section id="timeline" class="page-section">
+      <div class="page-header">
+        <button class="back-btn">&larr;</button>
+        <span class="page-title">记录时间轴</span>
+      </div>
+      <div id="timeline-content" style="padding-top:24px;"></div>
+    </section>
+
+    <!-- ===== 个人中心 #profile ===== -->
+    <section id="profile" class="page-section">
+      <div class="page-header">
+        <button class="back-btn">&larr;</button>
+        <span class="page-title">个人中心</span>
+      </div>
+      <div class="container" id="profile-content" style="padding-top:24px;"></div>
+    </section>
+
+    <!-- ===== 对话式采集 #collect ===== -->
+    <section id="collect" class="page-section">
+      <div class="page-header">
+        <button class="back-btn">&larr;</button>
+        <span class="page-title">对话式信息采集</span>
+      </div>
+      <div class="container-wide" id="collect-content" style="padding-top:24px;">
+        <div class="chat-layout">
+          <div class="chat-panel">
+            <div class="chat-panel-header">🤖 AI懂我 · 对话采集</div>
+            <div class="chat-messages" id="chat-messages"></div>
+            <div id="chat-options-area"></div>
+          </div>
+          <div class="chat-panel categorize-panel">
+            <div class="chat-panel-header">📋 AI 实时归类</div>
+            <div class="categorize-list" id="categorize-list" style="padding:16px;overflow-y:auto;flex:1;">
+              <div class="empty-state">
+                <div class="empty-icon">📝</div>
+                <div class="empty-text">对话开始后，AI将实时归类采集到的信息</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== 数据可视化 #charts ===== -->
+    <section id="charts" class="page-section">
+      <div class="page-header">
+        <button class="back-btn">&larr;</button>
+        <span class="page-title">数据可视化</span>
+      </div>
+      <div id="charts-content" class="container" style="padding-top:24px;"></div>
+    </section>
+
+    <!-- ===== 每日任务 #tasks ===== -->
+    <section id="tasks" class="page-section">
+      <div class="page-header">
+        <button class="back-btn">&larr;</button>
+        <span class="page-title">每日任务</span>
+      </div>
+      <div id="tasks-content" class="container" style="padding-top:24px;"></div>
+    </section>
+
+    <!-- ===== 日程日历 #calendar ===== -->
+    <section id="calendar" class="page-section">
+      <div class="page-header">
+        <button class="back-btn">&larr;</button>
+        <span class="page-title">日程日历</span>
+      </div>
+      <div id="calendar-content" class="container" style="padding-top:24px;"></div>
+    </section>
+
+  </main>
+
+  <!-- ========== 添加记录弹窗 ========== -->
+  <div class="modal-overlay" id="add-record-modal">
+    <div class="modal-content" style="max-width:500px;">
+      <div class="modal-header">
+        <div>
+          <div class="modal-title" id="add-record-title">添加记录</div>
+          <div style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;" id="add-record-subtitle"></div>
+        </div>
+        <button class="modal-close" id="add-record-close-btn">&times;</button>
+      </div>
+      <div class="modal-body" id="add-record-body"></div>
+      <div class="modal-footer" id="add-record-footer"></div>
+    </div>
+  </div>
+
+  <!-- ========== 速读卡弹窗 ========== -->
+  <div class="modal-overlay" id="quick-card-modal">
+    <div class="modal-content" style="max-width:540px;">
+      <div class="modal-header">
+        <span class="modal-title">3分钟速读卡</span>
+        <button class="modal-close" id="modal-close-btn">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div class="version-tabs" id="version-tabs"></div>
+        <div id="quick-card-body"></div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-primary" id="btn-print-card">🖨️ 打印</button>
+        <button class="btn btn-outline" id="btn-close-modal">关闭</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 导出PDF库 -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <!-- 图表库 -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- 引入主脚本 -->
+  <script src="js/app.js"></script>
+
+</body>
+</html>
