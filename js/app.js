@@ -1625,6 +1625,14 @@
     // 渲染今日重点提醒 —— 根据角色定制
     if (alertBannerEl) {
       var alertHTML = getRoleAlerts(role);
+      // 家长和护理员首页追加实时情绪预警
+      if (role === 'parent' || role === 'caregiver') {
+        var records = DataStore.getRecords();
+        var emotionAlert = analyzeEmotionTrend(records);
+        if (emotionAlert.level !== 'normal') {
+          alertHTML += '<div class="alert-item ' + (emotionAlert.level === 'warning' ? 'danger' : 'warning') + '">' + emotionAlert.message + '</div>';
+        }
+      }
       alertBannerEl.innerHTML = alertHTML;
     }
 
@@ -2465,6 +2473,35 @@
 
     var html = '';
 
+    // === AI情绪预警分析 ===
+    var records = DataStore.getRecords();
+    var emotionAlert = analyzeEmotionTrend(records);
+    html += renderEmotionAlert(emotionAlert);
+
+    // === AI策略推荐 ===
+    html += '<h2 class="section-title">🧩 智能策略推荐</h2>';
+    html += '<div style="background:#fff;border-radius:12px;padding:16px;margin-bottom:20px;box-shadow:0 1px 6px rgba(0,0,0,0.06);">';
+    html += '  <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">';
+    html += '    <select id="strategy-emotion-select" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;background:#fff;">';
+    html += '      <option value="">选择情绪状态...</option>';
+    EMOTION_OPTIONS.forEach(function (e) {
+      if (e.value !== 'happy' && e.value !== 'calm') {
+        html += '      <option value="' + e.value + '">' + e.emoji + ' ' + e.value + '</option>';
+      }
+    });
+    html += '    </select>';
+    html += '    <select id="strategy-severity-select" style="padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.85rem;background:#fff;">';
+    html += '      <option value="mild">轻度</option>';
+    html += '      <option value="moderate">中度</option>';
+    html += '      <option value="severe">重度</option>';
+    html += '    </select>';
+    html += '    <button id="btn-get-strategy" style="padding:8px 20px;background:#4A90D9;color:#fff;border:none;border-radius:8px;font-size:0.85rem;cursor:pointer;">获取策略</button>';
+    html += '  </div>';
+    html += '  <div id="strategy-recommendation-area" style="min-height:60px;">';
+    html += '    <div style="padding:16px;text-align:center;color:#999;font-size:0.9rem;">选择情绪状态和严重程度，获取个性化策略推荐</div>';
+    html += '  </div>';
+    html += '</div>';
+
     // 流程图：触发 → 预警 → 安抚 → 危机
     html += '<h2 class="section-title">情绪支持流程</h2>';
     html += '<div class="flow-indicator">';
@@ -2556,6 +2593,54 @@
     var firstStep = contentArea.querySelector('.flow-step');
     if (firstStep) {
       firstStep.classList.add('active');
+    }
+
+    // 绑定策略推荐按钮
+    var strategyBtn = document.getElementById('btn-get-strategy');
+    if (strategyBtn) {
+      strategyBtn.addEventListener('click', function () {
+        var emotionSelect = document.getElementById('strategy-emotion-select');
+        var severitySelect = document.getElementById('strategy-severity-select');
+        var emotionValue = emotionSelect ? emotionSelect.value : '';
+        var severity = severitySelect ? severitySelect.value : 'mild';
+
+        if (!emotionValue) {
+          showToast('请先选择情绪状态');
+          return;
+        }
+
+        var recentStrategies = getRecentStrategyRecords();
+        var recommendation = recommendStrategies(emotionValue, severity, recentStrategies);
+        var area = document.getElementById('strategy-recommendation-area');
+        if (area) {
+          area.innerHTML = renderStrategyRecommendation(recommendation);
+        }
+
+        // 绑定"记录使用此策略"按钮
+        contentArea.querySelectorAll('.btn-use-strategy').forEach(function (btn) {
+          btn.addEventListener('click', function () {
+            var strategyName = this.getAttribute('data-strategy');
+            var emotionLabel = this.getAttribute('data-emotion');
+            var user = DataStore.getCurrentUser() || appState.currentUser;
+            if (!user) {
+              showToast('请先登录');
+              return;
+            }
+            // 预填策略记录弹窗
+            addRecordState.selectedType = 'strategy';
+            var overlay = document.getElementById('add-record-modal');
+            if (!overlay) overlay = createAddRecordModal();
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            renderAddRecordStep2(user, ROLES[user.role], 'strategy');
+            // 预填标题
+            setTimeout(function () {
+              var titleInput = document.querySelector('#add-record-form input[name="title"]');
+              if (titleInput) titleInput.value = strategyName;
+            }, 50);
+          });
+        });
+      });
     }
   }
 
@@ -3458,7 +3543,623 @@
   }
 
   /* ==========================================================
-   * 二十、对话式采集
+   * 二十、策略知识库与规则引擎（AI情绪行为支持）
+   * ========================================================== */
+
+  /**
+   * 策略知识库 —— 覆盖10类情绪行为 + 感官支持
+   * 结构：emotionType → severity → [strategies]
+   */
+  var STRATEGY_KB = {
+    anxiety: {
+      label: '焦虑/紧张',
+      emoji: '😰',
+      levels: {
+        mild: [
+          {
+            name: '深呼吸引导',
+            steps: ['降低环境刺激（关灯/降噪音）', '示范深呼吸', '陪伴数息3-5次'],
+            caution: '不强迫模仿，允许自我调节节奏',
+            expected: '5-10分钟内情绪平稳'
+          },
+          {
+            name: '感官安抚',
+            steps: ['提供感官玩具（压力球/触觉板）', '引导到安静角落', '播放白噪音'],
+            caution: '提前了解个人偏好感官物品',
+            expected: '10-15分钟情绪缓解'
+          },
+          {
+            name: '转移注意力',
+            steps: ['观察兴趣点', '自然引入喜欢的话题/活动', '逐步引导脱离焦虑源'],
+            caution: '转移要自然，不要说"别焦虑"',
+            expected: '注意力成功转移'
+          }
+        ],
+        moderate: [
+          {
+            name: '安静空间隔离',
+            steps: ['引导至预设安全空间', '降低光线和声音', '提供安抚物品', '保持陪伴但保持距离'],
+            caution: '空间需提前布置，有安全感；不锁门',
+            expected: '15-30分钟情绪稳定'
+          },
+          {
+            name: '压力释放',
+            steps: ['提供深压力背心/重力毯', '引导做推墙/深蹲等本体觉活动', '允许摇晃身体'],
+            caution: '提前确认个人接受度',
+            expected: '20分钟内紧张感降低'
+          },
+          {
+            name: '音乐疗法',
+            steps: ['播放个人偏好音乐', '允许戴耳机隔绝环境音', '陪伴静默'],
+            caution: '音乐库需提前建立',
+            expected: '10-20分钟情绪改善'
+          }
+        ],
+        severe: [
+          {
+            name: '专业介入',
+            steps: ['确保环境安全', '通知专业人员/家长', '记录详细情况', '维持安全距离'],
+            caution: '不可独自处理；保留现场记录',
+            expected: '专业人员接手处理'
+          },
+          {
+            name: '安全保护',
+            steps: ['清理危险物品', '用软垫保护', '避免身体接触', '持续观察呼吸和状态'],
+            caution: '不强行约束；保护头部',
+            expected: '确保人身安全'
+          }
+        ]
+      }
+    },
+    aggression: {
+      label: '暴躁/攻击行为',
+      emoji: '😠',
+      levels: {
+        mild: [
+          {
+            name: '运动释放',
+            steps: ['引导到开放空间', '做跳跃/跑步等大运动', '逐渐引导到替代行为'],
+            caution: '提前规划安全运动空间',
+            expected: '能量释放，情绪缓和'
+          },
+          {
+            name: '替代行为引导',
+            steps: ['识别攻击需求（击打？推？）', '提供替代物（枕头/沙袋）', '引导力量释放到替代物'],
+            caution: '不说"不能打"，给替代方案',
+            expected: '攻击行为转为安全释放'
+          },
+          {
+            name: '情绪命名',
+            steps: ['平静状态下帮助命名情绪', '"你现在是不是很生气？"', '等待回应，不急于解决'],
+            caution: '部分心青年语言能力有限，可用图片卡',
+            expected: '情绪被识别和接纳'
+          }
+        ],
+        moderate: [
+          {
+            name: '环境隔离',
+            steps: ['引导/协助到安全空间', '移除可伤害物品', '降低环境刺激', '保持安全距离观察'],
+            caution: '确保有安全出口；至少两人配合',
+            expected: '30分钟内情绪逐步降级'
+          },
+          {
+            name: '感官降级',
+            steps: ['关灯/拉窗帘', '降低声音', '提供深压力输入', '减少语言指令'],
+            caution: '感官过载是常见触发因素',
+            expected: '感官负荷降低，情绪缓和'
+          }
+        ],
+        severe: [
+          {
+            name: '紧急保护',
+            steps: ['确保所有人安全', '呼叫支援', '通知家长/专业人员', '保护心青年头部和身体'],
+            caution: '不可独自处理；记录时间线',
+            expected: '安全度过危机'
+          },
+          {
+            name: '紧急联系人通知',
+            steps: ['按预设顺序通知', '提供现场情况', '等待专业指导'],
+            caution: '紧急联系人需提前设定',
+            expected: '专业支援到位'
+          }
+        ]
+      }
+    },
+    selfInjury: {
+      label: '自伤行为',
+      emoji: '🤕',
+      levels: {
+        mild: [
+          {
+            name: '替代感官输入',
+            steps: ['识别自伤部位和功能', '提供等价感官刺激（如手部按压代替拍头）', '引导使用'],
+            caution: '替代物需满足相同感官需求',
+            expected: '自伤行为减少'
+          },
+          {
+            name: '情绪Redirect',
+            steps: ['不惊呼制止', '平静提供替代物', '引导到手部活动'],
+            caution: '大反应会强化行为',
+            expected: '行为转移'
+          }
+        ],
+        moderate: [
+          {
+            name: '安全保护',
+            steps: ['佩戴护具（头盔/护腕）', '移除尖锐物品', '提供安全自伤替代（捏压力球）'],
+            caution: '保护为主，不强制止',
+            expected: '减少伤害程度'
+          },
+          {
+            name: '感官降级',
+            steps: ['降低环境刺激', '深压力输入', '减少语言指令'],
+            caution: '感官过载常引发自伤',
+            expected: '15-20分钟缓和'
+          }
+        ],
+        severe: [
+          {
+            name: '紧急保护',
+            steps: ['保护关键部位（头/眼）', '呼叫支援', '记录持续时间和频率', '通知专业人员'],
+            caution: '频繁或严重自伤需专业评估',
+            expected: '安全度过'
+          },
+          {
+            name: '医疗评估',
+            steps: ['检查是否有身体不适（牙痛/胃痛）', '记录行为模式', '预约专业评估'],
+            caution: '排除身体疼痛引发的自伤',
+            expected: '明确原因'
+          }
+        ]
+      }
+    },
+    fear: {
+      label: '恐惧/恐怖反应',
+      emoji: '😨',
+      levels: {
+        mild: [
+          {
+            name: '社交故事预演',
+            steps: ['提前编写社交故事', '反复阅读', '角色扮演', '实地尝试'],
+            caution: '故事需个性化，用第一人称',
+            expected: '心理准备充分'
+          },
+          {
+            name: '感官保护',
+            steps: ['降噪耳机', '遮光眼罩', '携带安全感物品'],
+            caution: '提前准备感官保护工具',
+            expected: '感官负荷降低'
+          }
+        ],
+        moderate: [
+          {
+            name: '系统脱敏',
+            steps: ['制作恐惧物品/场景图片', '从图片→视频→远距离观察→近距离', '每步给予奖励', '逐步延长接触时间'],
+            caution: '每步停留时间足够长再进阶',
+            expected: '恐惧反应降低'
+          }
+        ],
+        severe: [
+          {
+            name: '紧急撤离+专业评估',
+            steps: ['立即撤离恐惧源', '到安全空间安抚', '记录触发因素', '预约专业评估'],
+            caution: '严重恐惧反应需心理专业介入',
+            expected: '情绪稳定，制定后续计划'
+          }
+        ]
+      }
+    },
+    stereotypy: {
+      label: '刻板/重复行为',
+      emoji: '🔄',
+      levels: {
+        mild: [
+          {
+            name: '理解行为功能',
+            steps: ['观察行为功能（自我调节？沟通？）', '若无害则允许', '若影响参与则提供替代'],
+            caution: '刻板行为有其功能，理解再干预',
+            expected: '不影响日常功能'
+          }
+        ],
+        moderate: [
+          {
+            name: '替代行为',
+            steps: ['识别行为功能', '设计功能等价的替代行为', '逐步引导'],
+            caution: '替代行为需满足相同感官需求',
+            expected: '刻板行为减少'
+          }
+        ],
+        severe: [
+          {
+            name: '渐进适应',
+            steps: ['提前预告环境变化', '提供感官工具', '缩短暴露时间逐步延长'],
+            caution: '不强迫完全抑制',
+            expected: '适应能力提升'
+          }
+        ]
+      }
+    },
+    withdrawal: {
+      label: '社交退缩/拒绝',
+      emoji: '🫥',
+      levels: {
+        mild: [
+          {
+            name: '渐进式参与',
+            steps: ['允许观察不参与', '小任务开始', '同伴配对', '逐步增加参与度'],
+            caution: '不强迫社交；尊重个人节奏',
+            expected: '逐步融入活动'
+          }
+        ],
+        moderate: [
+          {
+            name: '提前准备',
+            steps: ['提前介绍环境照片', '角色扮演', '携带安抚物品', '缩短首次时间'],
+            caution: '新环境是主要触发因素',
+            expected: '适应新环境'
+          }
+        ],
+        severe: [
+          {
+            name: '社交故事',
+            steps: ['编写社交故事', '提前阅读', '情境中提醒', '事后回顾'],
+            caution: '社交故事需个性化',
+            expected: '社交理解提升'
+          }
+        ]
+      }
+    },
+    hyperactivity: {
+      label: '多动/冲动行为',
+      emoji: '⚡',
+      levels: {
+        mild: [
+          {
+            name: '本体觉输入',
+            steps: ['课间做跳跃/推墙活动', '使用坐垫/弹力带', '允许小动作'],
+            caution: '提供合法的活动方式',
+            expected: '注意力提升'
+          }
+        ],
+        moderate: [
+          {
+            name: '自我调节训练',
+            steps: ['使用"停-想-做"卡片', '练习等待', '逐步延长等待时间'],
+            caution: '从短时间开始',
+            expected: '冲动行为减少'
+          }
+        ],
+        severe: [
+          {
+            name: '任务分解',
+            steps: ['大任务拆小步', '每步计时', '完成即奖励', '逐步延长任务时长'],
+            caution: '任务难度逐步提升',
+            expected: '注意力持续时间延长'
+          }
+        ]
+      }
+    },
+    sleep: {
+      label: '睡眠问题',
+      emoji: '😴',
+      levels: {
+        mild: [
+          {
+            name: '睡前仪式',
+            steps: ['固定睡前流程（洗澡→阅读→关灯）', '降低环境刺激', '白噪音辅助'],
+            caution: '流程需固定一致',
+            expected: '入睡时间缩短'
+          }
+        ],
+        moderate: [
+          {
+            name: '检查触发因素',
+            steps: ['排除身体不适', '检查环境（温度/噪音）', '轻安抚不互动', '记录频率'],
+            caution: '频繁醒来需专业评估',
+            expected: '夜间醒来减少'
+          }
+        ],
+        severe: [
+          {
+            name: '专业评估',
+            steps: ['记录睡眠日志', '预约睡眠专科', '排除医学原因'],
+            caution: '长期严重睡眠问题需医疗介入',
+            expected: '明确原因并制定方案'
+          }
+        ]
+      }
+    },
+    eating: {
+      label: '饮食问题',
+      emoji: '🍽️',
+      levels: {
+        mild: [
+          {
+            name: '渐进暴露',
+            steps: ['新食物放桌上不要求吃', '逐步接触（看→闻→舔→咬）', '搭配偏好食物'],
+            caution: '不强迫进食；记录营养摄入',
+            expected: '食物接受度扩大'
+          }
+        ],
+        moderate: [
+          {
+            name: '灵活调整',
+            steps: ['记录仪式行为', '微调一个变量', '逐步增加灵活性'],
+            caution: '突然改变会引发焦虑',
+            expected: '进食仪式减少'
+          }
+        ],
+        severe: [
+          {
+            name: '营养评估',
+            steps: ['记录每日摄入', '咨询营养师', '必要时补充营养剂'],
+            caution: '严重偏食影响健康需专业介入',
+            expected: '营养均衡改善'
+          }
+        ]
+      }
+    },
+    sensory: {
+      label: '感官过载',
+      emoji: '🌀',
+      levels: {
+        mild: [
+          {
+            name: '感官饮食',
+            steps: ['安排定时感官活动（推墙/跳跃）', '提供感官工具箱', '记录有效活动'],
+            caution: '感官饮食需个性化定制',
+            expected: '感官需求得到满足'
+          }
+        ],
+        moderate: [
+          {
+            name: '感官过载应对',
+            steps: ['识别预警信号（捂耳/闭眼/烦躁）', '立即降低环境刺激', '提供深压力输入', '允许自我调节'],
+            caution: '恢复后不急于恢复正常',
+            expected: '15-20分钟情绪恢复'
+          }
+        ],
+        severe: [
+          {
+            name: '环境重构',
+            steps: ['评估环境感官负荷', '改造空间（灯光/隔音）', '建立专属安静空间', '制定应急方案'],
+            caution: '环境改造需多方协作',
+            expected: '感官过载频率降低'
+          }
+        ]
+      }
+    }
+  };
+
+  /**
+   * 情绪类型映射 —— 将EMOTION_OPTIONS的value映射到策略知识库的key
+   */
+  var EMOTION_TO_STRATEGY = {
+    '开心': null,       // 开心不需要策略
+    '平静': null,       // 平静不需要策略
+    '焦虑': 'anxiety',
+    '生气': 'aggression',
+    '难过': 'withdrawal'
+  };
+
+  /**
+   * 规则引擎 —— 根据情绪记录匹配策略
+   * @param {string} emotionValue - 情绪值（对应EMOTION_OPTIONS）
+   * @param {string} severity - 严重程度 mild/moderate/severe
+   * @param {Array} recentStrategyRecords - 近期策略记录（用于效果优化）
+   * @returns {Object} 推荐结果
+   */
+  function recommendStrategies(emotionValue, severity, recentStrategyRecords) {
+    var strategyKey = EMOTION_TO_STRATEGY[emotionValue];
+    if (!strategyKey || !STRATEGY_KB[strategyKey]) {
+      return { strategies: [], message: '当前情绪状态暂不需要策略干预' };
+    }
+
+    var category = STRATEGY_KB[strategyKey];
+    var level = severity || 'mild';
+    var strategies = category.levels[level] || category.levels.mild;
+
+    // 如果有历史策略记录，按效果排序
+    var rankedStrategies = strategies.map(function (s) {
+      var effectivenessScore = 0;
+      var usageCount = 0;
+      if (recentStrategyRecords && recentStrategyRecords.length > 0) {
+        recentStrategyRecords.forEach(function (r) {
+          if (r.title && r.title.indexOf(s.name) !== -1) {
+            usageCount++;
+            effectivenessScore += (r.effectiveness || 3);
+          }
+        });
+      }
+      return {
+        strategy: s,
+        avgEffectiveness: usageCount > 0 ? (effectivenessScore / usageCount) : 0,
+        usageCount: usageCount
+      };
+    });
+
+    // 按平均效果排序（有历史数据的有效策略排前面）
+    rankedStrategies.sort(function (a, b) {
+      return b.avgEffectiveness - a.avgEffectiveness;
+    });
+
+    return {
+      emotionLabel: category.label,
+      emotionEmoji: category.emoji,
+      severity: level,
+      strategies: rankedStrategies,
+      message: rankedStrategies[0].usageCount > 0
+        ? '基于历史效果推荐，"' + rankedStrategies[0].strategy.name + '"之前效果最好'
+        : '根据当前情绪状态推荐以下策略'
+    };
+  }
+
+  /**
+   * 情绪预警分析 —— 基于近期情绪记录检测趋势
+   * @param {Array} records - 所有记录
+   * @returns {Object} 预警结果
+   */
+  function analyzeEmotionTrend(records) {
+    var now = new Date();
+    var sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+    // 筛选近7天的情绪记录
+    var recentEmotions = records.filter(function (r) {
+      if (r.type !== 'emotion' && r.type !== 'mood') return false;
+      var recordDate = new Date(r.date + 'T' + (r.time || '00:00'));
+      return recordDate >= sevenDaysAgo;
+    });
+
+    if (recentEmotions.length === 0) {
+      return { level: 'normal', message: '近期无情绪记录', data: [] };
+    }
+
+    // 负面情绪判断（兼容mood英文值和emotion中文值）
+    var negativeValues = ['anxious', 'angry', 'sad', '焦虑', '生气', '难过'];
+
+    // 统计负面情绪比例
+    var negativeEmotions = recentEmotions.filter(function (r) {
+      var mood = r.mood || r.emotion_type;
+      return negativeValues.indexOf(mood) !== -1;
+    });
+
+    var negativeRatio = negativeEmotions.length / recentEmotions.length;
+
+    // 检测近3天是否恶化
+    var threeDaysAgo = new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000);
+    var last3Days = recentEmotions.filter(function (r) {
+      var recordDate = new Date(r.date + 'T' + (r.time || '00:00'));
+      return recordDate >= threeDaysAgo;
+    });
+    var last3DaysNegative = last3Days.filter(function (r) {
+      var mood = r.mood || r.emotion_type;
+      return negativeValues.indexOf(mood) !== -1;
+    });
+    var recent3DayRatio = last3Days.length > 0 ? last3DaysNegative.length / last3Days.length : 0;
+
+    // 之前4天的负面比例
+    var before3Days = recentEmotions.filter(function (r) {
+      var recordDate = new Date(r.date + 'T' + (r.time || '00:00'));
+      return recordDate < threeDaysAgo;
+    });
+    var beforeNegative = before3Days.filter(function (r) {
+      var mood = r.mood || r.emotion_type;
+      return negativeValues.indexOf(mood) !== -1;
+    });
+    var beforeRatio = before3Days.length > 0 ? beforeNegative.length / before3Days.length : 0;
+
+    // 预警等级判定
+    var level, message;
+    if (negativeRatio > 0.6 && recent3DayRatio > beforeRatio) {
+      level = 'warning';
+      message = '⚠️ 近7天负面情绪占比' + Math.round(negativeRatio * 100) + '%，且近3天呈上升趋势，建议密切关注';
+    } else if (negativeRatio > 0.4) {
+      level = 'attention';
+      message = '🔔 近7天负面情绪占比' + Math.round(negativeRatio * 100) + '%，建议关注情绪状态';
+    } else {
+      level = 'normal';
+      message = '✅ 近7天情绪状态总体平稳';
+    }
+
+    return {
+      level: level,
+      message: message,
+      totalRecords: recentEmotions.length,
+      negativeCount: negativeEmotions.length,
+      negativeRatio: Math.round(negativeRatio * 100),
+      recent3DayRatio: Math.round(recent3DayRatio * 100),
+      trendUp: recent3DayRatio > beforeRatio
+    };
+  }
+
+  /**
+   * 获取近期策略记录
+   */
+  function getRecentStrategyRecords() {
+    var records = DataStore.getRecords();
+    return records.filter(function (r) {
+      return r.type === 'strategy';
+    }).slice(0, 20);
+  }
+
+  /**
+   * 渲染策略推荐卡片
+   * @param {Object} recommendation - recommendStrategies的返回值
+   * @returns {string} HTML
+   */
+  function renderStrategyRecommendation(recommendation) {
+    if (!recommendation || recommendation.strategies.length === 0) {
+      return '<div style="padding:16px;text-align:center;color:#999;font-size:0.9rem;">' +
+             recommendation.message + '</div>';
+    }
+
+    var html = '';
+    html += '<div style="margin-bottom:12px;padding:10px 14px;background:#f0f7ff;border-radius:8px;font-size:0.85rem;color:#4A90D9;">';
+    html += '  💡 ' + recommendation.message;
+    html += '</div>';
+
+    recommendation.strategies.forEach(function (item, idx) {
+      var s = item.strategy;
+      var badge = idx === 0 ? '<span style="background:#52C41A;color:#fff;font-size:0.7rem;padding:1px 6px;border-radius:8px;margin-left:6px;">推荐</span>' : '';
+      var effectBadge = '';
+      if (item.usageCount > 0) {
+        effectBadge = '<span style="background:#fff0f6;color:#EB2F96;font-size:0.7rem;padding:1px 6px;border-radius:8px;margin-left:4px;">' +
+                       '历史效果 ' + item.avgEffectiveness.toFixed(1) + '/5 (' + item.usageCount + '次)</span>';
+      }
+
+      html += '<div class="strategy-card" style="background:#fff;border-radius:12px;padding:16px;margin-bottom:12px;box-shadow:0 1px 6px rgba(0,0,0,0.06);border-left:4px solid ' + (idx === 0 ? '#52C41A' : '#ddd') + ';">';
+      html += '  <div style="font-weight:600;color:#333;font-size:0.95rem;margin-bottom:8px;">' + s.name + badge + effectBadge + '</div>';
+      html += '  <div style="margin-bottom:8px;">';
+      html += '    <div style="font-size:0.8rem;color:#888;margin-bottom:4px;">实施步骤：</div>';
+      html += '    <ol style="margin:0;padding-left:20px;font-size:0.85rem;color:#555;line-height:1.6;">';
+      s.steps.forEach(function (step) {
+        html += '      <li>' + step + '</li>';
+      });
+      html += '    </ol>';
+      html += '  </div>';
+      html += '  <div style="display:flex;gap:12px;flex-wrap:wrap;font-size:0.8rem;">';
+      html += '    <span style="color:#FAAD14;">⚠️ ' + s.caution + '</span>';
+      html += '    <span style="color:#52C41A;">✅ ' + s.expected + '</span>';
+      html += '  </div>';
+      html += '  <button class="btn-use-strategy" data-strategy="' + s.name + '" data-emotion="' + recommendation.emotionLabel + '" style="margin-top:10px;padding:6px 16px;background:#4A90D9;color:#fff;border:none;border-radius:6px;font-size:0.8rem;cursor:pointer;">记录使用此策略</button>';
+      html += '</div>';
+    });
+
+    return html;
+  }
+
+  /**
+   * 渲染情绪预警卡片
+   * @param {Object} alert - analyzeEmotionTrend的返回值
+   * @returns {string} HTML
+   */
+  function renderEmotionAlert(alert) {
+    var colors = {
+      normal: { bg: '#f6ffed', border: '#52C41A', icon: '✅' },
+      attention: { bg: '#fffbe6', border: '#FAAD14', icon: '🔔' },
+      warning: { bg: '#fff2f0', border: '#F5222D', icon: '⚠️' }
+    };
+    var c = colors[alert.level] || colors.normal;
+
+    var html = '';
+    html += '<div style="background:' + c.bg + ';border:1px solid ' + c.border + ';border-radius:12px;padding:16px;margin-bottom:16px;">';
+    html += '  <div style="font-size:0.95rem;color:' + c.border + ';font-weight:600;margin-bottom:6px;">' + c.icon + ' 情绪预警分析</div>';
+    html += '  <div style="font-size:0.88rem;color:#555;margin-bottom:8px;">' + alert.message + '</div>';
+    if (alert.totalRecords) {
+      html += '  <div style="display:flex;gap:16px;font-size:0.8rem;color:#888;">';
+      html += '    <span>近7天记录：' + alert.totalRecords + '条</span>';
+      html += '    <span>负面情绪：' + alert.negativeCount + '条 (' + alert.negativeRatio + '%)</span>';
+      if (alert.trendUp && alert.level !== 'normal') {
+        html += '    <span style="color:#F5222D;">📈 近3天上升趋势</span>';
+      }
+      html += '  </div>';
+    }
+    html += '</div>';
+    return html;
+  }
+
+  /* ==========================================================
+   * 二十一、对话式采集
    * ========================================================== */
 
   /**
