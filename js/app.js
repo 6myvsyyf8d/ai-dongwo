@@ -1189,6 +1189,100 @@
   }
 
   /**
+   * 侧边栏菜单配置（按核心功能分组）
+   */
+  var SIDEBAR_MENU = [
+    {
+      group: '概览',
+      items: [
+        { hash: 'home', icon: '🏠', label: '首页' }
+      ]
+    },
+    {
+      group: '档案',
+      items: [
+        { hash: 'archive', icon: '📋', label: '完整档案' },
+        { hash: 'life', icon: '💚', label: '生活' },
+        { hash: 'communication', icon: '💬', label: '沟通说明书' },
+        { hash: 'emotion', icon: '🌈', label: '情绪与行为' },
+        { hash: 'care', icon: '🩺', label: '照护与医疗' },
+        { hash: 'work', icon: '💼', label: '工作支持' },
+        { hash: 'relations', icon: '👥', label: '关系地图' }
+      ]
+    },
+    {
+      group: '日常',
+      items: [
+        { hash: 'timeline', icon: '📅', label: '时间轴' },
+        { hash: 'tasks', icon: '✅', label: '每日任务' },
+        { hash: 'calendar', icon: '📆', label: '日程日历' }
+      ]
+    },
+    {
+      group: '数据',
+      items: [
+        { hash: 'charts', icon: '📊', label: '数据可视化' },
+        { hash: 'analytics', icon: '📈', label: '数据价值' }
+      ]
+    },
+    {
+      group: 'AI助手',
+      items: [
+        { hash: 'collect', icon: '🤖', label: '对话采集' }
+      ]
+    }
+  ];
+
+  /**
+   * 渲染侧边栏菜单
+   */
+  function renderSidebar() {
+    var menuContainer = Utils.dom.get('sidebar-menu');
+    if (!menuContainer) return;
+
+    var html = '';
+    SIDEBAR_MENU.forEach(function (group) {
+      html += '<div class="sidebar-menu-group">';
+      html += '  <div class="sidebar-menu-label">' + group.group + '</div>';
+      group.items.forEach(function (item) {
+        html += '  <div class="sidebar-menu-item" data-route="' + item.hash + '">';
+        html += '    <span class="menu-icon">' + item.icon + '</span>';
+        html += '    <span>' + item.label + '</span>';
+        html += '  </div>';
+      });
+      html += '</div>';
+    });
+
+    Utils.dom.html(menuContainer, html);
+
+    // 绑定菜单点击事件
+    var menuItems = menuContainer.querySelectorAll('.sidebar-menu-item');
+    menuItems.forEach(function (item) {
+      Utils.dom.on(item, 'click', function () {
+        var route = this.getAttribute('data-route');
+        if (route) {
+          window.location.hash = route;
+          // 移动端关闭侧边栏
+          document.body.classList.remove('sidebar-open');
+        }
+      });
+    });
+  }
+
+  /**
+   * 高亮当前侧边栏菜单项
+   */
+  function highlightSidebarItem(route) {
+    var menuItems = document.querySelectorAll('.sidebar-menu-item');
+    menuItems.forEach(function (item) {
+      item.classList.remove('active');
+      if (item.getAttribute('data-route') === route) {
+        item.classList.add('active');
+      }
+    });
+  }
+
+  /**
    * 导航到指定页面
    * @param {string} pageName - 页面名称（如 'home', 'life' 等）
    */
@@ -1196,6 +1290,15 @@
     // 如果页面不存在则回到首页
     if (!routeMap[pageName]) {
       pageName = 'home';
+    }
+
+    // 切换 body 模式
+    if (pageName === 'login') {
+      document.body.classList.add('mode-login');
+      document.body.classList.remove('mode-app');
+    } else {
+      document.body.classList.add('mode-app');
+      document.body.classList.remove('mode-login');
     }
 
     // 隐藏所有页面section
@@ -1212,6 +1315,9 @@
 
     currentPage = pageName;
     appState.currentPage = pageName;
+
+    // 高亮侧边栏菜单
+    highlightSidebarItem(pageName);
 
     // 滚动到页面顶部
     window.scrollTo(0, 0);
@@ -4932,11 +5038,28 @@
       currentRole = user.role;
     }
 
-    // 更新导航栏
+    // 渲染侧边栏菜单
+    renderSidebar();
+
+    // 更新导航栏（侧边栏用户信息）
     updateNavBar();
 
     // 绑定全局事件
     bindGlobalEvents();
+
+    // 绑定移动端侧边栏开关
+    var toggleBtn = Utils.dom.get('sidebar-toggle-mobile');
+    if (toggleBtn) {
+      Utils.dom.on(toggleBtn, 'click', function () {
+        document.body.classList.toggle('sidebar-open');
+      });
+    }
+    var overlay = Utils.dom.get('sidebar-overlay');
+    if (overlay) {
+      Utils.dom.on(overlay, 'click', function () {
+        document.body.classList.remove('sidebar-open');
+      });
+    }
 
     // 初始化路由系统
     initRouter();
