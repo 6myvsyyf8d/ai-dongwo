@@ -354,44 +354,156 @@
   const STORAGE_KEY = 'ai_dongwo_data';
   const DATA_VERSION = 5; // 数据版本，修改此值可强制重新初始化
 
-  /** 生成唯一ID */
-  function generateUUID() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2);
-  }
+  /**
+   * 工具函数模块
+   */
+  const Utils = {
+    id: {
+      generateUUID: function () {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+      },
+      generateUserId: function () {
+        return 'u_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
+      }
+    },
+    date: {
+      today: function () {
+        var d = new Date();
+        return this.format(d);
+      },
+      now: function () {
+        var d = new Date();
+        var hours = String(d.getHours()).padStart(2, '0');
+        var minutes = String(d.getMinutes()).padStart(2, '0');
+        return hours + ':' + minutes;
+      },
+      format: function (date) {
+        var d = date instanceof Date ? date : new Date(date);
+        var year = d.getFullYear();
+        var month = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        return year + '-' + month + '-' + day;
+      },
+      display: function (dateStr) {
+        var today = this.today();
+        var yesterday = new Date();
+        yesterday.setDate(yesterday.getDate() - 1);
+        var yestStr = this.format(yesterday);
+        if (dateStr === today) return '今天';
+        if (dateStr === yestStr) return '昨天';
+        return dateStr;
+      },
+      parse: function (dateStr, timeStr) {
+        return new Date(dateStr + 'T' + (timeStr || '00:00'));
+      },
+      isRecent: function (dateStr, days) {
+        var recordDate = this.parse(dateStr);
+        var threshold = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+        return recordDate >= threshold;
+      }
+    },
+    dom: {
+      get: function (id) {
+        return document.getElementById(id);
+      },
+      on: function (element, event, handler) {
+        element.addEventListener(event, handler);
+      },
+      off: function (element, event, handler) {
+        element.removeEventListener(event, handler);
+      },
+      html: function (element, html) {
+        if (element) element.innerHTML = html;
+      },
+      show: function (element) {
+        if (element) element.style.display = '';
+      },
+      hide: function (element) {
+        if (element) element.style.display = 'none';
+      },
+      toggle: function (element) {
+        if (element) {
+          element.style.display = element.style.display === 'none' ? '' : 'none';
+        }
+      },
+      attr: function (element, name, value) {
+        if (!element) return;
+        if (value !== undefined) {
+          element.setAttribute(name, value);
+        } else {
+          return element.getAttribute(name);
+        }
+      },
+      css: function (element, styles) {
+        if (!element || !styles) return;
+        for (var key in styles) {
+          element.style[key] = styles[key];
+        }
+      },
+      create: function (tag, className) {
+        var el = document.createElement(tag);
+        if (className) el.className = className;
+        return el;
+      },
+      append: function (parent, child) {
+        if (parent && child) parent.appendChild(child);
+      },
+      delegate: function (container, selector, event, handler) {
+        container.addEventListener(event, function (e) {
+          var target = e.target.closest(selector);
+          if (target) handler.call(target, e);
+        });
+      }
+    },
+    array: {
+      groupBy: function (arr, key) {
+        return arr.reduce(function (result, item) {
+          var groupKey = item[key];
+          (result[groupKey] = result[groupKey] || []).push(item);
+          return result;
+        }, {});
+      },
+      sumBy: function (arr, key) {
+        return arr.reduce(function (sum, item) {
+          return sum + (item[key] || 0);
+        }, 0);
+      },
+      countBy: function (arr, key) {
+        return arr.reduce(function (result, item) {
+          var groupKey = item[key];
+          result[groupKey] = (result[groupKey] || 0) + 1;
+          return result;
+        }, {});
+      }
+    },
+    string: {
+      truncate: function (str, maxLen) {
+        return str.length > maxLen ? str.substr(0, maxLen) + '...' : str;
+      },
+      escapeHtml: function (str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str));
+        return div.innerHTML;
+      }
+    },
+    download: function (content, filename, mimeType) {
+      var blob = new Blob([content], { type: mimeType });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
+  };
 
-  /** 生成用户ID */
-  function generateUserId() {
-    return 'u_' + Date.now().toString(36) + Math.random().toString(36).substr(2, 6);
-  }
-
-  /** 获取当前日期字符串（YYYY-MM-DD） */
-  function getTodayString() {
-    var d = new Date();
-    var year = d.getFullYear();
-    var month = String(d.getMonth() + 1).padStart(2, '0');
-    var day = String(d.getDate()).padStart(2, '0');
-    return year + '-' + month + '-' + day;
-  }
-
-  /** 获取当前时间字符串（HH:MM） */
-  function getNowTimeString() {
-    var d = new Date();
-    var hours = String(d.getHours()).padStart(2, '0');
-    var minutes = String(d.getMinutes()).padStart(2, '0');
-    return hours + ':' + minutes;
-  }
-
-  /** 格式化日期显示 */
-  function formatDateDisplay(dateStr) {
-    var today = getTodayString();
-    var yesterday = new Date();
-    yesterday.setDate(yesterday.getDate() - 1);
-    var yestStr = yesterday.getFullYear() + '-' + String(yesterday.getMonth() + 1).padStart(2, '0') + '-' + String(yesterday.getDate()).padStart(2, '0');
-
-    if (dateStr === today) return '今天';
-    if (dateStr === yestStr) return '昨天';
-    return dateStr;
-  }
+  function generateUUID() { return Utils.id.generateUUID(); }
+  function generateUserId() { return Utils.id.generateUserId(); }
+  function getTodayString() { return Utils.date.today(); }
+  function getNowTimeString() { return Utils.date.now(); }
+  function formatDateDisplay(dateStr) { return Utils.date.display(dateStr); }
 
   /** 生成示例用户数据 */
   function generateSampleUsers() {
@@ -969,6 +1081,12 @@
     /** 获取指定日期的事件 */
     getEventsByDate: function(dateStr) {
       return this.getEvents().filter(function(e) { return e.date === dateStr; });
+    },
+
+    /** 获取所有数据（用于导出） */
+    getAllData: function() {
+      var data = this.load();
+      return data || { version: DATA_VERSION, currentUser: null, users: [], records: [], tasks: [], events: [] };
     }
   };
 
@@ -1034,8 +1152,9 @@
     'charts': 'charts',
     'tasks': 'tasks',
     'calendar': 'calendar',
-    'archive': 'archive'
-  };
+      'archive': 'archive',
+      'analytics': 'analytics'
+    };
 
   /**
    * 初始化路由系统
@@ -1147,6 +1266,7 @@
       case 'tasks': renderTasks(); break;
       case 'calendar': renderCalendar(); break;
       case 'archive': renderArchive(); break;
+      case 'analytics': renderAnalytics(); break;
     }
   }
 
@@ -1686,6 +1806,7 @@
         { hash: 'archive', icon: '📋', title: '完整档案', desc: '六大主题档案分类查看' },
         { hash: 'timeline', icon: '📅', title: '动态时间轴', desc: '所有记录按时间排列' },
         { hash: 'tasks', icon: '✅', title: '每日任务', desc: '打卡清单、完成进度' },
+        { hash: 'analytics', icon: '📈', title: '数据价值', desc: '统计分析、数据导出' },
         { hash: 'charts', icon: '📊', title: '数据可视化', desc: '心情趋势、统计图表' }
       ],
       teacher: [
@@ -2936,7 +3057,285 @@
   }
 
   /* ==========================================================
-   * 十七、动态记录时间轴页面渲染（改造后）
+   * 十七、数据价值层 - 统计分析与数据导出
+   * ========================================================== */
+
+  /**
+   * 数据统计分析工具函数
+   */
+  function getAnalyticsData() {
+    var records = DataStore.getRecords();
+    var now = new Date();
+    var thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+
+    // 近30天记录
+    var recentRecords = records.filter(function (r) {
+      return Utils.date.isRecent(r.date, 30);
+    });
+
+    // 按类型统计
+    var typeStats = Utils.array.countBy(recentRecords, 'type');
+
+    // 按角色统计
+    var roleStats = Utils.array.countBy(recentRecords, 'authorRole');
+
+    // 情绪统计（兼容中英文值）
+    var emotionStats = { happy: 0, calm: 0, anxious: 0, angry: 0, sad: 0, excited: 0 };
+    var emotionMapping = {
+      'happy': 'happy', '开心': 'happy',
+      'calm': 'calm', '平静': 'calm',
+      'anxious': 'anxious', '焦虑': 'anxious',
+      'angry': 'angry', '生气': 'angry',
+      'sad': 'sad', '难过': 'sad',
+      'excited': 'excited', '兴奋': 'excited'
+    };
+    recentRecords.forEach(function (r) {
+      var mood = r.mood || r.emotion_type;
+      var normalized = emotionMapping[mood];
+      if (normalized && emotionStats[normalized] !== undefined) {
+        emotionStats[normalized]++;
+      }
+    });
+
+    // 策略效果统计
+    var strategyRecords = records.filter(function (r) {
+      return r.type === 'strategy' && r.effectiveness;
+    });
+    var avgEffectiveness = 0;
+    if (strategyRecords.length > 0) {
+      avgEffectiveness = Utils.array.sumBy(strategyRecords, 'effectiveness') / strategyRecords.length;
+    }
+
+    return {
+      totalRecords: records.length,
+      recentRecords: recentRecords.length,
+      typeStats: typeStats,
+      roleStats: roleStats,
+      emotionStats: emotionStats,
+      strategyRecords: strategyRecords.length,
+      avgEffectiveness: avgEffectiveness.toFixed(1),
+      dataDate: new Date().toLocaleDateString('zh-CN')
+    };
+  }
+
+  /**
+   * 数据脱敏处理 —— 移除所有身份信息
+   */
+  function anonymizeData(data) {
+    var result = JSON.parse(JSON.stringify(data));
+
+    // 移除身份信息
+    if (result.users) {
+      result.users.forEach(function (u) {
+        u.name = '用户' + Math.floor(Math.random() * 1000);
+        u.avatar = '👤';
+        delete u.id;
+        delete u.pin;
+      });
+    }
+
+    // 移除记录中的身份信息
+    if (result.records) {
+      result.records.forEach(function (r) {
+        r.author = '记录者';
+        delete r.authorId;
+        delete r.authorAvatar;
+        // 保留角色类型用于统计，但不暴露具体人员
+      });
+    }
+
+    // 移除基本信息中的姓名
+    if (result.profile) {
+      result.profile.name = '匿名用户';
+    }
+
+    return result;
+  }
+
+  /**
+   * 导出CSV
+   */
+  function exportCSV(data, filename) {
+    var records = data.records || [];
+    var headers = ['日期', '时间', '类型', '标题', '内容', '作者角色', '心情', '策略效果'];
+    var rows = [headers.join(',')];
+
+    records.forEach(function (r) {
+      var row = [
+        r.date || '',
+        r.time || '',
+        RECORD_TYPES[r.type] ? RECORD_TYPES[r.type].label : r.type,
+        r.title || '',
+        r.content ? r.content.replace(/,/g, '，') : '',
+        ROLES[r.authorRole] ? ROLES[r.authorRole].label : r.authorRole,
+        r.mood || r.emotion_type || '',
+        r.effectiveness || ''
+      ];
+      rows.push(row.join(','));
+    });
+
+    Utils.download(rows.join('\n'), filename + '.csv', 'text/csv');
+  }
+
+  /**
+   * 导出JSON
+   */
+  function exportJSON(data, filename, anonymize) {
+    var exportData = anonymize ? anonymizeData(data) : data;
+    Utils.download(JSON.stringify(exportData, null, 2), filename + '.json', 'application/json');
+  }
+
+  /**
+   * 渲染数据价值页面
+   */
+  function renderAnalytics() {
+    var contentArea = Utils.dom.get('analytics-content');
+    if (!contentArea) return;
+
+    var stats = getAnalyticsData();
+    var html = '';
+
+    html += '<div class="analytics-hero">';
+    html += '  <div class="analytics-hero-title">📊 数据价值中心</div>';
+    html += '  <div class="analytics-hero-desc">基于记录数据生成统计分析，支持导出用于科研和政策参考</div>';
+    html += '</div>';
+
+    html += '<div class="stats-grid">';
+    html += '  <div class="stat-card"><div class="stat-icon">📝</div><div class="stat-value">' + stats.totalRecords + '</div><div class="stat-label">总记录数</div></div>';
+    html += '  <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-value" style="color:#52C41A;">' + stats.recentRecords + '</div><div class="stat-label">近30天记录</div></div>';
+    html += '  <div class="stat-card"><div class="stat-icon">🧩</div><div class="stat-value" style="color:#EB2F96;">' + stats.strategyRecords + '</div><div class="stat-label">策略记录数</div></div>';
+    html += '  <div class="stat-card"><div class="stat-icon">⭐</div><div class="stat-value" style="color:#FAAD14;">' + stats.avgEffectiveness + '/5</div><div class="stat-label">平均策略效果</div></div>';
+    html += '</div>';
+
+    html += '<h2 class="section-title">😰 情绪分布（近30天）</h2>';
+    html += '<div class="card">';
+    var emotionOptions = [
+      { key: 'happy', label: '开心', emoji: '😄', color: '#52C41A' },
+      { key: 'calm', label: '平静', emoji: '😌', color: '#1890FF' },
+      { key: 'anxious', label: '焦虑', emoji: '😰', color: '#FAAD14' },
+      { key: 'angry', label: '生气', emoji: '😠', color: '#F5222D' },
+      { key: 'sad', label: '难过', emoji: '😢', color: '#722ED1' },
+      { key: 'excited', label: '兴奋', emoji: '🤩', color: '#EB2F96' }
+    ];
+    var totalEmotions = emotionOptions.reduce(function (sum, e) {
+      return sum + (stats.emotionStats[e.key] || 0);
+    }, 0);
+    emotionOptions.forEach(function (e) {
+      var count = stats.emotionStats[e.key] || 0;
+      var percent = totalEmotions > 0 ? Math.round((count / totalEmotions) * 100) : 0;
+      html += '<div style="margin-bottom:12px;">';
+      html += '  <div class="flex justify-between" style="margin-bottom:4px;">';
+      html += '    <span style="display:flex;align-items:center;gap:6px;">';
+      html += '      <span>' + e.emoji + '</span><span style="font-size:0.88rem;color:#555;">' + e.label + '</span>';
+      html += '    </span>';
+      html += '    <span style="font-size:0.88rem;color:#888;">' + count + '次 (' + percent + '%)</span>';
+      html += '  </div>';
+      html += '  <div class="progress-bar-container"><div class="progress-bar" style="width:' + percent + '%;background:' + e.color + ';"></div></div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    html += '<h2 class="section-title">📋 记录类型分布（近30天）</h2>';
+    html += '<div class="card">';
+    var typeKeys = Object.keys(stats.typeStats);
+    var totalTypes = typeKeys.reduce(function (sum, k) {
+      return sum + stats.typeStats[k];
+    }, 0);
+    typeKeys.forEach(function (typeKey) {
+      var typeInfo = RECORD_TYPES[typeKey] || { label: typeKey, color: '#999' };
+      var count = stats.typeStats[typeKey];
+      var percent = totalTypes > 0 ? Math.round((count / totalTypes) * 100) : 0;
+      html += '<div style="margin-bottom:10px;">';
+      html += '  <div class="flex justify-between" style="margin-bottom:3px;">';
+      html += '    <span style="display:flex;align-items:center;gap:6px;">';
+      html += '      <span>' + typeInfo.icon + '</span><span style="font-size:0.88rem;color:#555;">' + typeInfo.label + '</span>';
+      html += '    </span>';
+      html += '    <span style="font-size:0.88rem;color:#888;">' + count + '次 (' + percent + '%)</span>';
+      html += '  </div>';
+      html += '  <div class="progress-bar-container" style="height:6px;"><div class="progress-bar progress-bar-sm" style="width:' + percent + '%;background:' + typeInfo.color + ';"></div></div>';
+      html += '</div>';
+    });
+    if (typeKeys.length === 0) {
+      html += '<div style="text-align:center;color:#999;padding:16px;">暂无记录数据</div>';
+    }
+    html += '</div>';
+
+    html += '<h2 class="section-title">👥 角色贡献分布（近30天）</h2>';
+    html += '<div class="card">';
+    var roleKeys = Object.keys(stats.roleStats);
+    var totalRoles = roleKeys.reduce(function (sum, k) {
+      return sum + stats.roleStats[k];
+    }, 0);
+    roleKeys.forEach(function (roleKey) {
+      var roleInfo = ROLES[roleKey] || { label: roleKey, color: '#999' };
+      var count = stats.roleStats[roleKey];
+      var percent = totalRoles > 0 ? Math.round((count / totalRoles) * 100) : 0;
+      html += '<div style="margin-bottom:10px;">';
+      html += '  <div class="flex justify-between" style="margin-bottom:3px;">';
+      html += '    <span style="display:flex;align-items:center;gap:6px;">';
+      html += '      <span>' + roleInfo.avatar + '</span><span style="font-size:0.88rem;color:#555;">' + roleInfo.label + '</span>';
+      html += '    </span>';
+      html += '    <span style="font-size:0.88rem;color:#888;">' + count + '次 (' + percent + '%)</span>';
+      html += '  </div>';
+      html += '  <div class="progress-bar-container" style="height:6px;"><div class="progress-bar progress-bar-sm" style="width:' + percent + '%;background:' + roleInfo.color + ';"></div></div>';
+      html += '</div>';
+    });
+    if (roleKeys.length === 0) {
+      html += '<div style="text-align:center;color:#999;padding:16px;">暂无记录数据</div>';
+    }
+    html += '</div>';
+
+    html += '<h2 class="section-title">📥 数据导出</h2>';
+    html += '<div class="card">';
+    html += '  <div style="font-size:0.88rem;color:#888;margin-bottom:16px;">';
+    html += '    支持导出原始数据（含身份信息）或脱敏数据（适合科研共享）。脱敏数据将自动移除所有个人身份信息，仅保留统计分析所需的结构化数据。';
+    html += '  </div>';
+    html += '  <div class="export-buttons">';
+    html += '    <button id="btn-export-csv" class="export-btn export-btn-primary"><span>📄</span>导出CSV（原始）</button>';
+    html += '    <button id="btn-export-json" class="export-btn export-btn-success"><span>📊</span>导出JSON（原始）</button>';
+    html += '    <button id="btn-export-anon-csv" class="export-btn export-btn-warning"><span>🔒</span>导出CSV（脱敏）</button>';
+    html += '    <button id="btn-export-anon-json" class="export-btn export-btn-danger"><span>🔑</span>导出JSON（脱敏）</button>';
+    html += '  </div>';
+    html += '</div>';
+
+    html += '<div class="info-box">';
+    html += '  <div class="info-box-title">💡 数据价值说明</div>';
+    html += '  <ul>';
+    html += '    <li><strong>个体层面：</strong>通过统计分析了解心青年的情绪模式和照护效果，优化照护策略</li>';
+    html += '    <li><strong>机构层面：</strong>汇总多个心青年的数据，分析群体特征和干预效果</li>';
+    html += '    <li><strong>政策层面：</strong>脱敏数据可用于科研和政策制定，为孤独症群体争取更多支持</li>';
+    html += '    <li><strong>隐私保护：</strong>脱敏导出功能确保个人身份信息不被泄露</li>';
+    html += '  </ul>';
+    html += '</div>';
+
+    Utils.dom.html(contentArea, html);
+
+    var baseData = DataStore.getAllData();
+
+    Utils.dom.on(Utils.dom.get('btn-export-csv'), 'click', function () {
+      exportCSV(baseData, 'ai-dongwo-data');
+      showToast('✅ CSV导出成功！');
+    });
+
+    Utils.dom.on(Utils.dom.get('btn-export-json'), 'click', function () {
+      exportJSON(baseData, 'ai-dongwo-data', false);
+      showToast('✅ JSON导出成功！');
+    });
+
+    Utils.dom.on(Utils.dom.get('btn-export-anon-csv'), 'click', function () {
+      var anonData = anonymizeData(baseData);
+      exportCSV(anonData, 'ai-dongwo-data-anon');
+      showToast('✅ 脱敏CSV导出成功！');
+    });
+
+    Utils.dom.on(Utils.dom.get('btn-export-anon-json'), 'click', function () {
+      exportJSON(baseData, 'ai-dongwo-data-anon', true);
+      showToast('✅ 脱敏JSON导出成功！');
+    });
+  }
+
+  /* ==========================================================
+   * 十八、动态记录时间轴页面渲染（改造后）
    * ========================================================== */
 
   /** 时间轴筛选状态 */
