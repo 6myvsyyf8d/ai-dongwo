@@ -296,13 +296,13 @@
       canAdd: ['mood', 'note'],
       description: '记录自己的心情和感受' },
     parent: { label: '家长/照护人', name: '妈妈', avatar: '👩', color: '#52C41A',
-      canAdd: ['care', 'communication', 'emotion', 'note'],
+      canAdd: ['care', 'communication', 'emotion', 'strategy', 'note'],
       description: '记录日常照护和家庭情况' },
     teacher: { label: '机构老师', name: '李老师', avatar: '👩‍🏫', color: '#FAAD14',
-      canAdd: ['activity', 'communication', 'emotion', 'note'],
+      canAdd: ['activity', 'communication', 'emotion', 'strategy', 'note'],
       description: '记录教学和活动情况' },
     caregiver: { label: '护理员', name: '张阿姨', avatar: '👵', color: '#722ED1',
-      canAdd: ['care', 'communication', 'emotion', 'note'],
+      canAdd: ['care', 'communication', 'emotion', 'strategy', 'note'],
       description: '记录日常护理和健康情况' },
     volunteer: { label: '志愿者', name: '小王', avatar: '👷', color: '#13C2C2',
       canAdd: ['accompany', 'emotion', 'note'],
@@ -324,7 +324,9 @@
     accompany: { label: '陪伴记录', icon: '🤝', color: '#13C2C2',
       fields: ['content'], description: '记录陪伴过程中的观察' },
     note: { label: '一般备注', icon: '📝', color: '#999999',
-      fields: ['title', 'content'], description: '添加其他需要记录的备注' }
+      fields: ['title', 'content'], description: '添加其他需要记录的备注' },
+    strategy: { label: '策略记录', icon: '🧩', color: '#EB2F96',
+      fields: ['emotion_type', 'title', 'content', 'effectiveness'], description: '记录情绪行为策略使用及效果' }
   };
 
   /** 心情选项 */
@@ -1871,6 +1873,14 @@
           html += '    <span style="font-size:0.8rem;padding:2px 8px;border-radius:6px;background:#f0f0f0;color:#666;">' + mOpt.emoji + ' ' + mOpt.label + '</span>';
         }
       }
+      if (record.effectiveness) {
+        var effLabels = ['', '无效', '较弱', '一般', '有效', '很有效'];
+        var effEmojis = ['', '😞', '🙁', '😐', '🙂', '😄'];
+        var effIdx = record.effectiveness;
+        if (effIdx >= 1 && effIdx <= 5) {
+          html += '    <span style="font-size:0.8rem;padding:2px 8px;border-radius:6px;background:#fff0f6;color:#EB2F96;">' + effEmojis[effIdx] + ' 效果:' + effLabels[effIdx] + '</span>';
+        }
+      }
       html += '  </div>';
       if (record.title) {
         html += '  <div style="font-weight:600;color:#333;margin-bottom:4px;font-size:0.95rem;">' + record.title + '</div>';
@@ -1883,29 +1893,109 @@
   }
 
   /**
-   * 渲染浮动添加按钮（FAB）
+   * 渲染浮动添加按钮（FAB）—— 角色感知，支持快捷操作
    */
   function renderFAB() {
     var existingFab = document.getElementById('fab-add-record');
     if (existingFab) existingFab.remove();
+    var existingMenu = document.getElementById('fab-quick-menu');
+    if (existingMenu) existingMenu.remove();
 
-    var fab = document.createElement('button');
-    fab.id = 'fab-add-record';
-    fab.textContent = '+';
-    fab.style.cssText = 'position:fixed;bottom:24px;right:24px;width:56px;height:56px;border-radius:50%;background:#4A90D9;color:#fff;font-size:28px;border:none;box-shadow:0 4px 12px rgba(74,144,217,0.4);cursor:pointer;z-index:100;display:flex;align-items:center;justify-content:center;transition:all 0.3s;';
-    fab.addEventListener('mouseenter', function () {
-      this.style.transform = 'scale(1.1)';
-      this.style.boxShadow = '0 6px 20px rgba(74,144,217,0.5)';
-    });
-    fab.addEventListener('mouseleave', function () {
-      this.style.transform = 'scale(1)';
-      this.style.boxShadow = '0 4px 12px rgba(74,144,217,0.4)';
-    });
-    fab.addEventListener('click', function () {
-      openAddRecordModal();
-    });
+    var user = DataStore.getCurrentUser() || appState.currentUser;
+    if (!user) return;
 
-    document.body.appendChild(fab);
+    var role = ROLES[user.role];
+    if (!role || !role.canAdd || role.canAdd.length === 0) return;
+
+    // 创建FAB容器
+    var fabContainer = document.createElement('div');
+    fabContainer.id = 'fab-container';
+    fabContainer.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:100;';
+
+    // 快捷菜单（展开时显示）
+    var quickMenu = document.createElement('div');
+    quickMenu.id = 'fab-quick-menu';
+    quickMenu.style.cssText = 'position:absolute;bottom:70px;right:0;display:none;flex-direction:column;gap:8px;align-items:flex-end;';
+
+    // 如果只有一种记录类型，直接打开弹窗；多种类型时显示快捷菜单
+    if (role.canAdd.length === 1) {
+      // 单一类型，FAB直接添加
+      var fab1 = document.createElement('button');
+      fab1.id = 'fab-add-record';
+      var type1 = RECORD_TYPES[role.canAdd[0]];
+      fab1.innerHTML = type1.icon + ' +';
+      fab1.style.cssText = 'width:56px;height:56px;border-radius:50%;background:' + type1.color + ';color:#fff;font-size:22px;border:none;box-shadow:0 4px 12px ' + type1.color + '66;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.3s;';
+      fab1.addEventListener('click', function () {
+        addRecordState.selectedType = role.canAdd[0];
+        var overlay = document.getElementById('add-record-modal');
+        if (!overlay) overlay = createAddRecordModal();
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        renderAddRecordStep2(user, role, role.canAdd[0]);
+      });
+      fabContainer.appendChild(fab1);
+    } else {
+      // 多类型，FAB点击展开快捷菜单
+      var fab = document.createElement('button');
+      fab.id = 'fab-add-record';
+      fab.textContent = '+';
+      fab.style.cssText = 'width:56px;height:56px;border-radius:50%;background:#4A90D9;color:#fff;font-size:28px;border:none;box-shadow:0 4px 12px rgba(74,144,217,0.4);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all 0.3s;';
+
+      // 构建快捷菜单项
+      role.canAdd.forEach(function (typeKey) {
+        var type = RECORD_TYPES[typeKey];
+        if (!type) return;
+        var item = document.createElement('div');
+        item.style.cssText = 'display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 14px;background:#fff;border-radius:24px;box-shadow:0 2px 8px rgba(0,0,0,0.12);transition:all 0.2s;';
+        item.innerHTML = '<span style="font-size:1.2rem;">' + type.icon + '</span><span style="font-size:0.85rem;color:#333;">' + type.label + '</span>';
+        item.addEventListener('mouseenter', function () {
+          this.style.background = type.color + '15';
+        });
+        item.addEventListener('mouseleave', function () {
+          this.style.background = '#fff';
+        });
+        item.addEventListener('click', function () {
+          quickMenu.style.display = 'none';
+          fab.textContent = '+';
+          fab.style.transform = 'rotate(0deg)';
+          addRecordState.selectedType = typeKey;
+          var overlay = document.getElementById('add-record-modal');
+          if (!overlay) overlay = createAddRecordModal();
+          overlay.classList.add('active');
+          document.body.style.overflow = 'hidden';
+          renderAddRecordStep2(user, role, typeKey);
+        });
+        quickMenu.appendChild(item);
+      });
+
+      // "更多"选项
+      var moreItem = document.createElement('div');
+      moreItem.style.cssText = 'display:flex;align-items:center;gap:8px;cursor:pointer;padding:8px 14px;background:#fff;border-radius:24px;box-shadow:0 2px 8px rgba(0,0,0,0.12);transition:all 0.2s;';
+      moreItem.innerHTML = '<span style="font-size:1.2rem;">📋</span><span style="font-size:0.85rem;color:#333;">全部类型</span>';
+      moreItem.addEventListener('click', function () {
+        quickMenu.style.display = 'none';
+        fab.textContent = '+';
+        fab.style.transform = 'rotate(0deg)';
+        openAddRecordModal();
+      });
+      quickMenu.appendChild(moreItem);
+
+      fab.addEventListener('click', function () {
+        var isVisible = quickMenu.style.display === 'flex';
+        if (isVisible) {
+          quickMenu.style.display = 'none';
+          fab.style.transform = 'rotate(0deg)';
+        } else {
+          quickMenu.style.display = 'flex';
+          fab.style.transform = 'rotate(45deg)';
+        }
+      });
+
+      fabContainer.appendChild(quickMenu);
+      fabContainer.appendChild(fab);
+    }
+
+    document.body.appendChild(fabContainer);
   }
 
   /* ==========================================================
@@ -2113,6 +2203,28 @@
           html += '  <textarea name="content" placeholder="描述情绪事件的触发原因、经过和应对方式..." rows="4" style="width:100%;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:0.9rem;box-sizing:border-box;resize:vertical;" required></textarea>';
           html += '</div>';
           break;
+
+        case 'effectiveness':
+          html += '<div style="margin-bottom:14px;">';
+          html += '  <label style="display:block;font-size:0.85rem;color:#555;margin-bottom:8px;font-weight:500;">策略效果评分</label>';
+          html += '  <div style="display:flex;gap:8px;flex-wrap:wrap;">';
+          var effLevels = [
+            { value: 1, label: '无效', emoji: '😞' },
+            { value: 2, label: '较弱', emoji: '🙁' },
+            { value: 3, label: '一般', emoji: '😐' },
+            { value: 4, label: '有效', emoji: '🙂' },
+            { value: 5, label: '很有效', emoji: '😄' }
+          ];
+          effLevels.forEach(function (eff) {
+            html += '    <label class="effectiveness-option" style="cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 14px;border:2px solid #eee;border-radius:10px;transition:all 0.2s;background:#fff;">';
+            html += '      <input type="radio" name="effectiveness" value="' + eff.value + '" style="display:none;">';
+            html += '      <span style="font-size:1.5rem;">' + eff.emoji + '</span>';
+            html += '      <span style="font-size:0.75rem;color:#555;">' + eff.label + '</span>';
+            html += '    </label>';
+          });
+          html += '  </div>';
+          html += '</div>';
+          break;
       }
     });
 
@@ -2145,8 +2257,8 @@
       });
     }
 
-    // 绑定心情/情绪选项点击样式
-    bodyEl.querySelectorAll('.mood-option, .emotion-option').forEach(function (opt) {
+    // 绑定心情/情绪/效果选项点击样式
+    bodyEl.querySelectorAll('.mood-option, .emotion-option, .effectiveness-option').forEach(function (opt) {
       opt.addEventListener('click', function () {
         var name = this.querySelector('input').name;
         bodyEl.querySelectorAll('input[name="' + name + '"]').forEach(function (input) {
@@ -2180,6 +2292,7 @@
     if (formData.get('title')) record.title = formData.get('title');
     if (formData.get('mood')) record.mood = formData.get('mood');
     if (formData.get('emotion_type')) record.emotion_type = formData.get('emotion_type');
+    if (formData.get('effectiveness')) record.effectiveness = parseInt(formData.get('effectiveness'), 10);
 
     // 验证必填
     var typeInfo = RECORD_TYPES[type];
@@ -2940,6 +3053,24 @@
     html += '</h2>';
 
     var records = DataStore.getRecords();
+
+    // 根据当前角色过滤可见的记录类型
+    var currentUser = DataStore.getCurrentUser() || appState.currentUser;
+    var currentRole = currentUser ? currentUser.role : 'parent';
+    var roleRecordFilters = {
+      parent: null,
+      teacher: ['activity', 'communication', 'emotion', 'strategy', 'note'],
+      caregiver: ['care', 'communication', 'emotion', 'strategy', 'note'],
+      volunteer: ['accompany', 'activity', 'emotion', 'note'],
+      self: ['mood', 'note']
+    };
+    var allowedTypes = roleRecordFilters[currentRole];
+    if (allowedTypes) {
+      records = records.filter(function (r) {
+        return allowedTypes.indexOf(r.type) !== -1;
+      });
+    }
+
     // 应用筛选
     var filteredRecords = records.filter(function (r) {
       if (timelineFilters.role !== 'all' && r.authorRole !== timelineFilters.role) return false;
