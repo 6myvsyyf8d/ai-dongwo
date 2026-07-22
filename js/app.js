@@ -204,18 +204,19 @@
     }
   };
 
-  /** 隐私分级配置
-   *  A = 仅家长可见
-   *  B = 家长 + 机构 + 老师
-   *  C = 家长 + 机构 + 老师 + 志愿者
-   *  D = 所有人可见（含外部演示）
+  /** 隐私分级配置（5级体系）
+   *  A = 公开（基本信息、喜好）—— 所有角色可见
+   *  B = 照护（日常照护、作息、沟通方式）—— 家长、老师、护理员
+   *  C = 敏感（情绪记录、行为问题）—— 家长、护理员
+   *  D = 私密（医疗、家庭关系）—— 仅家长
+   *  E = 科研（脱敏聚合数据）—— 特殊授权
    */
   const privacyLevels = {
-    self:      ['A', 'B', 'C', 'D'],
+    self:      ['A', 'B'],
     parent:    ['A', 'B', 'C', 'D'],
-    teacher:   ['B', 'C', 'D'],
-    caregiver: ['B', 'C', 'D'],
-    volunteer: ['C', 'D']
+    teacher:   ['A', 'B'],
+    caregiver: ['A', 'B', 'C'],
+    volunteer: ['A']
   };
 
   /** 角色名称映射（中文） */
@@ -1030,7 +1031,8 @@
     'profile': 'profile',
     'charts': 'charts',
     'tasks': 'tasks',
-    'calendar': 'calendar'
+    'calendar': 'calendar',
+    'archive': 'archive'
   };
 
   /**
@@ -1142,6 +1144,7 @@
       case 'charts': renderCharts(); break;
       case 'tasks': renderTasks(); break;
       case 'calendar': renderCalendar(); break;
+      case 'archive': renderArchive(); break;
     }
   }
 
@@ -1593,6 +1596,7 @@
    */
   function renderHome() {
     var user = DataStore.getCurrentUser() || appState.currentUser;
+    var role = user ? user.role : 'parent';
 
     // 渲染Hero区域的基本信息
     var heroNameEl = document.getElementById('hero-name');
@@ -1616,25 +1620,18 @@
       heroTagsEl.innerHTML = tagsHTML;
     }
 
-    // 渲染今日重点提醒
+    // 渲染今日重点提醒 —— 根据角色定制
     if (alertBannerEl) {
-      var alertHTML = '<div class="alert-item danger">🚫 严禁海鲜（虾、蟹、贝类）</div>';
-      alertHTML += '<div class="alert-item warning">⏰ 下午15:00 支持性就业练习</div>';
-      alertHTML += '<div class="alert-item info">📋 今日活动已提前告知</div>';
+      var alertHTML = getRoleAlerts(role);
       alertBannerEl.innerHTML = alertHTML;
     }
 
-    // 渲染导航卡片（首页只保留4个核心入口）
+    // 渲染导航卡片 —— 根据角色定制
     if (cardGridEl) {
-      var cards = [
-        { hash: 'tasks', icon: '✅', title: '每日任务', desc: '打卡清单、完成进度' },
-        { hash: 'calendar', icon: '📆', title: '日程日历', desc: '重要事项、日历提醒' },
-        { hash: 'timeline', icon: '📅', title: '动态档案', desc: '记录时间轴' },
-        { hash: 'charts', icon: '📊', title: '数据可视化', desc: '心情趋势、统计图表' }
-      ];
+      var cards = getRoleCards(role);
       var gridHTML = '';
       cards.forEach(function (card) {
-        gridHTML += '<div class="nav-card" data-navigate="' + card.hash + '">';
+        gridHTML += '<div class="nav-card" data-navigate="' + card.hash + '" data-action="' + (card.action || '') + '">';
         gridHTML += '  <span class="card-icon">' + card.icon + '</span>';
         gridHTML += '  <div class="card-title">' + card.title + '</div>';
         gridHTML += '  <div class="card-desc">' + card.desc + '</div>';
@@ -1646,7 +1643,12 @@
       cardGridEl.querySelectorAll('.nav-card').forEach(function (card) {
         card.addEventListener('click', function () {
           var target = this.getAttribute('data-navigate');
-          if (target === 'collect') {
+          var action = this.getAttribute('data-action');
+          if (action === 'quick-card') {
+            createQuickCardModal();
+          } else if (action === 'add-mood') {
+            createAddRecordModal(user, role, 'mood');
+          } else if (target === 'collect') {
             navigateTo('collect');
           } else {
             window.location.hash = target;
@@ -1666,6 +1668,69 @@
   }
 
   /**
+   * 获取角色定制的导航卡片配置
+   */
+  function getRoleCards(role) {
+    var roleCards = {
+      parent: [
+        { hash: 'archive', icon: '📋', title: '完整档案', desc: '六大主题档案分类查看' },
+        { hash: 'timeline', icon: '📅', title: '动态时间轴', desc: '所有记录按时间排列' },
+        { hash: 'tasks', icon: '✅', title: '每日任务', desc: '打卡清单、完成进度' },
+        { hash: 'charts', icon: '📊', title: '数据可视化', desc: '心情趋势、统计图表' }
+      ],
+      teacher: [
+        { hash: 'communication', icon: '💬', title: '沟通说明书', desc: '有效话术、禁忌用语' },
+        { hash: 'tasks', icon: '✅', title: '每日任务', desc: '今日活动、打卡进度' },
+        { hash: 'calendar', icon: '📆', title: '日程日历', desc: '课程安排、重要事项' },
+        { hash: 'quick-card', icon: '📋', title: '速读卡', desc: '快速了解小雨', action: 'quick-card' }
+      ],
+      caregiver: [
+        { hash: 'care', icon: '🏥', title: '照护要点', desc: '过敏、用药、作息提醒' },
+        { hash: 'emotion', icon: '😰', title: '情绪支持', desc: '触发因素、安抚策略' },
+        { hash: 'calendar', icon: '📆', title: '日程日历', desc: '今日安排、照护提醒' },
+        { hash: 'quick-card', icon: '📋', title: '速读卡', desc: '快速参考卡片', action: 'quick-card' }
+      ],
+      volunteer: [
+        { hash: 'quick-card', icon: '📋', title: '速读卡', desc: '3分钟了解小雨', action: 'quick-card' },
+        { hash: 'communication', icon: '💬', title: '沟通方式', desc: '怎么和小雨说话' },
+        { hash: 'calendar', icon: '📆', title: '今日活动', desc: '今天的活动安排' },
+        { hash: 'life', icon: '⚠️', title: '注意事项', desc: '喜欢和不喜欢的事物' }
+      ],
+      self: [
+        { hash: 'mood', icon: '💭', title: '记录心情', desc: '今天心情怎么样？', action: 'add-mood' },
+        { hash: 'tasks', icon: '✅', title: '今日任务', desc: '今天要完成的事' },
+        { hash: 'calendar', icon: '📆', title: '日程日历', desc: '今天的安排' },
+        { hash: 'archive', icon: '📋', title: '我的档案', desc: '查看我的信息' }
+      ]
+    };
+    return roleCards[role] || roleCards.parent;
+  }
+
+  /**
+   * 获取角色定制的今日重点提醒
+   */
+  function getRoleAlerts(role) {
+    var roleAlerts = {
+      parent: '<div class="alert-item danger">🚫 严禁海鲜（虾、蟹、贝类）</div>' +
+               '<div class="alert-item warning">⏰ 下午15:00 支持性就业练习</div>' +
+               '<div class="alert-item info">📋 今日活动已提前告知</div>',
+      teacher: '<div class="alert-item danger">🚫 过敏提醒：严禁海鲜</div>' +
+               '<div class="alert-item info">💡 用"先...然后..."说明流程</div>' +
+               '<div class="alert-item warning">⚠️ 新任务需要步骤卡片辅助</div>',
+      caregiver: '<div class="alert-item danger">🚫 严禁海鲜（虾、蟹、贝类）</div>' +
+                 '<div class="alert-item warning">⏰ 下午15:00 支持性就业练习</div>' +
+                 '<div class="alert-item info">🌙 晚上10点前入睡，注意夜间情绪</div>',
+      volunteer: '<div class="alert-item danger">🚫 不要给他吃海鲜（过敏）</div>' +
+                 '<div class="alert-item warning">🚫 不要不打招呼碰他</div>' +
+                 '<div class="alert-item info">💡 说话慢一点，一次说一件事</div>',
+      self: '<div class="alert-item info">🌟 今天也要加油哦！</div>' +
+            '<div class="alert-item warning">✅ 今天有烘焙练习</div>' +
+            '<div class="alert-item info">💬 记得记录今天的心情</div>'
+    };
+    return roleAlerts[role] || roleAlerts.parent;
+  }
+
+  /**
    * 渲染欢迎语横幅
    */
   function renderWelcomeBanner(user) {
@@ -1678,7 +1743,16 @@
     var roleName = user ? (ROLES[user.role] ? ROLES[user.role].label : '访客') : '访客';
     var avatar = user ? (user.avatar || '👤') : '👤';
     var welcomeText = user ? ('欢迎回来，' + (user.name || '用户') + '！') : '欢迎使用AI懂我';
-    var subText = user ? ('您当前以「' + roleName + '」身份登录，可以为小雨添加记录。') : '请登录后开始记录。';
+
+    // 根据角色定制引导信息
+    var roleSubTexts = {
+      parent: '您可以查看完整档案、添加记录、管理所有信息。',
+      teacher: '您可以查看沟通指南、记录教学活动和观察。',
+      caregiver: '您可以查看照护要点、记录日常护理和情绪状态。',
+      volunteer: '您可以查看速读卡和沟通方式，记录陪伴观察。',
+      self: '您可以记录今天的心情和感受，查看今日任务。'
+    };
+    var subText = user ? (roleSubTexts[user.role] || '您当前以「' + roleName + '」身份登录。') : '请登录后开始记录。';
 
     var banner = document.createElement('div');
     banner.id = 'welcome-banner';
@@ -1705,6 +1779,22 @@
     if (!cardGridEl || !mainContent) return;
 
     var records = DataStore.getRecords();
+
+    // 根据角色过滤可见的记录类型
+    var role = user ? user.role : 'parent';
+    var roleRecordFilters = {
+      parent: null, // 家长看所有记录
+      teacher: ['activity', 'communication', 'emotion', 'note'],
+      caregiver: ['care', 'emotion', 'note'],
+      volunteer: ['accompany', 'activity'],
+      self: ['mood', 'note']
+    };
+    var allowedTypes = roleRecordFilters[role];
+    if (allowedTypes) {
+      records = records.filter(function (r) {
+        return allowedTypes.indexOf(r.type) !== -1;
+      });
+    }
     var latestRecords = records.slice(0, 5);
 
     var activitySection = document.createElement('div');
@@ -2369,8 +2459,8 @@
 
     var html = '';
 
-    // 过敏警告（置顶醒目）
-    html += '<div class="allergy-warning" data-privacy="C">';
+    // 过敏警告（置顶醒目）—— A级公开，所有角色可见
+    html += '<div class="allergy-warning" data-privacy="A">';
     html += '  <div class="allergy-icon">🚨</div>';
     html += '  <div class="allergy-text">严重过敏警告</div>';
     html += '  <div class="allergy-detail">' + careInfo.allergy.items + ' — ' + careInfo.allergy.level + '</div>';
@@ -2379,38 +2469,38 @@
     // 照护信息卡片
     html += '<div class="privacy-grid">';
 
-    // 过敏详情
-    html += '<div class="privacy-item" data-privacy="C">';
+    // 过敏详情 —— A级公开
+    html += '<div class="privacy-item" data-privacy="A">';
     html += '  <div class="privacy-label">过敏食物</div>';
     html += '  <div class="privacy-value" style="color:#F5222D;font-weight:700;">' + careInfo.allergy.items + '</div>';
     html += '</div>';
 
-    // 过敏等级
-    html += '<div class="privacy-item" data-privacy="C">';
+    // 过敏等级 —— A级公开
+    html += '<div class="privacy-item" data-privacy="A">';
     html += '  <div class="privacy-label">过敏等级</div>';
     html += '  <div class="privacy-value" style="color:#F5222D;font-weight:700;">' + careInfo.allergy.level + '</div>';
     html += '</div>';
 
-    // 用药
-    html += '<div class="privacy-item" data-privacy="B">';
+    // 用药 —— D级私密，仅家长可见
+    html += '<div class="privacy-item" data-privacy="D">';
     html += '  <div class="privacy-label">日常用药</div>';
     html += '  <div class="privacy-value">' + careInfo.medicine + '</div>';
     html += '</div>';
 
-    // 体检
-    html += '<div class="privacy-item" data-privacy="B">';
+    // 体检 —— D级私密，仅家长可见
+    html += '<div class="privacy-item" data-privacy="D">';
     html += '  <div class="privacy-label">体检安排</div>';
     html += '  <div class="privacy-value">' + careInfo.checkup + '</div>';
     html += '</div>';
 
-    // 特殊事项
+    // 特殊事项 —— B级照护
     html += '<div class="privacy-item" data-privacy="B">';
     html += '  <div class="privacy-label">特别注意事项</div>';
     html += '  <div class="privacy-value">' + careInfo.special + '</div>';
     html += '</div>';
 
-    // 睡眠
-    html += '<div class="privacy-item" data-privacy="C">';
+    // 睡眠 —— B级照护
+    html += '<div class="privacy-item" data-privacy="B">';
     html += '  <div class="privacy-label">作息要求</div>';
     html += '  <div class="privacy-value">' + careInfo.sleep + '</div>';
     html += '</div>';
@@ -2541,9 +2631,9 @@
     // 详细列表
     html += '<div class="container" style="padding:0 24px;">';
 
-    // 核心圈列表
-    html += '<h2 class="section-title">核心支持圈</h2>';
-    html += '<div class="content-card blue" style="margin-bottom:24px;">';
+    // 核心圈列表 —— B级照护
+    html += '<h2 class="section-title" data-privacy="B">核心支持圈</h2>';
+    html += '<div class="content-card blue" style="margin-bottom:24px;" data-privacy="B">';
     html += '<ul class="card-list">';
     relationsInfo.core.forEach(function (person) {
       html += '<li>' + person.emoji + ' <strong>' + person.name + '</strong> — ' + person.role + '</li>';
@@ -2551,9 +2641,9 @@
     html += '</ul>';
     html += '</div>';
 
-    // 日常圈列表
-    html += '<h2 class="section-title">日常接触圈</h2>';
-    html += '<div class="content-card green" style="margin-bottom:24px;">';
+    // 日常圈列表 —— B级照护
+    html += '<h2 class="section-title" data-privacy="B">日常接触圈</h2>';
+    html += '<div class="content-card green" style="margin-bottom:24px;" data-privacy="B">';
     html += '<ul class="card-list">';
     relationsInfo.daily.forEach(function (person) {
       html += '<li>' + person.emoji + ' <strong>' + person.name + '</strong> — ' + person.role + '</li>';
@@ -2561,7 +2651,7 @@
     html += '</ul>';
     html += '</div>';
 
-    // 避免场景
+    // 避免场景 —— A级公开，所有角色应知
     html += '<h2 class="section-title">避免的场景与接触</h2>';
     html += '<div class="content-card red">';
     html += '<ul class="card-list">';
@@ -2577,7 +2667,78 @@
   }
 
   /* ==========================================================
-   * 十六、动态记录时间轴页面渲染（改造后）
+   * 十六、完整档案页面渲染
+   * ========================================================== */
+
+  /**
+   * 渲染完整档案页面 —— 六大主题分类入口
+   */
+  function renderArchive() {
+    var contentArea = document.getElementById('archive-content');
+    if (!contentArea) return;
+
+    var user = DataStore.getCurrentUser() || appState.currentUser;
+    var role = user ? user.role : 'parent';
+
+    var html = '';
+
+    // 档案概览说明
+    html += '<div style="background:linear-gradient(135deg,#4A90D9,#5B9BD5);border-radius:16px;padding:20px;margin-bottom:20px;color:#fff;">';
+    html += '  <div style="font-size:1.2rem;font-weight:600;margin-bottom:6px;">📋 小雨的完整档案</div>';
+    html += '  <div style="font-size:0.88rem;opacity:0.9;">六大主题分类，全面了解小雨的 support profile</div>';
+    html += '</div>';
+
+    // 六大主题档案卡片
+    var archiveThemes = [
+      { hash: 'life', icon: '❤️', title: '喜好档案', desc: '喜欢和不喜欢的事物、活动偏好', color: '#4A90D9', privacy: 'A' },
+      { hash: 'communication', icon: '💬', title: '沟通档案', desc: '沟通指南、有效话术、禁忌用语', color: '#722ED1', privacy: 'B' },
+      { hash: 'emotion', icon: '😰', title: '情绪档案', desc: '情绪触发因素、安抚策略、预警信号', color: '#F5222D', privacy: 'C' },
+      { hash: 'care', icon: '🏥', title: '照护档案', desc: '过敏、用药、作息、医疗提醒', color: '#52C41A', privacy: 'B' },
+      { hash: 'work', icon: '💼', title: '支持档案', desc: '工作能力、社交关系、支持网络', color: '#FAAD14', privacy: 'B' },
+      { hash: 'relations', icon: '👥', title: '关系档案', desc: '核心支持圈、日常接触、避免场景', color: '#13C2C2', privacy: 'B' }
+    ];
+
+    html += '<div class="card-grid">';
+    archiveThemes.forEach(function (theme) {
+      html += '<div class="nav-card archive-card" data-navigate="' + theme.hash + '" data-privacy="' + theme.privacy + '">';
+      html += '  <span class="card-icon" style="background:' + theme.color + '15;color:' + theme.color + ';">' + theme.icon + '</span>';
+      html += '  <div class="card-title">' + theme.title + '</div>';
+      html += '  <div class="card-desc">' + theme.desc + '</div>';
+      html += '</div>';
+    });
+    html += '</div>';
+
+    // 快捷操作区
+    html += '<div style="margin-top:24px;">';
+    html += '  <h2 style="font-size:1rem;color:#333;margin-bottom:12px;">🔗 快捷操作</h2>';
+    html += '  <div style="display:flex;gap:12px;flex-wrap:wrap;">';
+    html += '    <button class="btn btn-outline" onclick="location.hash=\'timeline\'">📅 查看动态时间轴</button>';
+    html += '    <button class="btn btn-outline" onclick="location.hash=\'charts\'">📊 数据可视化</button>';
+    html += '    <button class="btn btn-outline" id="btn-archive-quickcard">📋 打开速读卡</button>';
+    html += '  </div>';
+    html += '</div>';
+
+    contentArea.innerHTML = html;
+
+    // 绑定档案卡片点击事件
+    contentArea.querySelectorAll('.archive-card').forEach(function (card) {
+      card.addEventListener('click', function () {
+        var target = this.getAttribute('data-navigate');
+        if (target) window.location.hash = target;
+      });
+    });
+
+    // 绑定速读卡按钮
+    var quickCardBtn = document.getElementById('btn-archive-quickcard');
+    if (quickCardBtn) {
+      quickCardBtn.addEventListener('click', function () {
+        createQuickCardModal();
+      });
+    }
+  }
+
+  /* ==========================================================
+   * 十七、动态记录时间轴页面渲染（改造后）
    * ========================================================== */
 
   /** 时间轴筛选状态 */
@@ -3158,17 +3319,9 @@
         // 当前角色可见此级别
         el.classList.remove('hidden-info');
         el.style.display = '';
-        // 移除blur效果
-        if (el.classList.contains('privacy-item')) {
-          el.classList.remove('hidden-info');
-        }
       } else {
-        // 当前角色不可见此级别
-        if (el.classList.contains('privacy-item')) {
-          el.classList.add('hidden-info');
-        } else {
-          el.style.display = 'none';
-        }
+        // 当前角色不可见此级别 —— 完全隐藏
+        el.style.display = 'none';
       }
     });
   }
