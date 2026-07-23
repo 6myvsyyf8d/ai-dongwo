@@ -3,35 +3,35 @@
    Warm Care Journal Aesthetic v1.0
    ========================================== */
 
-/* --- CSS Variables --- */
+/* --- CSS Variables (Anthropic Brand) --- */
 :root {
-  /* Primary - Deep Teal */
-  --color-primary: #2D7A7A;
-  --color-primary-dark: #1A5959;
-  --color-primary-light: #E0F0F0;
+  /* Primary - Anthropic Orange */
+  --color-primary: #d97757;
+  --color-primary-dark: #b85a3a;
+  --color-primary-light: #fce8de;
 
-  /* Accent - Warm Honey */
-  --color-accent: #E8A547;
-  --color-accent-light: #FDF5E6;
+  /* Accent - Anthropic Blue */
+  --color-accent: #6a9bcc;
+  --color-accent-light: #e3eef6;
 
   /* Functional */
-  --color-success: #5B9B6F;
-  --color-success-bg: #F0F7F2;
-  --color-warning: #E8A547;
-  --color-warning-bg: #FDF5E6;
-  --color-danger: #D4654A;
-  --color-danger-bg: #FBF0EC;
+  --color-success: #788c5d;
+  --color-success-bg: #eef0e8;
+  --color-warning: #d97757;
+  --color-warning-bg: #fce8de;
+  --color-danger: #c2410c;
+  --color-danger-bg: #fce8de;
 
   /* Backgrounds */
-  --bg-page: #FBF8F3;
+  --bg-page: #faf9f5;
   --bg-card: #FFFFFF;
-  --bg-sidebar: #F5EFE6;
-  --bg-hero: linear-gradient(135deg, #E0F0F0 0%, #FBF8F3 100%);
+  --bg-sidebar: #f0eee6;
+  --bg-hero: linear-gradient(135deg, #fce8de 0%, #faf9f5 100%);
 
   /* Text */
-  --text-primary: #3D3327;
-  --text-secondary: #6B5D4F;
-  --text-muted: #A39588;
+  --text-primary: #141413;
+  --text-secondary: #6b6962;
+  --text-muted: #8a8780;
 
   /* Radius */
   --radius-sm: 8px;
@@ -54,9 +54,9 @@
 
   --transition: 0.3s ease;
 
-  /* Fonts */
-  --font-display: 'Noto Serif SC', 'Songti SC', serif;
-  --font-body: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+  /* Fonts (Anthropic: Poppins headings + Lora body, with CJK fallbacks) */
+  --font-display: 'Poppins', 'Noto Serif SC', 'Songti SC', serif;
+  --font-body: 'Lora', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
 
   /* Sidebar */
   --sidebar-width: 260px;
@@ -151,8 +151,8 @@ a:hover { text-decoration: underline; }
   font-size: 0.62rem;
   font-weight: 500;
   color: var(--text-muted);
-  background: rgba(45,122,122,0.08);
-  border: 1px solid rgba(45,122,122,0.15);
+  background: rgba(217,119,87,0.08);
+  border: 1px solid rgba(217,119,87,0.15);
   border-radius: 6px;
   padding: 1px 5px;
   vertical-align: middle;
@@ -181,45 +181,79 @@ a:hover { text-decoration: underline; }
 .sidebar-menu::-webkit-scrollbar-thumb { background: rgba(61,51,39,0.1); border-radius: 2px; }
 
 .sidebar-menu-group {
-  margin-bottom: 4px;
+  margin-bottom: 2px;
 }
 
 .sidebar-menu-label {
   font-size: 0.68rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  padding: 12px 22px 4px;
+  letter-spacing: 0.1em;
+  padding: 14px 22px 6px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sidebar-menu-label::before {
+  content: '';
+  width: 3px;
+  height: 11px;
+  background: var(--color-primary);
+  border-radius: 2px;
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+
+.sidebar-menu-items {
+  margin-left: 28px;
+  border-left: 1px solid rgba(61,51,39,0.1);
+  padding: 3px 0;
 }
 
 .sidebar-menu-item {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 8px 22px;
-  font-size: 0.86rem;
+  padding: 7px 18px 7px 16px;
+  font-size: 0.84rem;
   color: var(--text-secondary);
   cursor: pointer;
   transition: all 0.2s ease;
-  border-left: 3px solid transparent;
   position: relative;
 }
 
+.sidebar-menu-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  width: 10px;
+  height: 1px;
+  background: rgba(61,51,39,0.12);
+  transition: all 0.2s ease;
+}
+
 .sidebar-menu-item:hover {
-  background: rgba(45,122,122,0.05);
+  background: rgba(217,119,87,0.06);
   color: var(--color-primary-dark);
 }
 
 .sidebar-menu-item.active {
-  background: rgba(45,122,122,0.08);
+  background: rgba(217,119,87,0.1);
   color: var(--color-primary-dark);
-  border-left-color: var(--color-primary);
   font-weight: 600;
 }
 
+.sidebar-menu-item.active::before {
+  background: var(--color-primary);
+  width: 14px;
+  height: 2px;
+}
+
 .sidebar-menu-item .menu-icon {
-  font-size: 1.05rem;
+  font-size: 1rem;
   width: 22px;
   text-align: center;
   flex-shrink: 0;
@@ -444,7 +478,7 @@ body.sidebar-open .sidebar {
   color: white;
 }
 .btn-primary:hover {
-  background: #3A7BC8;
+  background: var(--color-primary-dark);
   transform: translateY(-1px);
   box-shadow: var(--shadow-card-hover);
 }
@@ -454,7 +488,7 @@ body.sidebar-open .sidebar {
   color: white;
 }
 .btn-success:hover {
-  background: #45A817;
+  background: #5f7048;
 }
 
 .btn-warning {
@@ -462,7 +496,7 @@ body.sidebar-open .sidebar {
   color: white;
 }
 .btn-warning:hover {
-  background: #E89F0C;
+  background: var(--color-primary-dark);
 }
 
 .btn-danger {
@@ -470,7 +504,7 @@ body.sidebar-open .sidebar {
   color: white;
 }
 .btn-danger:hover {
-  background: #D91B26;
+  background: #9a2f08;
 }
 
 .btn-outline {
@@ -1809,9 +1843,9 @@ body.sidebar-open .sidebar {
   justify-content: center;
   padding: var(--space-xl);
   background:
-    radial-gradient(circle at top left, rgba(45,122,122,0.10) 0%, transparent 50%),
-    radial-gradient(circle at bottom right, rgba(232,165,71,0.10) 0%, transparent 50%),
-    linear-gradient(135deg, #E0F0F0 0%, #FBF8F3 40%, #FDF5E6 100%);
+    radial-gradient(circle at top left, rgba(217,119,87,0.10) 0%, transparent 50%),
+    radial-gradient(circle at bottom right, rgba(106,155,204,0.10) 0%, transparent 50%),
+    linear-gradient(135deg, #fce8de 0%, #faf9f5 40%, #e3eef6 100%);
 }
 
 .login-header {

@@ -1244,12 +1244,14 @@
     SIDEBAR_MENU.forEach(function (group) {
       html += '<div class="sidebar-menu-group">';
       html += '  <div class="sidebar-menu-label">' + group.group + '</div>';
+      html += '  <div class="sidebar-menu-items">';
       group.items.forEach(function (item) {
-        html += '  <div class="sidebar-menu-item" data-route="' + item.hash + '">';
-        html += '    <span class="menu-icon">' + item.icon + '</span>';
-        html += '    <span>' + item.label + '</span>';
-        html += '  </div>';
+        html += '    <div class="sidebar-menu-item" data-route="' + item.hash + '">';
+        html += '      <span class="menu-icon">' + item.icon + '</span>';
+        html += '      <span>' + item.label + '</span>';
+        html += '    </div>';
       });
+      html += '  </div>';
       html += '</div>';
     });
 
