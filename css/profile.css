@@ -1,0 +1,660 @@
+/* ================================================================
+   profile.css - 档案详情页
+   Apple Design: Clean white cards, refined separators, clear hierarchy
+   ================================================================ */
+
+/* 档案头部 — 紧凑扁平 */
+.profile-header {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  padding: var(--spacing-md) var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  border-bottom: 0.5px solid var(--color-border-light);
+}
+
+.profile-avatar {
+  font-size: 22px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.profile-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-name {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  margin-bottom: 2px;
+  letter-spacing: -0.01em;
+}
+
+.profile-meta {
+  display: flex;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+}
+
+.profile-meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+/* 内联紧急联系人 — 紧跟档案基本信息 */
+.profile-emergency-contacts {
+  margin-top: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+}
+
+.profile-emergency-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  background: rgba(212, 135, 123, 0.06);
+  border: 1px solid rgba(212, 135, 123, 0.20);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+}
+
+.profile-emergency-icon {
+  font-size: 12px;
+  flex-shrink: 0;
+}
+
+.profile-emergency-name {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+  flex: 1;
+  min-width: 0;
+}
+
+.profile-emergency-phone {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.profile-emergency-phone:hover {
+  text-decoration: underline;
+}
+
+/* 模块导航标签 — 纤细下划线风格 */
+.module-nav {
+  display: flex;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border-light);
+  padding: 0 var(--spacing-md);
+  scrollbar-width: none;
+  gap: var(--spacing-xs);
+}
+
+.module-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.module-tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  cursor: pointer;
+  border-bottom: 2.5px solid transparent;
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  min-width: 56px;
+  opacity: 0.55;
+}
+
+.module-tab:hover {
+  opacity: 0.8;
+  background: transparent;
+}
+
+.module-tab.active {
+  border-bottom-color: var(--color-primary);
+  opacity: 1;
+  color: var(--color-primary);
+}
+
+.module-tab.active .module-tab-label {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.module-tab.active .module-tab-icon {
+  transform: scale(1.05);
+}
+
+.module-tab-icon {
+  font-size: 20px;
+  transition: transform var(--transition-fast);
+}
+
+.module-tab-label {
+  font-size: 10px;
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.02em;
+}
+
+
+/* 模块内容区 */
+.module-content {
+  padding: var(--spacing-lg);
+  max-width: var(--max-content-width);
+  margin: 0 auto;
+}
+
+.module-section {
+  display: none;
+}
+
+.module-section.active {
+  display: block;
+  animation: moduleFadeIn 0.3s ease;
+}
+
+@keyframes moduleFadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 紧急联系人卡片 — 柔化红调 */
+.emergency-contact-card {
+  background: rgba(212, 135, 123, 0.06);
+  border: 1px solid rgba(212, 135, 123, 0.20);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+}
+
+.emergency-contact-card .card-title {
+  color: var(--color-danger);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: var(--font-size-sm);
+}
+
+.emergency-contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+}
+
+.emergency-contact-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-sm);
+}
+
+.emergency-contact-info {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.emergency-contact-name {
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+}
+
+.emergency-contact-relation {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.emergency-contact-phone {
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* 档案码显示区 */
+.archive-code-display {
+  text-align: center;
+  padding: var(--spacing-xl);
+}
+
+.archive-code-qr {
+  display: inline-block;
+  padding: var(--spacing-lg);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--spacing-md);
+  border: 1px solid var(--color-border-light);
+}
+
+.archive-code-qr img,
+.archive-code-qr canvas {
+  display: block;
+  margin: 0 auto;
+}
+
+.archive-code-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.archive-code-subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.archive-code-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* 档案表单 */
+.profile-form {
+  max-width: 560px;
+  margin: 0 auto;
+}
+
+.form-section {
+  margin-bottom: var(--spacing-2xl);
+}
+
+.form-section-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-md);
+  padding-bottom: var(--spacing-sm);
+  border-bottom: 1px solid var(--color-border-light);
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+}
+
+.gender-selector {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.gender-option {
+  flex: 1;
+  padding: var(--spacing-md);
+  border: 1.5px solid var(--color-border);
+  border-radius: var(--radius-md);
+  text-align: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.gender-option:hover {
+  border-color: var(--color-primary-light);
+}
+
+.gender-option.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-surface);
+}
+
+.gender-icon {
+  font-size: 24px;
+  margin-bottom: var(--spacing-xs);
+}
+
+.gender-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+/* 生命周期状态徽章 */
+.lifecycle-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+}
+
+.lifecycle-badge.created { background: var(--color-bg-tertiary); color: var(--color-text-tertiary); }
+.lifecycle-badge.active { background: rgba(143, 188, 139, 0.12); color: var(--color-success); }
+.lifecycle-badge.institution_change { background: rgba(212, 168, 90, 0.12); color: var(--color-warning); }
+.lifecycle-badge.guardian_change { background: rgba(212, 168, 90, 0.12); color: var(--color-warning); }
+.lifecycle-badge.supervised { background: rgba(155, 133, 184, 0.12); color: var(--color-secondary); }
+.lifecycle-badge.deceased { background: var(--color-bg-tertiary); color: var(--color-text-tertiary); }
+.lifecycle-badge.anonymized { background: var(--color-bg-tertiary); color: var(--color-text-tertiary); }
+
+
+/* 数据条目展示 */
+.data-item {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: var(--spacing-sm) 0;
+  border-bottom: 0.5px solid var(--color-border-light);
+}
+
+.data-item:last-child {
+  border-bottom: none;
+}
+
+.data-label {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+  min-width: 80px;
+  max-width: 120px;
+}
+
+.data-value {
+  font-size: var(--font-size-base);
+  color: var(--color-text-primary);
+  text-align: right;
+  flex: 1;
+  word-break: break-word;
+  padding-left: var(--spacing-md);
+}
+
+/* 标签列表 */
+.tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-medium);
+}
+
+/* 模块卡片 — 统一扁平风格 */
+.module-card {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg);
+  margin-bottom: var(--spacing-md);
+  border: 0.5px solid var(--color-border-light);
+}
+
+.module-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-xs);
+}
+
+.module-card-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  letter-spacing: -0.01em;
+  margin-bottom: var(--spacing-sm);
+  color: var(--color-text-secondary);
+}
+
+.module-card-icon {
+  font-size: 18px;
+}
+
+/* 红线项 — 柔化 */
+.red-line-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  border-left: 2.5px solid var(--color-danger);
+  background: rgba(212, 135, 123, 0.05);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  margin-bottom: var(--spacing-sm);
+}
+
+.red-line-item.severity-high { border-left-color: var(--color-danger); }
+.red-line-item.severity-medium { border-left-color: var(--color-warning); }
+.red-line-item.severity-low { border-left-color: var(--color-text-tertiary); }
+
+.red-line-icon { font-size: 16px; flex-shrink: 0; }
+.red-line-content { flex: 1; }
+
+.red-line-desc {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.red-line-response {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+}
+
+
+/* 头部内联用户信息 */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 4px var(--spacing-sm);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-xs);
+  line-height: 1;
+}
+
+.header-user-avatar {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.header-user-name {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  max-width: 60px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-user-role {
+  color: var(--color-text-tertiary);
+}
+/* ================================================================
+   紧急联系人底部栏 — Apple 风格
+   ================================================================ */
+
+.emergency-bar {
+  position: fixed;
+  bottom: calc(var(--bottom-nav-height) + env(safe-area-inset-bottom, 0px));
+  left: 0;
+  right: 0;
+  z-index: 150;
+  max-width: var(--max-content-width);
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.emergency-bar-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  margin: 0 var(--spacing-sm) var(--spacing-xs);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 59, 48, 0.15);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 -1px 8px rgba(0, 0, 0, 0.06);
+}
+
+.emergency-bar-toggle:active {
+  transform: scale(0.98);
+  background: rgba(255, 59, 48, 0.04);
+}
+
+.emergency-bar-icon {
+  font-size: 14px;
+}
+
+.emergency-bar-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-danger);
+  flex: 1;
+}
+
+.emergency-bar-count {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-tertiary);
+  background: var(--color-bg-tertiary);
+  padding: 1px 7px;
+  border-radius: 10px;
+}
+
+.emergency-bar-chevron {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  transition: transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+.emergency-bar.expanded .emergency-bar-chevron {
+  transform: rotate(180deg);
+}
+
+.emergency-bar-panel {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+  margin: 0 var(--spacing-sm);
+}
+
+.emergency-bar.expanded .emergency-bar-panel {
+  max-height: 300px;
+}
+
+.emergency-bar-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: 2px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  transition: background var(--transition-fast);
+}
+
+.emergency-bar-item:hover { background: var(--color-bg-tertiary); }
+.emergency-bar-item:active { background: rgba(255, 59, 48, 0.06); }
+
+.emergency-bar-item-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.emergency-bar-item-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+.emergency-bar-item-relation {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.emergency-bar-item-phone {
+  margin-left: auto;
+  font-size: var(--font-size-sm);
+  color: var(--color-primary);
+  font-weight: var(--font-weight-medium);
+  flex-shrink: 0;
+}
+
+/* — 档案页底部留白（给紧急联系人栏腾空间） — */
+.page-content {
+  padding-bottom: calc(var(--bottom-nav-height) + 56px);
+}
+
+/* 响应式 */
+@media (max-width: 640px) {
+  .profile-header {
+    padding: var(--spacing-md) var(--spacing-md);
+  }
+
+  .profile-meta {
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .module-tab {
+    padding: var(--spacing-sm) var(--spacing-sm);
+    min-width: 52px;
+  }
+}
+
+/* 打印档案码卡片 */
+@media print {
+  .archive-code-print-card {
+    width: 85mm;
+    height: 54mm;
+    border: 2px solid #000;
+    border-radius: 8px;
+    padding: 4mm;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    page-break-after: always;
+  }
+
+  .archive-code-print-card .print-qr { width: 35mm; height: 35mm; }
+  .archive-code-print-card .print-name { font-size: 14px; font-weight: bold; margin-top: 2mm; }
+  .archive-code-print-card .print-title { font-size: 10px; color: #666; margin-top: 1mm; }
+}

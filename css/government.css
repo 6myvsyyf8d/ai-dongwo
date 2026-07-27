@@ -1,0 +1,200 @@
+/* government.css - 政府宏观趋势看板样式 */
+
+.gov-page {
+  padding: var(--spacing-lg);
+  max-width: 1000px;
+  margin: 0 auto;
+}
+
+.gov-header {
+  background: linear-gradient(135deg, #4A5248 0%, #5C665A 100%);
+  color: var(--color-text-white);
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  border-radius: var(--radius-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.gov-title {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  margin-bottom: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.gov-subtitle {
+  font-size: var(--font-size-sm);
+  opacity: 0.8;
+}
+
+/* 统计卡片 */
+.gov-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--spacing-lg);
+  margin-bottom: var(--spacing-xl);
+}
+
+.gov-stat-card {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-xs);
+  border: 1px solid var(--color-border-light);
+  text-align: center;
+}
+
+.gov-stat-icon {
+  font-size: 28px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.gov-stat-value {
+  font-size: var(--font-size-2xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-xs);
+}
+
+.gov-stat-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.gov-stat-trend {
+  font-size: 10px;
+  margin-top: var(--spacing-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+}
+
+.gov-stat-trend.up { color: var(--color-success); }
+.gov-stat-trend.down { color: var(--color-danger); }
+
+/* 图表容器 */
+.gov-chart-container {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-xl);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.gov-chart-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-md);
+}
+
+.gov-chart-title {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.gov-chart-canvas-wrapper {
+  position: relative;
+  width: 100%;
+  height: 280px;
+}
+
+/* 年龄分布 */
+.age-distribution {
+  display: flex;
+  align-items: flex-end;
+  gap: var(--spacing-sm);
+  height: 200px;
+  padding: var(--spacing-md) 0;
+}
+
+.age-bar-group {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  height: 100%;
+  justify-content: flex-end;
+}
+
+.age-bar {
+  width: 100%;
+  max-width: 40px;
+  background: linear-gradient(180deg, var(--color-primary) 0%, var(--color-primary-light) 100%);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  transition: height 0.5s ease;
+  min-height: 4px;
+}
+
+.age-bar-label {
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+}
+
+.age-bar-count {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+/* 数据表 */
+.gov-data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--font-size-sm);
+}
+
+.gov-data-table th {
+  text-align: left;
+  padding: var(--spacing-sm) var(--spacing-md);
+  background: var(--color-bg-tertiary);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.gov-data-table td {
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-bottom: 1px solid var(--color-border-light);
+  color: var(--color-text-primary);
+}
+
+.gov-data-table tr:hover td {
+  background: var(--color-bg-tertiary);
+}
+
+/* 隐私提示 */
+.gov-privacy-notice {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md);
+  background: rgba(212, 168, 90, 0.10);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-lg);
+  font-size: var(--font-size-xs);
+  color: var(--color-warning);
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+  .gov-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .gov-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gov-chart-canvas-wrapper {
+    height: 200px;
+  }
+}
