@@ -116,6 +116,9 @@ window.JoinApproval = (function () {
     }
     if (!request || request.status !== 'pending') return;
 
+    // 刷新权限缓存：审批前需要选中目标心青年
+    AppState.selectYouth(request.youthId);
+
     // 调用 Permissions.grantAccess 自动建立授权
     var result = Permissions.grantAccess(request.youthId, request.applicantId, request.applicantRole, null);
     if (result.success) {
