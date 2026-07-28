@@ -1420,16 +1420,42 @@
     registerRoute('archive-code', ArchiveCode.renderArchiveCode);
     // 档案码扫码访问路由
     registerRoute('archive', function (params) {
-      // 扫码访问：需要登录后才能查看
       if (!AppState.isLoggedIn) {
         AppState.showToast('请先登录后扫码访问档案');
         window.location.hash = 'login';
         return;
       }
-      // 验证 token 后跳转到档案页
       if (params.youthId) {
-        AppState.selectYouth(params.youthId);
-        window.location.hash = 'profile?youthId=' + encodeURIComponent(params.youthId);
+        var user = AppState.currentUser;
+        var role = user.role;
+
+        // 家长、心青年、管理员：直接进档案
+        if (role === 'parent' || role === 'youth' || role === 'admin') {
+          AppState.selectYouth(params.youthId);
+          window.location.hash = 'profile?youthId=' + encodeURIComponent(params.youthId);
+          return;
+        }
+
+        // 政府：不能访问个体档案
+        if (role === 'government') {
+          AppState.showToast('政府角色不支持访问个体档案');
+          window.location.hash = 'government';
+          return;
+        }
+
+        // 老师/照护者/志愿者：检查是否已有授权
+        var grants = Storage.getAccessGrants(params.youthId);
+        var hasAccess = grants.some(function (g) {
+          return g.granteeId === user.id && g.status === 'active';
+        });
+
+        if (hasAccess) {
+          AppState.selectYouth(params.youthId);
+          window.location.hash = 'profile?youthId=' + encodeURIComponent(params.youthId);
+        } else {
+          // 跳转到加入申请页
+          window.location.hash = 'join?youthId=' + encodeURIComponent(params.youthId);
+        }
       }
     });
     // US2 路由
