@@ -32,6 +32,18 @@ window.Constants = {
     admin: '管理员'
   },
 
+  FAMILY_RELATIONS: {
+    father: '父亲',
+    mother: '母亲',
+    grandfather: '祖父',
+    grandmother: '祖母',
+    brother: '兄弟',
+    sister: '姐妹',
+    other_guardian: '其他监护人'
+  },
+
+  FAMILY_RELATION_LABELS: ['father', 'mother', 'grandfather', 'grandmother', 'brother', 'sister', 'other_guardian'],
+
   /**
    * 档案生命周期状态标签
    * 唯一来源：profile.js 与 government.js 均复用此定义
@@ -65,7 +77,9 @@ window.Constants = {
     government: '政府看板',
     management: '管理',
     join: '加入申请',
-    approvals: '申请审批'
+    approvals: '申请审批',
+    welcome: '欢迎',
+    grants: '授权管理'
   },
 
   /**

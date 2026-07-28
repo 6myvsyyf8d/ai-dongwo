@@ -16,6 +16,7 @@ window.Storage = (function () {
     ANONYMIZED: 'ai_dongwo_anonymized',
     HANDOVER_TASKS: 'ai_dongwo_handover_tasks',
     JOIN_REQUESTS: 'ai_dongwo_join_requests',
+    INVITATIONS: 'ai_dongwo_invitations',
     CURRENT_USER: 'ai_dongwo_current_user'
   };
 
@@ -290,6 +291,73 @@ window.Storage = (function () {
       }
     }
     return false;
+  }
+
+  // ==================== Invitation ====================
+
+  function getInvitations(youthId) {
+    var invitations = get(KEYS.INVITATIONS) || [];
+    if (youthId) {
+      return invitations.filter(function (inv) { return inv.youthId === youthId; });
+    }
+    return invitations;
+  }
+
+  function getInvitationByCode(code) {
+    var invitations = get(KEYS.INVITATIONS) || [];
+    for (var i = 0; i < invitations.length; i++) {
+      if (invitations[i].code === code) {
+        return invitations[i];
+      }
+    }
+    return null;
+  }
+
+  function addInvitation(invitation) {
+    var invitations = get(KEYS.INVITATIONS) || [];
+    if (!invitation.id) {
+      invitation.id = Utils.generateUUID();
+    }
+    if (!invitation.createdAt) {
+      invitation.createdAt = Utils.formatDateTime();
+    }
+    if (!invitation.status) {
+      invitation.status = 'active';
+    }
+    invitations.push(invitation);
+    set(KEYS.INVITATIONS, invitations);
+    return { success: true };
+  }
+
+  function updateInvitation(id, updates) {
+    var invitations = get(KEYS.INVITATIONS) || [];
+    for (var i = 0; i < invitations.length; i++) {
+      if (invitations[i].id === id) {
+        Object.assign(invitations[i], updates);
+        set(KEYS.INVITATIONS, invitations);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function cleanExpiredInvitations() {
+    var invitations = get(KEYS.INVITATIONS) || [];
+    var now = new Date();
+    var changed = false;
+    for (var i = 0; i < invitations.length; i++) {
+      if (invitations[i].status === 'active' && invitations[i].expiresAt) {
+        var expireDate = new Date(invitations[i].expiresAt);
+        if (expireDate < now) {
+          invitations[i].status = 'expired';
+          changed = true;
+        }
+      }
+    }
+    if (changed) {
+      set(KEYS.INVITATIONS, invitations);
+    }
+    return changed;
   }
 
   // ==================== JoinRequest ====================
@@ -1000,6 +1068,12 @@ window.Storage = (function () {
     addAccessGrant: addAccessGrant,
     revokeAccessGrant: revokeAccessGrant,
     updateAccessGrant: updateAccessGrant,
+    // Invitation
+    getInvitations: getInvitations,
+    getInvitationByCode: getInvitationByCode,
+    addInvitation: addInvitation,
+    updateInvitation: updateInvitation,
+    cleanExpiredInvitations: cleanExpiredInvitations,
     // JoinRequest
     getJoinRequests: getJoinRequests,
     getJoinRequestsByApplicant: getJoinRequestsByApplicant,
