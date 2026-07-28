@@ -93,7 +93,7 @@
       var active = item.page === currentPage ? ' active' : '';
       var href = '#' + item.page;
       // 档案、记录、对话、速读卡需要 youthId 参数
-      if (youthId && ['profile', 'quickcard', 'records', 'chat', 'timeline', 'charts'].indexOf(item.page) > -1) {
+      if (youthId && ['profile', 'quickcard', 'records', 'chat', 'timeline', 'charts', 'analytics'].indexOf(item.page) > -1) {
         href += '?youthId=' + encodeURIComponent(youthId);
       }
       html += '<a class="bottom-nav-item' + active + '" href="' + href + '" role="link" aria-label="' + item.label + '">' +
@@ -371,6 +371,9 @@
       '<span class="ios-card-row-arrow">›</span>' +
     '</div>';
     html += '</div>';
+
+    // === 今日健康速报 ===
+    html += AnalyticsUI.renderHealthCard(y);
 
     // === Card 2: 每日交接（跨角色信息共享与任务交接） ===
     html += _renderDailyHandover(y);
@@ -1098,8 +1101,15 @@
    * 渲染管理页面
    */
   function showManagement(params) {
-    var container = getContainer();
     var user = AppState.currentUser;
+
+    // 管理员：显示管理后台
+    if (user && user.role === 'admin') {
+      Admin.showAdmin();
+      return;
+    }
+
+    var container = getContainer();
     var youths = Permissions.getAccessibleYouths();
 
     var html = '<div class="page-content">';
@@ -1166,7 +1176,7 @@
         var youthId = this.getAttribute('data-youth-id');
         if (youthId) {
           AppState.selectYouth(youthId);
-          window.location.hash = 'profile?youthId=' + encodeURIComponent(youthId) + '#grants';
+          window.location.hash = 'grants?youthId=' + encodeURIComponent(youthId);
         }
       });
     }
@@ -1176,6 +1186,11 @@
    * 绑定主页事件
    */
   function _bindDashboardEvents(user, youths) {
+    // 健康速报卡片事件
+    if (youths.length > 0 && AnalyticsUI.bindHealthCardEvents) {
+      AnalyticsUI.bindHealthCardEvents(youths[0]);
+    }
+
     // 头像上传（复用已存在的 fileInput，避免泄漏）
     var avatarEl = document.getElementById('avatar-upload');
     if (avatarEl) {
@@ -1425,8 +1440,21 @@
     registerRoute('chat', ChatBot.renderChat);
     // US4 路由
     registerRoute('charts', Charts.renderCharts);
+    registerRoute('analytics', AnalyticsUI.renderAnalytics);
     // US5 路由
     registerRoute('government', Government.renderGovernment);
+    // 授权管理路由
+    registerRoute('grants', function (params) {
+      var youthId = params.youthId || (AppState.currentYouth ? AppState.currentYouth.id : null);
+      if (youthId) {
+        AppState.selectYouth(youthId);
+        Grants.showGrants(youthId);
+      } else {
+        window.location.hash = 'dashboard';
+      }
+    });
+    // 管理员路由
+    registerRoute('admin', Admin.showAdmin);
   }
 
   /**
