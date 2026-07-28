@@ -57,9 +57,8 @@ window.Auth = (function () {
       '<div class="auth-page">' +
         '<div class="auth-container">' +
           '<div class="auth-header">' +
-            '<div class="auth-logo">🗼</div>' +
             '<div class="auth-title">AI懂我</div>' +
-            '<div class="auth-subtitle">全生涯数据灯塔</div>' +
+            '<div class="auth-subtitle">心智障碍者动态支持档案</div>' +
           '</div>' +
           '<div class="auth-body">' +
             '<div class="form-group">' +
