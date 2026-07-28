@@ -15,6 +15,7 @@ window.Storage = (function () {
     GUARDIANSHIPS: 'ai_dongwo_guardianships',
     ANONYMIZED: 'ai_dongwo_anonymized',
     HANDOVER_TASKS: 'ai_dongwo_handover_tasks',
+    JOIN_REQUESTS: 'ai_dongwo_join_requests',
     CURRENT_USER: 'ai_dongwo_current_user'
   };
 
@@ -289,6 +290,57 @@ window.Storage = (function () {
       }
     }
     return false;
+  }
+
+  // ==================== JoinRequest ====================
+
+  function getJoinRequests(youthId) {
+    var all = get(KEYS.JOIN_REQUESTS) || [];
+    if (youthId) {
+      return all.filter(function (r) { return r.youthId === youthId; });
+    }
+    return all;
+  }
+
+  function getJoinRequestsByApplicant(applicantId) {
+    var all = get(KEYS.JOIN_REQUESTS) || [];
+    return all.filter(function (r) { return r.applicantId === applicantId; });
+  }
+
+  function getPendingJoinRequests(youthId) {
+    var all = get(KEYS.JOIN_REQUESTS) || [];
+    return all.filter(function (r) {
+      return r.status === 'pending' && (!youthId || r.youthId === youthId);
+    });
+  }
+
+  function saveJoinRequest(request) {
+    var all = get(KEYS.JOIN_REQUESTS) || [];
+    // 检查是否已有 pending 申请（同一 user + 同一 youth）
+    var existing = all.filter(function (r) {
+      return r.applicantId === request.applicantId &&
+             r.youthId === request.youthId &&
+             r.status === 'pending';
+    });
+    if (existing.length > 0) {
+      return { success: false, error: 'JOIN_REQUEST_EXISTS' };
+    }
+    all.push(request);
+    set(KEYS.JOIN_REQUESTS, all);
+    return { success: true };
+  }
+
+  function updateJoinRequest(id, updates) {
+    var all = get(KEYS.JOIN_REQUESTS) || [];
+    for (var i = 0; i < all.length; i++) {
+      if (all[i].id === id) {
+        for (var key in updates) {
+          all[i][key] = updates[key];
+        }
+        break;
+      }
+    }
+    set(KEYS.JOIN_REQUESTS, all);
   }
 
   // ==================== GuardianshipTransfer ====================
@@ -948,6 +1000,12 @@ window.Storage = (function () {
     addAccessGrant: addAccessGrant,
     revokeAccessGrant: revokeAccessGrant,
     updateAccessGrant: updateAccessGrant,
+    // JoinRequest
+    getJoinRequests: getJoinRequests,
+    getJoinRequestsByApplicant: getJoinRequestsByApplicant,
+    getPendingJoinRequests: getPendingJoinRequests,
+    saveJoinRequest: saveJoinRequest,
+    updateJoinRequest: updateJoinRequest,
     // GuardianshipTransfer
     getGuardianshipTransfers: getGuardianshipTransfers,
     addGuardianshipTransfer: addGuardianshipTransfer,
