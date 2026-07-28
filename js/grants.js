@@ -40,7 +40,7 @@ window.Grants = (function () {
 
     var html =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-grants-back">← 返回</button>' +
+        '<button class="btn btn-sm btn-icon" id="btn-grants-close" style="width:32px;height:32px;padding:0;border:none;background:transparent;cursor:pointer;font-size:18px;color:var(--color-text-secondary);">✕</button>' +
         '<span class="page-title">🔑 授权管理 · ' + Utils.escapeHtml(youth.name) + '</span>' +
         '<span></span>' +
       '</div>' +
@@ -123,11 +123,11 @@ window.Grants = (function () {
 
     container.innerHTML = html;
 
-    // 返回按钮
-    var backBtn = document.getElementById('btn-grants-back');
-    if (backBtn) {
-      backBtn.addEventListener('click', function () {
-        window.location.hash = 'management';
+    // 关闭按钮
+    var closeBtn = document.getElementById('btn-grants-close');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        history.back();
       });
     }
 

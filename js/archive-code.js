@@ -43,7 +43,7 @@ window.ArchiveCode = (function () {
   function _renderExistingCode(container, youth, code) {
     container.innerHTML =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-back">← 返回</button>' +
+        '<button class="btn btn-sm btn-icon" id="btn-archive-close" style="width:32px;height:32px;padding:0;border:none;background:transparent;cursor:pointer;font-size:18px;color:var(--color-text-secondary);">✕</button>' +
         '<span class="page-title">档案码</span>' +
         '<span></span>' +
       '</div>' +
@@ -69,8 +69,8 @@ window.ArchiveCode = (function () {
     _generateQR(code.codeUrl, document.getElementById('qr-container'));
 
     // 绑定事件
-    document.getElementById('btn-back').addEventListener('click', function () {
-      window.location.hash = 'profile?youthId=' + encodeURIComponent(youth.id);
+    document.getElementById('btn-archive-close').addEventListener('click', function () {
+      history.back();
     });
 
     document.getElementById('btn-print').addEventListener('click', function () {
@@ -90,7 +90,7 @@ window.ArchiveCode = (function () {
   function _renderGeneratePrompt(container, youth) {
     container.innerHTML =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-back">← 返回</button>' +
+        '<button class="btn btn-sm btn-icon" id="btn-archive-close" style="width:32px;height:32px;padding:0;border:none;background:transparent;cursor:pointer;font-size:18px;color:var(--color-text-secondary);">✕</button>' +
         '<span class="page-title">档案码</span>' +
         '<span></span>' +
       '</div>' +
@@ -103,8 +103,8 @@ window.ArchiveCode = (function () {
         '</div>' +
       '</div>';
 
-    document.getElementById('btn-back').addEventListener('click', function () {
-      window.location.hash = 'profile?youthId=' + encodeURIComponent(youth.id);
+    document.getElementById('btn-archive-close').addEventListener('click', function () {
+      history.back();
     });
 
     document.getElementById('btn-generate').addEventListener('click', function () {
