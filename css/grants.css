@@ -1,0 +1,660 @@
+/* ================================================================
+   grants.css - 授权管理 + 管理员页面
+   Apple Design: 简洁白卡、清晰层级、iOS 风格底部 Sheet
+   依赖 main.css 中的 CSS 变量
+   ================================================================ */
+
+/* — 授权管理页面容器 — */
+.grants-page {
+  padding: var(--spacing-md) 0 calc(var(--bottom-nav-height) + var(--spacing-2xl) + env(safe-area-inset-bottom, 0px));
+}
+
+/* — 授权项：图标 + 主体 + 撤销按钮 — */
+.grant-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  border: 1px solid var(--color-border-light);
+  margin-bottom: var(--spacing-sm);
+  transition: all var(--transition-fast);
+}
+
+.grant-item-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.grant-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.grant-item-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+
+.grant-item-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+.grant-revoke-btn {
+  background: none;
+  border: none;
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.grant-revoke-btn:hover {
+  background: rgba(212, 135, 123, 0.10);
+}
+
+.grant-revoke-btn:active {
+  transform: scale(0.96);
+}
+
+/* — 空状态 — */
+.grants-empty {
+  text-align: center;
+  padding: var(--spacing-3xl) var(--spacing-xl);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+/* — 底部固定操作栏 — */
+.grants-bottom-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--color-bg-secondary);
+  padding: var(--spacing-md) var(--spacing-lg) calc(var(--spacing-md) + env(safe-area-inset-bottom, 0px));
+  border-top: 0.5px solid var(--color-border-light);
+  z-index: 150;
+  max-width: var(--max-content-width);
+  margin: 0 auto;
+}
+
+.grants-add-btn {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-xl);
+  min-height: 44px;
+  background-color: var(--color-primary);
+  color: var(--color-text-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.grants-add-btn:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+  box-shadow: var(--shadow-md);
+}
+
+.grants-add-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+/* — Sheet 内错误提示 — */
+.grants-sheet-error {
+  color: var(--color-danger);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+}
+
+/* ================================================================
+   撤销确认弹窗
+   ================================================================ */
+.grants-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--spacing-xl);
+  animation: grantsFadeIn 0.2s ease;
+}
+
+@keyframes grantsFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.grants-confirm-dialog {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-2xl) var(--spacing-xl);
+  max-width: 320px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow-xl);
+  animation: grantsDialogPop 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+@keyframes grantsDialogPop {
+  from { opacity: 0; transform: scale(0.92); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.grants-confirm-icon {
+  font-size: 40px;
+  margin-bottom: var(--spacing-md);
+  line-height: 1;
+}
+
+.grants-confirm-title {
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-sm);
+}
+
+.grants-confirm-text {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: var(--line-height-normal);
+  margin-bottom: var(--spacing-xl);
+}
+
+.grants-confirm-text strong {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.grants-confirm-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.grants-confirm-actions button {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  min-height: 40px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+}
+
+.grants-confirm-cancel {
+  background: var(--color-bg-tertiary);
+  color: var(--color-text-secondary);
+}
+
+.grants-confirm-cancel:hover {
+  background: var(--color-border-light);
+}
+
+.grants-confirm-ok {
+  background: var(--color-danger);
+  color: var(--color-text-white);
+}
+
+.grants-confirm-ok:hover {
+  opacity: 0.9;
+}
+
+.grants-confirm-ok:active,
+.grants-confirm-cancel:active {
+  transform: scale(0.98);
+}
+
+/* ================================================================
+   添加授权底部 Sheet（iOS 风格）
+   ================================================================ */
+.grants-sheet-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: grantsFadeIn 0.2s ease;
+}
+
+.grants-sheet {
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+  width: 100%;
+  max-width: var(--max-content-width);
+  max-height: 70vh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: var(--spacing-sm) var(--spacing-xl) calc(var(--spacing-xl) + env(safe-area-inset-bottom, 0px));
+  animation: grantsSlideUp 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
+}
+
+@keyframes grantsSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.grants-sheet-handle {
+  width: 36px;
+  height: 4px;
+  background: var(--color-border);
+  border-radius: var(--radius-full);
+  margin: var(--spacing-sm) auto var(--spacing-md);
+}
+
+.grants-sheet-title {
+  text-align: center;
+  font-size: var(--font-size-lg);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  margin-bottom: var(--spacing-lg);
+}
+
+.grants-sheet-section {
+  margin-bottom: var(--spacing-lg);
+}
+
+.grants-sheet-label {
+  text-transform: uppercase;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  font-weight: var(--font-weight-medium);
+  letter-spacing: 0.04em;
+  margin-bottom: var(--spacing-sm);
+}
+
+/* — 用户列表项 — */
+.grants-sheet-user {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border: 1.5px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--spacing-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.grants-sheet-user:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.grants-sheet-user.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-surface);
+}
+
+.grants-sheet-user-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-base);
+  flex-shrink: 0;
+}
+
+.grants-sheet-user-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.grants-sheet-user-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+
+.grants-sheet-user-role {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+
+.grants-sheet-user-check {
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  border: 1.5px solid var(--color-border);
+  flex-shrink: 0;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.grants-sheet-user.selected .grants-sheet-user-check {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.grants-sheet-user.selected .grants-sheet-user-check::after {
+  content: '';
+  width: 6px;
+  height: 10px;
+  border: solid var(--color-text-white);
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+/* — 范围选项 — */
+.grants-sheet-scope-options {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.grants-scope-option {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: var(--spacing-md) var(--spacing-sm);
+  border: 1.5px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  user-select: none;
+}
+
+.grants-scope-option:hover {
+  background: var(--color-bg-tertiary);
+}
+
+.grants-scope-option.selected {
+  border-color: var(--color-primary);
+  background: var(--color-primary-surface);
+}
+
+.grants-scope-icon {
+  font-size: 20px;
+  display: block;
+  line-height: 1;
+}
+
+.grants-scope-label {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+}
+
+/* — 确认按钮 — */
+.grants-sheet-confirm {
+  width: 100%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-md) var(--spacing-xl);
+  min-height: 44px;
+  background-color: var(--color-primary);
+  color: var(--color-text-white);
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  margin-top: var(--spacing-sm);
+}
+
+.grants-sheet-confirm:hover:not(:disabled) {
+  background-color: var(--color-primary-dark);
+  box-shadow: var(--shadow-md);
+}
+
+.grants-sheet-confirm:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+.grants-sheet-confirm:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* — Sheet 空状态 — */
+.grants-sheet-empty {
+  text-align: center;
+  padding: var(--spacing-xl) var(--spacing-md);
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+}
+
+/* ================================================================
+   管理员页面
+   ================================================================ */
+
+/* — Tab 切换 — */
+.admin-tabs {
+  display: flex;
+  gap: var(--spacing-xs);
+  background: var(--color-bg-tertiary);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-xs);
+  margin-bottom: var(--spacing-lg);
+}
+
+.admin-tab {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: var(--spacing-sm) var(--spacing-md);
+  min-height: 36px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.admin-tab:hover {
+  color: var(--color-text-primary);
+}
+
+.admin-tab.active {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-xs);
+}
+
+/* — 内容区 — */
+.admin-content {
+  padding: var(--spacing-sm) 0;
+}
+
+.admin-user-count {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--spacing-md);
+}
+
+/* — 用户卡片 — */
+.admin-user-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  border: 1px solid var(--color-border-light);
+  margin-bottom: var(--spacing-sm);
+}
+
+.admin-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.admin-user-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-user-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+
+.admin-user-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+/* — 状态徽章 — */
+.admin-user-status {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  padding: 2px var(--spacing-sm);
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+.admin-user-status.active {
+  background: rgba(143, 188, 139, 0.15);
+  color: var(--color-success);
+}
+
+.admin-user-status.disabled {
+  background: rgba(212, 135, 123, 0.15);
+  color: var(--color-danger);
+}
+
+/* — 启用/禁用切换按钮 — */
+.admin-user-toggle {
+  background: transparent;
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  min-height: 28px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+}
+
+.admin-user-toggle:hover {
+  border-color: var(--color-text-tertiary);
+  color: var(--color-text-primary);
+}
+
+.admin-user-toggle:active {
+  transform: scale(0.96);
+}
+
+/* — 全局授权 Tab — */
+.admin-grants-header {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  margin-bottom: var(--spacing-md);
+}
+
+.admin-grant-youth {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  border: 1px solid var(--color-border-light);
+  margin-bottom: var(--spacing-sm);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.admin-grant-youth:hover {
+  box-shadow: var(--shadow-sm);
+  border-color: var(--color-border);
+}
+
+.admin-grant-youth:active {
+  transform: scale(0.99);
+}
+
+.admin-grant-youth-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.admin-grant-youth-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-grant-youth-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+
+.admin-grant-youth-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+}
+
+.admin-grant-youth-arrow {
+  font-size: var(--font-size-xl);
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+  line-height: 1;
+}
