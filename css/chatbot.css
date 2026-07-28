@@ -59,7 +59,7 @@
   background: var(--color-primary);
   color: var(--color-text-white);
   border-bottom-right-radius: var(--radius-sm);
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.2);
+  box-shadow: var(--shadow-primary);
 }
 
 .chat-bubble-system {
@@ -163,7 +163,7 @@
 .chat-input:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(0, 122, 255, 0.12);
+  box-shadow: var(--ring-primary);
 }
 
 .chat-send-btn {
@@ -180,7 +180,7 @@
   flex-shrink: 0;
   transition: all var(--transition-fast);
   border: none;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+  box-shadow: var(--shadow-primary);
 }
 
 .chat-send-btn:active:not(:disabled) {
@@ -233,7 +233,7 @@
 .chat-classify-btn.selected {
   background: var(--color-primary);
   color: var(--color-text-white);
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+  box-shadow: var(--shadow-primary);
 }
 
 /* 打字动画 */
@@ -462,7 +462,7 @@
 }
 
 .categorize-item .ci-confidence {
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   color: var(--color-text-tertiary);
   margin-top: 4px;
 }
@@ -486,7 +486,7 @@
 
 .module-picker-btn {
   padding: 3px 8px;
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   border: 0.5px solid var(--color-border-light);
   border-radius: var(--radius-full);
   background: var(--color-bg-secondary);
@@ -589,7 +589,7 @@
   }
 
   .chat-quick-btn {
-    font-size: 10px;
+    font-size: var(--font-size-2xs);
     padding: 4px 10px;
   }
 }

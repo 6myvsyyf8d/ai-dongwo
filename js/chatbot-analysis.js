@@ -268,7 +268,7 @@
     return '';
   }
 
-  // ========== 暴露全局接口 ==========
+  // ========== 暴露全局接口（向后兼容） ==========
   window.ChatbotAnalysis = {
     generateDailySummary: generateDailySummary,
     generateWeeklyReport: generateWeeklyReport,
@@ -276,4 +276,16 @@
     detectAnomalies: detectAnomalies,
     THRESHOLDS: THRESHOLDS
   };
+
+  // ========== 注册为 AnalysisProvider 提供者 ==========
+  // 注册为默认关键词分析引擎，未来可替换为 LLM 智能分析
+  if (window.ChatbotProviders) {
+    window.ChatbotProviders.register('keyword-analysis', {
+      generateDailySummary: generateDailySummary,
+      generateWeeklyReport: generateWeeklyReport,
+      generateMonthlyReport: generateMonthlyReport,
+      detectAnomalies: detectAnomalies
+    });
+    window.ChatbotProviders.switchProvider('analysisProvider', 'keyword-analysis');
+  }
 })();

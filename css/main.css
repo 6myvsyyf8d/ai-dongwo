@@ -68,6 +68,7 @@
 
   /* — Font: 优先中文友好字体栈 — */
   --font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', sans-serif;
+  --font-size-2xs: 10px;
   --font-size-xs: 11px;
   --font-size-sm: 13px;
   --font-size-base: 15px;
@@ -95,6 +96,11 @@
   --shadow-xl: 0 10px 28px rgba(74, 69, 64, 0.10), 0 4px 10px rgba(74, 69, 64, 0.06);
   --shadow-inner: inset 0 1px 2px rgba(74, 69, 64, 0.04);
 
+  /* — 主色系阴影（基于 --color-primary 鼠尾草绿） — */
+  --shadow-primary: 0 2px 8px rgba(139, 168, 136, 0.25);
+  --shadow-primary-lg: 0 4px 12px rgba(139, 168, 136, 0.35);
+  --ring-primary: 0 0 0 3px rgba(139, 168, 136, 0.15);
+
   /* — Transition — */
   --transition-fast: 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
   --transition-normal: 0.35s cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -103,7 +109,10 @@
   /* — Layout — */
   --header-height: 52px;
   --bottom-nav-height: 60px;
-  --max-content-width: 680px;
+  --max-content-width: 680px; /* 手机端 */
+
+  /* — PC 端布局锁 — */
+  --max-content-width-pc: 900px;
 }
 
 *,
@@ -239,7 +248,7 @@ select:focus,
 textarea:focus {
   outline: none;
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(74, 111, 165, 0.08);
+  box-shadow: var(--ring-primary);
 }
 
 /* 焦点可见样式 */
@@ -637,12 +646,12 @@ ul, ol { list-style: none; }
   cursor: pointer;
   transition: all var(--transition-fast);
   border: none;
-  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.25);
+  box-shadow: var(--shadow-primary);
 }
 
 .lighthouse-cta:hover {
   background: var(--color-primary-dark);
-  box-shadow: 0 4px 12px rgba(0, 122, 255, 0.35);
+  box-shadow: var(--shadow-primary-lg);
   transform: translateY(-1px);
 }
 
@@ -1006,7 +1015,7 @@ ul, ol { list-style: none; }
 
 .bottom-nav-item.active {
   color: var(--color-primary);
-  background: rgba(74, 144, 226, 0.08);
+  background: var(--color-primary-surface);
 }
 
 .bottom-nav-icon {
@@ -1020,7 +1029,7 @@ ul, ol { list-style: none; }
 }
 
 .bottom-nav-label {
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.02em;
 }
@@ -1086,8 +1095,8 @@ ul, ol { list-style: none; }
   border-bottom: 0.5px solid var(--color-border-light);
 }
 .ios-card-row:last-child { border-bottom: none; }
-.ios-card-row:hover { background: rgba(0,122,255,0.04); }
-.ios-card-row:active { background: rgba(0,122,255,0.08); }
+.ios-card-row:hover { background: var(--color-primary-surface); }
+.ios-card-row:active { background: rgba(139, 168, 136, 0.12); }
 .ios-card-row.no-border { border-bottom: none; }
 
 .ios-card-row-static {
@@ -1247,7 +1256,7 @@ ul, ol { list-style: none; }
   width: 100%;
   font-family: inherit;
 }
-.ios-create-row:hover { background: rgba(0,122,255,0.04); }
+.ios-create-row:hover { background: var(--color-primary-surface); }
 
 /* Handover create button — Apple Blue */
 .handover-create-btn {
@@ -1554,7 +1563,7 @@ ul, ol { list-style: none; }
 }
 
 .safety-card-item-label {
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   color: var(--color-text-tertiary);
   display: block;
   margin-bottom: 2px;
@@ -1695,7 +1704,7 @@ ul, ol { list-style: none; }
 
 .handover-chevron {
   margin-left: auto;
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   color: #C7C7CC;
   transition: transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
 }
@@ -1737,7 +1746,7 @@ ul, ol { list-style: none; }
   border-radius: 12px;
   margin: 4px 8px 8px;
   overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+  box-shadow: var(--shadow-sm);
 }
 
 .handover-task-list .handover-task-row + .handover-task-row {
@@ -1843,6 +1852,47 @@ ul, ol { list-style: none; }
   margin-left: auto;
   font-size: 11px;
   color: var(--color-text-tertiary);
+}
+
+/* ================================================================
+   PC 端响应式布局（≥ 768px）
+   ================================================================ */
+@media (min-width: 768px) {
+  :root {
+    --max-content-width: var(--max-content-width-pc);
+  }
+
+  .page-content {
+    padding: var(--spacing-xl);
+    max-width: var(--max-content-width);
+  }
+
+  .bottom-nav {
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: var(--max-content-width);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  }
+
+  .dashboard {
+    max-width: var(--max-content-width);
+  }
+
+  .chat-layout {
+    max-width: var(--max-content-width);
+  }
+
+  .gov-page {
+    max-width: var(--max-content-width);
+  }
+
+  .records-filter-bar {
+    padding: var(--spacing-sm) var(--spacing-lg);
+  }
+
+  .page-header {
+    padding: 0 var(--spacing-xl);
+  }
 }
 
 

@@ -194,11 +194,21 @@
     ];
   }
 
-  // ========== 暴露全局接口 ==========
+  // ========== 暴露全局接口（向后兼容） ==========
   window.ChatbotTemplates = {
     getTemplate: getTemplate,
     getTimePeriod: getTimePeriod,
     getIntervalStrategy: getIntervalStrategy,
     getQuickButtons: getQuickButtons
   };
+
+  // ========== 注册为 QuestionProvider 提供者 ==========
+  // 注册为默认关键词模板引擎，未来可替换为 LLM 动态生成问题
+  if (window.ChatbotProviders) {
+    window.ChatbotProviders.register('keyword-templates', {
+      getTemplate: getTemplate,
+      getQuickButtons: getQuickButtons
+    });
+    window.ChatbotProviders.switchProvider('questionProvider', 'keyword-templates');
+  }
 })();

@@ -78,7 +78,7 @@
   justify-content: center;
   padding: var(--spacing-lg) var(--spacing-sm);
   min-height: 72px;
-  border: 1.5px solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -94,7 +94,7 @@
 .role-card.selected {
   border-color: var(--color-primary);
   background: var(--color-primary-surface);
-  box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.08);
+  box-shadow: var(--ring-primary);
 }
 
 .role-icon {
@@ -104,7 +104,7 @@
 }
 
 .role-name {
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   color: var(--color-text-secondary);
   font-weight: var(--font-weight-medium);
   letter-spacing: 0.02em;
@@ -128,7 +128,7 @@
   text-align: center;
   font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
-  border: 1.5px solid var(--color-border);
+  border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
   background: var(--color-bg-secondary);
   transition: border-color var(--transition-fast);
@@ -139,7 +139,7 @@
 .pin-digit:focus {
   border-color: var(--color-primary);
   outline: none;
-  box-shadow: 0 0 0 2px rgba(74, 111, 165, 0.08);
+  box-shadow: var(--ring-primary);
 }
 
 /* 表单步骤 */
@@ -206,7 +206,7 @@
 }
 
 .quick-login-title {
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   color: var(--color-text-tertiary);
   text-align: center;
   margin-bottom: var(--spacing-md);

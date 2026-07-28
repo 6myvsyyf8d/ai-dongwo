@@ -63,7 +63,7 @@
 }
 
 .gov-stat-trend {
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   margin-top: var(--spacing-xs);
   display: flex;
   align-items: center;
@@ -133,7 +133,7 @@
 }
 
 .age-bar-label {
-  font-size: 10px;
+  font-size: var(--font-size-2xs);
   color: var(--color-text-tertiary);
 }
 

@@ -9,6 +9,150 @@
   padding: var(--spacing-md) 0 calc(var(--bottom-nav-height) + var(--spacing-2xl) + env(safe-area-inset-bottom, 0px));
 }
 
+/* — 区块 — */
+.grants-section {
+  margin-bottom: var(--spacing-xl);
+}
+
+.grants-section-title {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  margin-bottom: var(--spacing-sm);
+  padding: 0 var(--spacing-lg);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.grants-pending-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  background: var(--color-danger);
+  color: var(--color-text-white);
+  border-radius: var(--radius-full);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-bold);
+}
+
+/* — 待审批申请项 — */
+.pending-request-item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-xs);
+  border: 1px solid var(--color-border-light);
+  margin: 0 var(--spacing-lg) var(--spacing-sm);
+  transition: all var(--transition-fast);
+}
+
+.pending-request-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: var(--color-bg-tertiary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: var(--font-size-lg);
+  flex-shrink: 0;
+}
+
+.pending-request-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.pending-request-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-text-primary);
+  margin-bottom: 2px;
+}
+
+.pending-request-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-tertiary);
+  margin-bottom: 4px;
+}
+
+.pending-request-reason {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.4;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+
+.pending-request-actions {
+  display: flex;
+  gap: var(--spacing-xs);
+  flex-shrink: 0;
+}
+
+.pending-approve-btn,
+.pending-reject-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  border: none;
+  cursor: pointer;
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-bold);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+}
+
+.pending-approve-btn {
+  background: rgba(143, 188, 139, 0.15);
+  color: var(--color-success);
+}
+
+.pending-approve-btn:hover {
+  background: var(--color-success);
+  color: var(--color-text-white);
+}
+
+.pending-reject-btn {
+  background: rgba(212, 135, 123, 0.15);
+  color: var(--color-danger);
+}
+
+.pending-reject-btn:hover {
+  background: var(--color-danger);
+  color: var(--color-text-white);
+}
+
+.pending-approve-btn:active,
+.pending-reject-btn:active {
+  transform: scale(0.92);
+}
+
+/* — 监护人标签 — */
+.grant-guardian-tag {
+  display: inline-block;
+  margin-left: var(--spacing-sm);
+  padding: 2px 6px;
+  background: var(--color-primary-surface);
+  color: var(--color-primary);
+  border-radius: var(--radius-xs);
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-medium);
+  vertical-align: middle;
+}
+
 /* — 授权项：图标 + 主体 + 撤销按钮 — */
 .grant-item {
   display: flex;
@@ -19,7 +163,7 @@
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-xs);
   border: 1px solid var(--color-border-light);
-  margin-bottom: var(--spacing-sm);
+  margin: 0 var(--spacing-lg) var(--spacing-sm);
   transition: all var(--transition-fast);
 }
 
@@ -657,4 +801,13 @@
   color: var(--color-text-tertiary);
   flex-shrink: 0;
   line-height: 1;
+}
+
+/* — Sheet 提示文字 — */
+.grants-sheet-hint {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  text-align: center;
+  padding: var(--spacing-sm) 0;
+  margin-bottom: var(--spacing-sm);
 }

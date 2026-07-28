@@ -226,8 +226,14 @@
       }
     }
 
-    // 无档案：灯塔愿景横幅
-    if (youths.length === 0) {
+    // 心青年游离态：等待家长邀请
+    if (user.role === 'youth' && youths.length === 0) {
+      _renderYouthUnboundDashboard(container, user);
+      return;
+    }
+
+    // 无档案：灯塔愿景横幅（仅家长等可创建档案的角色）
+    if (youths.length === 0 && user.role === 'parent') {
       container.innerHTML =
         '<div class="page-content lighthouse-banner">' +
           '<div class="lighthouse-icon">🗼</div>' +
@@ -304,6 +310,19 @@
         _handleArchiveUrl(url);
       }
     });
+  }
+
+  /**
+   * 渲染心青年游离态首页（等待家长邀请）
+   */
+  function _renderYouthUnboundDashboard(container, user) {
+    container.innerHTML = '<div class="page-content">' +
+      '<div class="dashboard-empty">' +
+        '<div class="dashboard-empty-icon">🌻</div>' +
+        '<div class="dashboard-empty-title">欢迎，' + Utils.escapeHtml(user.name) + '</div>' +
+        '<div class="dashboard-empty-text">请等待家长邀请加入档案<br>或联系家长获取档案码</div>' +
+      '</div>' +
+    '</div>';
   }
 
   /**
@@ -1236,47 +1255,48 @@
 
     var html = '<div class="page-content">';
 
-    // === 加入申请 ===
-    if (user.role === 'parent' || user.role === 'admin') {
-      var pendingCount = 0;
-      var allYouths = Permissions.getAccessibleYouths();
-      for (var i = 0; i < allYouths.length; i++) {
-        var pending = Storage.getPendingJoinRequests(allYouths[i].id);
-        pendingCount += pending.length;
-      }
+    // === 授权管理 ===（家长可见，含待审批红点）
+    if (user.role === 'parent' && youths.length > 0) {
       html += '<div class="ios-card-group">';
-      html += '<div class="ios-card-group-header">📋 加入申请</div>';
-      html += '<div class="ios-card-row-static" id="btn-approvals" style="cursor:pointer;">' +
-        '<div class="ios-card-row-icon">📨</div>' +
-        '<div class="ios-card-row-body">' +
-          '<div class="ios-card-row-title">申请审批</div>' +
-          '<div class="ios-card-row-subtitle">' + (pendingCount > 0 ? pendingCount + ' 条待审批' : '暂无新申请') + '</div>' +
-        '</div>' +
-        (pendingCount > 0 ? '<span class="approval-badge">' + pendingCount + '</span>' : '') +
-        '<span class="ios-card-row-arrow">›</span>' +
-      '</div>';
-      html += '</div>';
-    }
-
-    // === 档案管理 ===
-    html += '<div class="ios-card-group">';
-    html += '<div class="ios-card-group-header">📋 档案管理</div>';
-    if (youths.length > 0) {
+      html += '<div class="ios-card-group-header">🔑 授权管理</div>';
       for (var i = 0; i < youths.length; i++) {
         var y = youths[i];
         var age = Utils.calculateAge(y.birthDate);
+        var grants = Storage.getAccessGrants(y.id);
+        var activeCount = grants.filter(function (g) { return g.status === 'active'; }).length;
+        var pendingRequests = Storage.getPendingJoinRequests(y.id);
+        var pendingCount = pendingRequests.length;
         html += '<div class="ios-card-row" data-youth-id="' + y.id + '" data-action="grants">' +
           '<div class="ios-card-row-icon avatar">' + (y.avatar || '🧑') + '</div>' +
           '<div class="ios-card-row-body">' +
             '<div class="ios-card-row-title">' + Utils.escapeHtml(y.name) + ' 授权管理</div>' +
-            '<div class="ios-card-row-subtitle">' + age + '岁 · 管理访问权限、档案码</div>' +
+            '<div class="ios-card-row-subtitle">' + activeCount + ' 位已授权' + (pendingCount > 0 ? ' · ' + pendingCount + ' 条待审批' : '') + '</div>' +
+          '</div>' +
+          (pendingCount > 0 ? '<span class="approval-badge">' + pendingCount + '</span>' : '') +
+          '<span class="ios-card-row-arrow">›</span>' +
+        '</div>';
+      }
+      html += '</div>';
+    }
+
+    // === 档案信息 ===
+    if (youths.length > 0) {
+      html += '<div class="ios-card-group">';
+      html += '<div class="ios-card-group-header">📋 档案信息</div>';
+      for (var i = 0; i < youths.length; i++) {
+        var y = youths[i];
+        var age = Utils.calculateAge(y.birthDate);
+        html += '<div class="ios-card-row" data-youth-id="' + y.id + '" data-action="archive-code">' +
+          '<div class="ios-card-row-icon avatar">' + (y.avatar || '🧑') + '</div>' +
+          '<div class="ios-card-row-body">' +
+            '<div class="ios-card-row-title">' + Utils.escapeHtml(y.name) + '</div>' +
+            '<div class="ios-card-row-subtitle">' + age + '岁 · 查看档案码</div>' +
           '</div>' +
           '<span class="ios-card-row-arrow">›</span>' +
         '</div>';
       }
+      html += '</div>';
     }
-    html += '<button class="ios-create-row" id="btn-create-profile">✚ 创建心青年档案</button>';
-    html += '</div>';
 
     // === 账号 ===
     html += '<div class="ios-card-group">';
@@ -1304,22 +1324,6 @@
       });
     }
 
-    // 绑定创建档案按钮
-    var createBtn = document.getElementById('btn-create-profile');
-    if (createBtn) {
-      createBtn.addEventListener('click', function () {
-        window.location.hash = 'profile?action=create';
-      });
-    }
-
-    // 绑定申请审批入口
-    var approvalsBtn = document.getElementById('btn-approvals');
-    if (approvalsBtn) {
-      approvalsBtn.addEventListener('click', function () {
-        window.location.hash = 'approvals';
-      });
-    }
-
     // 绑定授权管理点击
     var grantRows = document.querySelectorAll('.ios-card-row[data-action="grants"]');
     for (var i = 0; i < grantRows.length; i++) {
@@ -1329,6 +1333,19 @@
         if (youthId) {
           AppState.selectYouth(youthId);
           window.location.hash = 'grants?youthId=' + encodeURIComponent(youthId);
+        }
+      });
+    }
+
+    // 绑定档案码点击
+    var archiveRows = document.querySelectorAll('.ios-card-row[data-action="archive-code"]');
+    for (var i = 0; i < archiveRows.length; i++) {
+      archiveRows[i].addEventListener('click', function (e) {
+        e.stopPropagation();
+        var youthId = this.getAttribute('data-youth-id');
+        if (youthId) {
+          AppState.selectYouth(youthId);
+          window.location.hash = 'archive-code?youthId=' + encodeURIComponent(youthId);
         }
       });
     }
@@ -1561,10 +1578,11 @@
   function _roleLabel(role) {
     return Constants.ROLE_LABELS[role] || role;
   }
-  // 注册路由（login/register/profile/archive-code 等由各模块注册）
+    // 注册路由（login/register/profile/archive-code 等由各模块注册）
   function initRoutes() {
     registerRoute('dashboard', showDashboard);
     registerRoute('management', showManagement);
+    registerRoute('welcome', Welcome.renderWelcome);
     // US1 路由
     registerRoute('login', Auth.renderLogin);
     registerRoute('register', Auth.renderRegister);

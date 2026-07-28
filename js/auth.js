@@ -426,9 +426,13 @@ window.Auth = (function () {
     AppState.login(account);
     AppState.showToast('注册成功！欢迎使用 AI懂我');
 
-    // 政府角色跳转政府看板
+    // 按角色跳转
     if (account.role === 'government') {
       window.location.hash = 'government';
+    } else if (account.role === 'admin') {
+      window.location.hash = 'admin';
+    } else if (account.role === 'parent') {
+      window.location.hash = 'welcome';
     } else {
       window.location.hash = 'dashboard';
     }

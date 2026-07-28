@@ -106,10 +106,12 @@
     state.totalRounds = 0;
     state.confirmed = false;
 
-    // 获取模板
-    var hasClassifier = window.ChatbotTemplates && window.ChatbotClassifier;
+    // 获取模板（优先通过接口层，兼容旧版直接访问）
+    var qProvider = (window.ChatbotProviders && window.ChatbotProviders.getQuestionProvider()) || window.ChatbotTemplates;
+    var classifier = (window.ChatbotProviders && window.ChatbotProviders.getClassifier()) || window.ChatbotClassifier;
+    var hasClassifier = qProvider && classifier;
     state.template = hasClassifier
-      ? window.ChatbotTemplates.getTemplate(null)
+      ? qProvider.getTemplate(null)
       : { greeting: '你好！我是 AI 助手，可以帮你通过对话记录 ' + state.youthName + ' 的日常信息。', questions: [], maxRounds: 20 };
     state.maxRounds = state.template.maxRounds || 20;
 
@@ -398,7 +400,8 @@
     addUserMessage(text.trim());
 
     if (window.ChatbotClassifier) {
-      var results = window.ChatbotClassifier.classify(text.trim());
+      var classifier = (window.ChatbotProviders && window.ChatbotProviders.getClassifier()) || window.ChatbotClassifier;
+      var results = classifier.classify(text.trim());
       var validResults = results.filter(function (r) { return r.module !== null; });
 
       for (var i = 0; i < validResults.length; i++) {
@@ -569,8 +572,9 @@
     item.className = 'categorize-item' + (confidence < 0.1 ? ' uncertain' : '');
     item.dataset.tempId = tempId;
 
-    var modName = window.ChatbotClassifier ? window.ChatbotClassifier.getModuleName(module) : module;
-    var modIcon = window.ChatbotClassifier ? window.ChatbotClassifier.getModuleIcon(module) : '📝';
+    var classifier = (window.ChatbotProviders && window.ChatbotProviders.getClassifier()) || window.ChatbotClassifier;
+    var modName = classifier ? classifier.getModuleName(module) : module;
+    var modIcon = classifier ? classifier.getModuleIcon(module) : '📝';
 
     item.innerHTML =
       '<div class="ci-module">' + modIcon + ' ' + modName + '</div>' +
@@ -686,9 +690,10 @@
   // ========== 快捷按钮 ==========
   function renderQuickButtons() {
     var area = document.getElementById('chat-quick-buttons');
-    if (!area || !window.ChatbotTemplates) return;
+    var qProvider = (window.ChatbotProviders && window.ChatbotProviders.getQuestionProvider()) || window.ChatbotTemplates;
+    if (!area || !qProvider) return;
     area.innerHTML = '';
-    var buttons = window.ChatbotTemplates.getQuickButtons();
+    var buttons = qProvider.getQuickButtons();
     buttons.forEach(function (btn) {
       var el = document.createElement('button');
       el.className = 'chat-quick-btn';

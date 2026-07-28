@@ -116,11 +116,22 @@
     return icons[moduleKey] || '📝';
   }
 
-  // ========== 暴露全局接口 ==========
+  // ========== 暴露全局接口（向后兼容） ==========
   window.ChatbotClassifier = {
     classify: classify,
     splitSentences: splitSentences,
     getModuleName: getModuleName,
     getModuleIcon: getModuleIcon
   };
+
+  // ========== 注册为 Classifier 提供者 ==========
+  // 注册为默认关键词分类器，未来可替换为 LLM 实现
+  if (window.ChatbotProviders) {
+    window.ChatbotProviders.register('keyword-classifier', {
+      classify: classify,
+      getModuleName: getModuleName,
+      getModuleIcon: getModuleIcon
+    });
+    window.ChatbotProviders.switchProvider('classifier', 'keyword-classifier');
+  }
 })();
