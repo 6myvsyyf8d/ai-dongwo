@@ -136,6 +136,18 @@ window.Records = (function () {
     var canWrite = Permissions.canWrite('communicationGuide') || Permissions.canWrite('emotionBehavior') || Permissions.canWrite('careMedical') || Permissions.canWrite('workSupport');
     var fabHtml = canWrite ? '<button class="fab" id="btn-add-record" aria-label="添加新记录">+</button>' : '';
 
+    var chatEntryHtml =
+      '<div class="ios-card-group" style="margin-bottom:16px;">' +
+        '<div class="record-chat-entry" data-action="chat" style="display:flex;align-items:center;padding:14px 16px;cursor:pointer;">' +
+          '<div style="font-size:24px;margin-right:12px;">💬</div>' +
+          '<div style="flex:1;">' +
+            '<div style="font-size:15px;font-weight:600;color:var(--color-text-primary);">对话采集</div>' +
+            '<div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;">AI 对话式记录，边聊边记</div>' +
+          '</div>' +
+          '<span style="color:var(--color-text-tertiary);">›</span>' +
+        '</div>' +
+      '</div>';
+
     container.innerHTML =
       '<div class="page-header">' +
         '<button class="btn btn-sm btn-secondary" id="btn-back">← 返回</button>' +
@@ -143,6 +155,7 @@ window.Records = (function () {
         '<span></span>' +
       '</div>' +
       filterHtml +
+      chatEntryHtml +
       listHtml +
       fabHtml;
 
@@ -250,6 +263,14 @@ window.Records = (function () {
     if (fab) {
       fab.addEventListener('click', function () {
         _showRecordForm(youthId);
+      });
+    }
+
+    // 对话采集入口跳转
+    var chatEntry = document.querySelector('[data-action="chat"]');
+    if (chatEntry) {
+      chatEntry.addEventListener('click', function () {
+        window.location.hash = 'chat';
       });
     }
   }
@@ -526,10 +547,83 @@ window.Records = (function () {
     });
   }
 
+  /**
+   * 按模块查询记录
+   * @param {string} youthId
+   * @param {string} moduleKey
+   * @returns {Array}
+   */
+  function queryByModule(youthId, moduleKey) {
+    var records = Storage.getRecords(youthId);
+    return (records || []).filter(function (r) { return r.module === moduleKey; });
+  }
+
+  /**
+   * 按时间范围查询记录
+   * @param {string} youthId
+   * @param {string} startDate - YYYY-MM-DD
+   * @param {string} endDate - YYYY-MM-DD
+   * @returns {Array}
+   */
+  function queryByDateRange(youthId, startDate, endDate) {
+    var records = Storage.getRecords(youthId);
+    return (records || []).filter(function (r) {
+      var dateStr = (r.recordedAt || '').substring(0, 10);
+      return dateStr >= startDate && dateStr <= endDate;
+    });
+  }
+
+  /**
+   * 按标签查询记录
+   * @param {string} youthId
+   * @param {string} tag
+   * @returns {Array}
+   */
+  function queryByTag(youthId, tag) {
+    var records = Storage.getRecords(youthId);
+    return (records || []).filter(function (r) {
+      return r.content && r.content.tags && r.content.tags.indexOf(tag) > -1;
+    });
+  }
+
+  /**
+   * 按模块和时间组合查询
+   * @param {string} youthId
+   * @param {string} moduleKey
+   * @param {string} startDate - YYYY-MM-DD
+   * @param {string} endDate - YYYY-MM-DD
+   * @returns {Array}
+   */
+  function queryByModuleAndDate(youthId, moduleKey, startDate, endDate) {
+    var records = Storage.getRecords(youthId);
+    return (records || []).filter(function (r) {
+      var dateStr = (r.recordedAt || '').substring(0, 10);
+      return r.module === moduleKey && dateStr >= startDate && dateStr <= endDate;
+    });
+  }
+
+  /**
+   * 获取某模块的最近 N 条记录
+   * @param {string} youthId
+   * @param {string} moduleKey
+   * @param {number} limit
+   * @returns {Array}
+   */
+  function queryRecentByModule(youthId, moduleKey, limit) {
+    var records = queryByModule(youthId, moduleKey);
+    if (!limit) limit = 5;
+    return records.slice(0, limit);
+  }
+
   return {
     MODULES: Modules.MODULES,
     RECORD_TYPES: RECORD_TYPES,
     VISIBILITY_LEVELS: VISIBILITY_LEVELS,
-    renderRecords: renderRecords
+    renderRecords: renderRecords,
+    queryByModule: queryByModule,
+    queryByDateRange: queryByDateRange,
+    queryByTag: queryByTag,
+    queryByModuleAndDate: queryByModuleAndDate,
+    queryRecentByModule: queryRecentByModule
   };
 })();
