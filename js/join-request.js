@@ -6,7 +6,41 @@
 window.JoinRequest = (function () {
   'use strict';
 
+  var _stylesInjected = false;
+
+  function _injectStyles() {
+    if (_stylesInjected) return;
+    var style = document.createElement('style');
+    style.textContent =
+      '.join-relation-selector {' +
+        'display: flex;' +
+        'flex-wrap: wrap;' +
+        'gap: 8px;' +
+      '}' +
+      '.join-relation-option {' +
+        'padding: 8px 12px;' +
+        'border-radius: 8px;' +
+        'background: var(--color-bg-secondary);' +
+        'font-size: 14px;' +
+        'cursor: pointer;' +
+        'text-align: center;' +
+        'flex: 1 1 calc(33.333% - 8px);' +
+        'min-width: 80px;' +
+        'transition: all 0.2s ease;' +
+      '}' +
+      '.join-relation-option:hover {' +
+        'opacity: 0.9;' +
+      '}' +
+      '.join-relation-option.selected {' +
+        'background: var(--color-accent);' +
+        'color: #fff;' +
+      '}';
+    document.head.appendChild(style);
+    _stylesInjected = true;
+  }
+
   function renderJoinPage(youthId) {
+    _injectStyles();
     var container = App.getContainer();
     var youth = Storage.getProfile(youthId);
     if (!youth) {
@@ -46,6 +80,23 @@ window.JoinRequest = (function () {
     var roleLabel = Constants.ROLE_LABELS[user.role] || user.role;
     var roleIcon = _getRoleIcon(user.role);
 
+    var relationSection = '';
+    if (user.role === 'parent') {
+      var relationOptions = '';
+      for (var i = 0; i < Constants.FAMILY_RELATION_LABELS.length; i++) {
+        var rKey = Constants.FAMILY_RELATION_LABELS[i];
+        var rLabel = Constants.FAMILY_RELATIONS[rKey];
+        relationOptions += '<div class="join-relation-option" data-relation="' + rKey + '">' + rLabel + '</div>';
+      }
+      relationSection =
+        '<div class="join-card">' +
+          '<div class="join-section-label">您与孩子的关系（必填）</div>' +
+          '<div class="join-relation-selector" id="join-relation">' +
+            relationOptions +
+          '</div>' +
+        '</div>';
+    }
+
     return '<div class="page-content join-page">' +
       '<div class="page-header">' +
         '<span class="page-title">📨 加入申请</span>' +
@@ -69,6 +120,7 @@ window.JoinRequest = (function () {
           '</div>' +
         '</div>' +
       '</div>' +
+      relationSection +
       '<div class="join-card">' +
         '<div class="join-section-label">申请理由</div>' +
         '<textarea class="join-reason-input" id="join-reason" placeholder="请简要说明申请理由（必填，最多100字）" maxlength="100" rows="3"></textarea>' +
@@ -93,12 +145,26 @@ window.JoinRequest = (function () {
   }
 
   function _bindFormEvents(youth) {
+    var user = AppState.currentUser;
     var reasonInput = document.getElementById('join-reason');
     var countEl = document.getElementById('reason-count');
     if (reasonInput && countEl) {
       reasonInput.addEventListener('input', function () {
         countEl.textContent = this.value.length;
       });
+    }
+
+    var relationSelector = document.getElementById('join-relation');
+    if (relationSelector) {
+      var relationOptions = relationSelector.querySelectorAll('.join-relation-option');
+      for (var i = 0; i < relationOptions.length; i++) {
+        relationOptions[i].addEventListener('click', function () {
+          for (var j = 0; j < relationOptions.length; j++) {
+            relationOptions[j].classList.remove('selected');
+          }
+          this.classList.add('selected');
+        });
+      }
     }
 
     var submitBtn = document.getElementById('btn-submit-join');
@@ -109,13 +175,24 @@ window.JoinRequest = (function () {
           AppState.showToast('请填写申请理由');
           return;
         }
-        var user = AppState.currentUser;
+
+        var relation = null;
+        if (user.role === 'parent') {
+          var selectedOption = document.querySelector('.join-relation-option.selected');
+          if (!selectedOption) {
+            AppState.showToast('请选择您与孩子的关系');
+            return;
+          }
+          relation = selectedOption.getAttribute('data-relation');
+        }
+
         var request = {
           id: Utils.generateUUID(),
           youthId: youth.id,
           applicantId: user.id,
           applicantRole: user.role,
           reason: reason,
+          relation: relation,
           status: 'pending',
           appliedAt: Utils.formatDateTime(),
           reviewedAt: null,
