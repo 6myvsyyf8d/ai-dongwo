@@ -218,6 +218,14 @@
     var user = AppState.currentUser;
     var youths = Permissions.getAccessibleYouths();
 
+    // 游离状态检测：老师/照护者/志愿者无任何心青年档案
+    if (['teacher', 'caregiver', 'volunteer'].indexOf(user.role) > -1) {
+      if (youths.length === 0) {
+        _renderUnboundDashboard(container, user);
+        return;
+      }
+    }
+
     // 无档案：灯塔愿景横幅
     if (youths.length === 0) {
       container.innerHTML =
@@ -254,6 +262,120 @@
     container.innerHTML = headerHtml + '<div class="dashboard">' + contentHtml + '</div>';
 
     _bindDashboardEvents(user, youths);
+  }
+
+  /**
+   * 渲染游离状态首页（老师/照护者/志愿者无任何心青年档案）
+   */
+  function _renderUnboundDashboard(container, user) {
+    var roleLabel = Constants.ROLE_LABELS[user.role] || user.role;
+    var roleIcon = '';
+    for (var i = 0; i < Constants.ROLES.length; i++) {
+      if (Constants.ROLES[i].value === user.role) {
+        roleIcon = Constants.ROLES[i].icon;
+        break;
+      }
+    }
+
+    container.innerHTML = '<div class="page-content">' +
+      '<div class="dashboard-empty">' +
+        '<div class="dashboard-empty-icon">' + roleIcon + '</div>' +
+        '<div class="dashboard-empty-title">欢迎，' + Utils.escapeHtml(user.name) + '</div>' +
+        '<div class="dashboard-empty-text">您是<strong>' + roleLabel + '</strong>，还未加入任何心青年档案。<br>请通过档案码加入。</div>' +
+        '<div class="dashboard-empty-actions">' +
+          '<button class="dashboard-empty-btn" id="btn-scan-join">📷 扫码加入</button>' +
+          '<a class="dashboard-empty-link" id="link-input-code">输入档案码</a>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+
+    document.getElementById('btn-scan-join').addEventListener('click', function () {
+      // 调用摄像头扫码（使用浏览器原生 API）
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        _startScanCamera();
+      } else {
+        AppState.showToast('当前环境不支持扫码，请使用"输入档案码"');
+      }
+    });
+
+    document.getElementById('link-input-code').addEventListener('click', function () {
+      var url = prompt('请输入档案码链接或粘贴 URL：');
+      if (url) {
+        _handleArchiveUrl(url);
+      }
+    });
+  }
+
+  /**
+   * 解析档案码 URL 并跳转到加入申请页
+   */
+  function _handleArchiveUrl(url) {
+    // 解析档案码 URL
+    var match = url.match(/#archive\/([a-zA-Z0-9-]+)/);
+    if (match) {
+      var youthId = decodeURIComponent(match[1]);
+      window.location.hash = 'join?youthId=' + encodeURIComponent(youthId);
+    } else {
+      AppState.showToast('无法识别档案码');
+    }
+  }
+
+  /**
+   * 启动摄像头扫码（依赖 jsQR 库解析二维码）
+   */
+  function _startScanCamera() {
+    // 创建扫码 overlay
+    var overlay = document.createElement('div');
+    overlay.id = 'scan-overlay';
+    overlay.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:#000;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;';
+    overlay.innerHTML = '<div style="color:#fff;font-size:14px;margin-bottom:16px;">将档案码对准摄像头</div>' +
+      '<video id="scan-video" style="width:80%;max-width:300px;border-radius:8px;" autoplay></video>' +
+      '<button id="btn-scan-close" style="margin-top:16px;padding:8px 24px;background:#333;color:#fff;border:none;border-radius:8px;cursor:pointer;">关闭</button>';
+    document.body.appendChild(overlay);
+
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } })
+      .then(function (stream) {
+        var video = document.getElementById('scan-video');
+        video.srcObject = stream;
+
+        // 使用 jsQR 或类似库解析二维码
+        // 简化：提示用户使用输入方式
+        var canvas = document.createElement('canvas');
+        var ctx = canvas.getContext('2d');
+
+        var scanInterval = setInterval(function () {
+          if (!document.getElementById('scan-video')) {
+            clearInterval(scanInterval);
+            stream.getTracks().forEach(function (t) { t.stop(); });
+            return;
+          }
+          canvas.width = video.videoWidth;
+          canvas.height = video.videoHeight;
+          ctx.drawImage(video, 0, 0);
+          try {
+            var imgData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            if (typeof jsQR !== 'undefined') {
+              var code = jsQR(imgData.data, imgData.width, imgData.height);
+              if (code) {
+                clearInterval(scanInterval);
+                stream.getTracks().forEach(function (t) { t.stop(); });
+                document.body.removeChild(overlay);
+                _handleArchiveUrl(code.data);
+              }
+            }
+          } catch (e) {}
+        }, 500);
+
+        document.getElementById('btn-scan-close').addEventListener('click', function () {
+          clearInterval(scanInterval);
+          stream.getTracks().forEach(function (t) { t.stop(); });
+          document.body.removeChild(overlay);
+        });
+      })
+      .catch(function (err) {
+        document.body.removeChild(overlay);
+        AppState.showToast('无法访问摄像头：' + err.message);
+      });
   }
 
   /**
