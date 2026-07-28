@@ -15,7 +15,8 @@ window.Constants = {
     { value: 'teacher', label: '老师', icon: '📚', desc: '机构老师，ISP/行为干预/能力评估读写' },
     { value: 'caregiver', label: '照护者', icon: '🤝', desc: '照护者/护工，安全速查与护理记录' },
     { value: 'volunteer', label: '志愿者', icon: '💙', desc: '志愿者，仅安全速查与活动记录' },
-    { value: 'government', label: '政府', icon: '🏛️', desc: '政府角色，仅查看宏观趋势看板' }
+    { value: 'government', label: '政府', icon: '🏛️', desc: '政府角色，仅查看宏观趋势看板' },
+    { value: 'admin', label: '管理员', icon: '🛡️', desc: '系统管理员，管理用户与全局授权' }
   ],
 
   /**
@@ -27,7 +28,8 @@ window.Constants = {
     teacher: '老师',
     caregiver: '照护者',
     volunteer: '志愿者',
-    government: '政府'
+    government: '政府',
+    admin: '管理员'
   },
 
   /**
@@ -59,6 +61,7 @@ window.Constants = {
     quickcard: '速读卡',
     chat: '对话采集',
     charts: '数据可视化',
+    analytics: '数据分析',
     government: '政府看板',
     management: '管理'
   },
@@ -69,6 +72,7 @@ window.Constants = {
   NAV_ITEMS: [
     { page: 'dashboard', icon: '🏠', label: '主页' },
     { page: 'records', icon: '📋', label: '记录' },
+    { page: 'analytics', icon: '📊', label: '分析' },
     { page: 'profile', icon: '📁', label: '档案' },
     { page: 'chat', icon: '💬', label: '对话' },
     { page: 'management', icon: '⚙️', label: '管理' }

@@ -466,6 +466,10 @@ window.Storage = (function () {
       id: Utils.generateUUID(), name: '政府观察员', phone: '13800138009', role: 'government',
       pinHash: '', institutionName: '残联', registeredAt: now, lastLoginAt: null, isActive: true
     };
+    var adminUser = {
+      id: Utils.generateUUID(), name: '系统管理员', phone: '13800138000', role: 'admin',
+      pinHash: '', institutionName: '系统管理', registeredAt: now, lastLoginAt: null, isActive: true
+    };
 
     var accounts = {};
     accounts[mingDad.id] = mingDad;
@@ -478,12 +482,13 @@ window.Storage = (function () {
     accounts[mingYouth.id] = mingYouth;
     accounts[volunteerLi.id] = volunteerLi;
     accounts[govObserver.id] = govObserver;
+    accounts[adminUser.id] = adminUser;
     set(KEYS.ACCOUNTS, accounts);
 
     // 异步设置 PIN 哈希（统一 PIN: 1234）
     Utils.hashPin('1234').then(function (hash) {
       var stored = getAccounts();
-      var ids = [mingDad.id, mingMom.id, mingNanny.id, huaDad.id, huaMom.id, huaNanny.id, teacherWang.id, mingYouth.id, volunteerLi.id, govObserver.id];
+      var ids = [mingDad.id, mingMom.id, mingNanny.id, huaDad.id, huaMom.id, huaNanny.id, teacherWang.id, mingYouth.id, volunteerLi.id, govObserver.id, adminUser.id];
       for (var i = 0; i < ids.length; i++) {
         if (stored[ids[i]]) stored[ids[i]].pinHash = hash;
       }
@@ -698,50 +703,167 @@ window.Storage = (function () {
     ];
     set(KEYS.ACCESS_GRANTS, grants);
 
-    // ==================== 创建一周记录 ====================
-    // 过去 7 天（d0=今天, d6=6天前）
+    // ==================== 创建 30 天模拟记录 ====================
+    // 过去 30 天（d0=今天, d29=29天前）
     function dayAgo(n) { return Utils.formatDateTime(new Date(Date.now() - n * 86400000)); }
+    function r(youthId, recorderId, recorderRole, module, text, tags, dayOffset) {
+      return { id: Utils.generateUUID(), youthId: youthId, recorderId: recorderId, recorderRole: recorderRole, module: module, recordType: 'observation', content: { text: text, tags: tags }, visibilityLevel: 'full', recordedAt: dayAgo(dayOffset), isOffline: false, syncedAt: null };
+    }
 
     var records = {};
-    records[mingId] = [
-      // 小明爸爸
-      { id: Utils.generateUUID(), youthId: mingId, recorderId: mingDad.id, recorderRole: 'parent', module: 'emotionBehavior', recordType: 'observation', content: { text: '今天拼图完成得很开心，自己主动拿给我看，还指着图案笑', tags: ['积极', '专注'] }, visibilityLevel: 'full', recordedAt: dayAgo(6), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: mingId, recorderId: mingDad.id, recorderRole: 'parent', module: 'careMedical', recordType: 'daily_care', content: { text: '今晚睡得不太好，翻来覆去了好几次，可能是因为白天太兴奋了', tags: ['睡眠', '注意'] }, visibilityLevel: 'full', recordedAt: dayAgo(3), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: mingId, recorderId: mingDad.id, recorderRole: 'parent', module: 'workSupport', recordType: 'training', content: { text: '超市理货训练进展不错，今天能独立把饼干按品牌分类摆放了', tags: ['进步', '工作训练'] }, visibilityLevel: 'full', recordedAt: dayAgo(1), isOffline: false, syncedAt: null },
-      // 小明妈妈
-      { id: Utils.generateUUID(), youthId: mingId, recorderId: mingMom.id, recorderRole: 'parent', module: 'workSupport', recordType: 'observation', content: { text: '今天带他去超市，很开心地推着购物车，还自己选了喜欢的饼干', tags: ['出行', '开心'] }, visibilityLevel: 'full', recordedAt: dayAgo(4), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: mingId, recorderId: mingMom.id, recorderRole: 'parent', module: 'communicationGuide', recordType: 'observation', content: { text: '今天用图片卡表达了想吃苹果，比以前用手指更清楚了，进步很大', tags: ['沟通', '进步'] }, visibilityLevel: 'full', recordedAt: dayAgo(1), isOffline: false, syncedAt: null },
-      // 小明保姆
-      { id: Utils.generateUUID(), youthId: mingId, recorderId: mingNanny.id, recorderRole: 'caregiver', module: 'careMedical', recordType: 'daily_care', content: { text: '中午吃饭时检查了菜单，确认没有海鲜和芒果，午餐吃了番茄炒蛋和米饭', tags: ['饮食', '过敏'] }, visibilityLevel: 'safety_only', recordedAt: dayAgo(5), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: mingId, recorderId: mingNanny.id, recorderRole: 'caregiver', module: 'emotionBehavior', recordType: 'observation', content: { text: '下午搭积木时被电话打断，有点烦躁，但给了5分钟缓冲后自己平静下来了', tags: ['情绪', '自我调节'] }, visibilityLevel: 'full', recordedAt: dayAgo(2), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: mingId, recorderId: mingNanny.id, recorderRole: 'caregiver', module: 'workSupport', recordType: 'observation', content: { text: '今天游泳课表现很好，能自己漂浮5秒了，教练表扬了他', tags: ['游泳', '进步'] }, visibilityLevel: 'full', recordedAt: dayAgo(0), isOffline: false, syncedAt: null },
-      // 王老师
-      { id: Utils.generateUUID(), youthId: mingId, recorderId: teacherWang.id, recorderRole: 'teacher', module: 'workSupport', recordType: 'training', content: { text: '超市理货训练：今天练习了将饮料按颜色分类，完成度80%，需要继续强化', tags: ['工作训练', 'ISP'] }, visibilityLevel: 'full', recordedAt: dayAgo(5), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: mingId, recorderId: teacherWang.id, recorderRole: 'teacher', module: 'emotionBehavior', recordType: 'observation', content: { text: '小组活动中主动和小花一起完成拼图任务，合作意识有明显提升', tags: ['社交', '进步'] }, visibilityLevel: 'full', recordedAt: dayAgo(2), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: mingId, recorderId: teacherWang.id, recorderRole: 'teacher', module: 'communicationGuide', recordType: 'observation', content: { text: '今天用两个选项的方式让他选活动，他选了游泳而不是拼图，选择能力在提升', tags: ['沟通', '选择'] }, visibilityLevel: 'full', recordedAt: dayAgo(0), isOffline: false, syncedAt: null }
-    ];
+    var mingRecs = [];
 
-    records[huaId] = [
-      // 小花爸爸
-      { id: Utils.generateUUID(), youthId: huaId, recorderId: huaDad.id, recorderRole: 'parent', module: 'emotionBehavior', recordType: 'observation', content: { text: '今天画了一幅花园的画，色彩搭配很漂亮，画完后主动拿给我看', tags: ['画画', '积极'] }, visibilityLevel: 'full', recordedAt: dayAgo(6), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: huaId, recorderId: huaDad.id, recorderRole: 'parent', module: 'careMedical', recordType: 'daily_care', content: { text: '今天花粉过敏有点重，打了几个喷嚏，按时吃了氯雷他定后好转', tags: ['过敏', '用药'] }, visibilityLevel: 'full', recordedAt: dayAgo(2), isOffline: false, syncedAt: null },
-      // 小花妈妈
-      { id: Utils.generateUUID(), youthId: huaId, recorderId: huaMom.id, recorderRole: 'parent', module: 'workSupport', recordType: 'observation', content: { text: '带她去公园散步，看到花很开心，还哼起了歌，在草地上跳了舞', tags: ['户外', '开心'] }, visibilityLevel: 'full', recordedAt: dayAgo(5), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: huaId, recorderId: huaMom.id, recorderRole: 'parent', module: 'communicationGuide', recordType: 'observation', content: { text: '用画画的方式表达了今天想穿裙子的想法，画得很清楚，越来越会用画沟通了', tags: ['沟通', '画画'] }, visibilityLevel: 'full', recordedAt: dayAgo(3), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: huaId, recorderId: huaMom.id, recorderRole: 'parent', module: 'careMedical', recordType: 'daily_care', content: { text: '今天早餐确认没有牛奶制品，喝了豆浆，午餐也避开了含奶食品', tags: ['饮食', '过敏'] }, visibilityLevel: 'safety_only', recordedAt: dayAgo(1), isOffline: false, syncedAt: null },
-      // 小花保姆
-      { id: Utils.generateUUID(), youthId: huaId, recorderId: huaNanny.id, recorderRole: 'caregiver', module: 'emotionBehavior', recordType: 'observation', content: { text: '下午做手工时外面工地施工噪音很大，她有点烦躁，给了耳机后安静下来了', tags: ['噪音', '应对'] }, visibilityLevel: 'full', recordedAt: dayAgo(4), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: huaId, recorderId: huaNanny.id, recorderRole: 'caregiver', module: 'workSupport', recordType: 'observation', content: { text: '今天唱歌课学了新歌，她学得很快，还主动给其他小朋友示范', tags: ['唱歌', '自信'] }, visibilityLevel: 'full', recordedAt: dayAgo(1), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: huaId, recorderId: huaNanny.id, recorderRole: 'caregiver', module: 'workSupport', recordType: 'training', content: { text: '今天主动帮老师整理画具，把画笔按颜色分类放好，做得非常好', tags: ['主动', '整理'] }, visibilityLevel: 'full', recordedAt: dayAgo(0), isOffline: false, syncedAt: null },
-      // 王老师
-      { id: Utils.generateUUID(), youthId: huaId, recorderId: teacherWang.id, recorderRole: 'teacher', module: 'workSupport', recordType: 'training', content: { text: '艺术表达训练：用三种颜色画了情绪图，能准确表达开心和难过的颜色', tags: ['艺术', '情绪表达'] }, visibilityLevel: 'full', recordedAt: dayAgo(4), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: huaId, recorderId: teacherWang.id, recorderRole: 'teacher', module: 'emotionBehavior', recordType: 'observation', content: { text: '小组讨论时主动举手发言了两次，虽然声音不大但是个很大的进步', tags: ['社交', '进步'] }, visibilityLevel: 'full', recordedAt: dayAgo(2), isOffline: false, syncedAt: null },
-      { id: Utils.generateUUID(), youthId: huaId, recorderId: teacherWang.id, recorderRole: 'teacher', module: 'communicationGuide', recordType: 'observation', content: { text: '今天用画和小明交流了想一起玩拼图的想法，非语言沟通能力越来越强', tags: ['沟通', '画画'] }, visibilityLevel: 'full', recordedAt: dayAgo(0), isOffline: false, syncedAt: null }
-    ];
+    // === 小明 30天记录 ===
+    // 小明爸爸 — 几乎每天有记录
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'emotionBehavior', '今天拼图完成得很开心，主动拿给我看，还指着图案笑', ['积极', '专注'], 29));
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'careMedical', '早上按时吃了钙片，早餐吃了鸡蛋和粥，胃口不错', ['用药', '饮食'], 29));
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'emotionBehavior', '去超市路上很兴奋，一路指着路边的车念颜色', ['出行', '积极'], 28));
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'careMedical', '今晚睡得挺好，九点半就睡着了，整夜没醒', ['睡眠', '良好'], 27));
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'workSupport', '超市理货训练进步很大，能独立把饮料按颜色分类了', ['工作训练', '进步'], 26));
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'emotionBehavior', '今天有点烦躁，因为预约的游泳课临时取消了', ['情绪', '低落'], 25));
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'careMedical', '晚上没怎么吃饭，说是肚子不太舒服，观察一下', ['饮食', '注意'], 25));
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'emotionBehavior', '今天情绪恢复了不少，早上主动说要去超市', ['恢复', '积极'], 24));
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'careMedical', '肚子好转了，中午吃了大半碗饭，精神状态不错', ['恢复', '饮食'], 24));
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'workSupport', '今天练习了超市扫码，虽然慢但很认真，正确率70%', ['工作训练', '认真'], 23));
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'emotionBehavior', '和小花一起玩拼图，两个人合作得很好，很开心', ['社交', '合作'], 22));
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'careMedical', '今天游泳后擦干了身体，没有感冒迹象', ['护理', '良好'], 21));
+    // 小明妈妈 — 隔天记录
+    mingRecs.push(r(mingId, mingMom.id, 'parent', 'communicationGuide', '今天用图片卡表达了想吃苹果，比以前用手指更清楚了', ['沟通', '进步'], 29));
+    mingRecs.push(r(mingId, mingMom.id, 'parent', 'workSupport', '带他去公园，看到湖里的鸭子很开心，一直指着笑', ['户外', '开心'], 27));
+    mingRecs.push(r(mingId, mingMom.id, 'parent', 'emotionBehavior', '今天在家有点闹脾气，因为积木搭不好，后来我帮他一起完成了', ['情绪', '挫折'], 25));
+    mingRecs.push(r(mingId, mingMom.id, 'parent', 'careMedical', '晚餐做了他喜欢的番茄炒蛋，全吃完了，胃口不错', ['饮食', '良好'], 24));
+    mingRecs.push(r(mingId, mingMom.id, 'parent', 'workSupport', '去超市购物，自己选了饼干和酸奶，很开心', ['购物', '自主'], 22));
+    mingRecs.push(r(mingId, mingMom.id, 'parent', 'communicationGuide', '今天用两个选项让他选晚餐，他选了面条而不是饭', ['选择', '沟通'], 20));
+    mingRecs.push(r(mingId, mingMom.id, 'parent', 'emotionBehavior', '今天主动帮忙摆碗筷，还说了谢谢，很暖心', ['积极', '礼貌'], 18));
+    mingRecs.push(r(mingId, mingMom.id, 'parent', 'careMedical', '晚上睡觉前有点咳嗽，给喝了温水，观察中', ['健康', '注意'], 17));
+    // 小明保姆 — 工作日记录
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'careMedical', '中午检查了菜单，确认没有海鲜和芒果，午餐吃了番茄炒蛋和米饭', ['饮食', '过敏'], 28));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'emotionBehavior', '下午搭积木时被电话打断有点烦躁，给了5分钟缓冲后平静下来了', ['情绪', '自我调节'], 26));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'workSupport', '游泳课表现很好，能自己漂浮5秒了，教练表扬了他', ['游泳', '进步'], 24));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'careMedical', '零食吃完了，需要补充无糖饼干和苹果', ['饮食', '补充'], 23));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'emotionBehavior', '午睡醒来有点迷糊，喝了水后慢慢精神了', ['日常', '平稳'], 21));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'workSupport', '今天练习了叠衣服，虽然叠得不太整齐但很认真', ['生活技能', '训练'], 19));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'careMedical', '下午带去公园散步，走了半小时，运动量达标', ['运动', '户外'], 18));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'emotionBehavior', '今天整体情绪平稳，没有出现大的情绪波动', ['平稳', '良好'], 17));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'careMedical', '午餐吃了青菜和肉丸，胃口一般，青菜剩了一些', ['饮食', '一般'], 16));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'workSupport', '游泳课学会了换气，非常大的进步，教练很惊喜', ['游泳', '里程碑'], 15));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'emotionBehavior', '今天被其他小朋友抢了玩具，哭了一会儿，后来老师安抚好了', ['情绪', '冲突'], 13));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'careMedical', '膝盖擦破了一点皮，已经消毒处理，不严重', ['外伤', '处理'], 11));
+    // 王老师 — 教学日记录
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'workSupport', '超市理货训练：今天练习了饮料按颜色分类，完成度80%', ['工作训练', 'ISP'], 28));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'emotionBehavior', '小组活动中主动和小花一起完成拼图，合作意识明显提升', ['社交', '进步'], 26));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'communicationGuide', '用两个选项让他选活动，选了游泳而不是拼图，选择能力在提升', ['沟通', '选择'], 24));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'workSupport', '社交沟通训练：今天在小组中主动举手发言了一次', ['社交', '进步'], 22));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'emotionBehavior', '今天被催促时没有坐下不动，而是说了"等一下"，进步很大', ['情绪', '里程碑'], 20));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'communicationGuide', '用视觉提示卡完成了洗手流程，每一步都跟上了', ['视觉提示', '进步'], 19));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'workSupport', '理货训练：今天能独立完成饼干分类，正确率90%', ['工作训练', '进步'], 17));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'emotionBehavior', '今天情绪整体平稳，和同学们的互动比上周多', ['平稳', '社交'], 15));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'communicationGuide', '在小组讨论中能用简短句子表达需求了，虽然还需要提示', ['语言', '进步'], 14));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'workSupport', '今天第一次尝试了简单包装任务，完成度60%，需要继续练习', ['工作训练', '新任务'], 12));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'emotionBehavior', '情绪有点低落，因为今天没有游泳课，用拼图分散了注意力', ['情绪', '低落'], 10));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'workSupport', '理货训练持续进步，今天速度比上周快了30%', ['工作训练', '进步'], 8));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'communicationGuide', '能主动对老师说"谢谢"和"再见"了，语言表达越来越自然', ['语言', '里程碑'], 5));
+    // 志愿者小李 — 周末活动记录
+    mingRecs.push(r(mingId, volunteerLi.id, 'volunteer', 'relationshipMap', '今天陪小明去超市购物，他和小花一起选了零食，互动很好', ['社交', '陪伴'], 27));
+    mingRecs.push(r(mingId, volunteerLi.id, 'volunteer', 'workSupport', '社区活动：参加了手工课，小明用彩纸做了一只小船', ['社区活动', '手工'], 20));
+    mingRecs.push(r(mingId, volunteerLi.id, 'volunteer', 'relationshipMap', '小明在社区活动中认识了新朋友小刚，两个人一起玩了积木', ['社交', '新朋友'], 13));
+    mingRecs.push(r(mingId, volunteerLi.id, 'volunteer', 'workSupport', '户外活动：带去操场玩球，能接住3次球了，手眼协调有进步', ['运动', '进步'], 6));
+    // 小明本人 — 心青年记录
+    mingRecs.push(r(mingId, mingYouth.id, 'youth', 'emotionBehavior', '今天很开心，去超市买了喜欢的饼干', ['心情', '购物'], 28));
+    mingRecs.push(r(mingId, mingYouth.id, 'youth', 'workSupport', '我想学游泳，今天教练说我进步了', ['愿望', '游泳'], 24));
+    mingRecs.push(r(mingId, mingYouth.id, 'youth', 'emotionBehavior', '今天不太开心，积木倒了', ['心情', '挫折'], 22));
+    mingRecs.push(r(mingId, mingYouth.id, 'youth', 'workSupport', '我喜欢拼图，想买新的拼图', ['兴趣', '愿望'], 18));
+    mingRecs.push(r(mingId, mingYouth.id, 'youth', 'emotionBehavior', '今天很好，和小花一起玩', ['心情', '社交'], 14));
+    mingRecs.push(r(mingId, mingYouth.id, 'youth', 'workSupport', '想去超市工作，我喜欢整理东西', ['愿望', '工作'], 9));
+    mingRecs.push(r(mingId, mingYouth.id, 'youth', 'emotionBehavior', '今天游泳很开心，学会了换气', ['心情', '成就'], 3));
+    mingRecs.push(r(mingId, mingYouth.id, 'youth', 'relationshipMap', '小花是我最好的朋友', ['关系', '朋友'], 7));
+    // 近3天记录（确保日报有内容）
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'emotionBehavior', '今天心情不错，早餐吃了喜欢的鸡蛋饼，还主动帮忙收拾了碗筷', ['积极', '主动'], 2));
+    mingRecs.push(r(mingId, mingDad.id, 'parent', 'careMedical', '今天按时吃了钙片，游泳课后精神很好，晚饭全吃完了', ['用药', '饮食'], 2));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'workSupport', '昨天游泳课表现很棒，能独立游5米了，教练说进步很大', ['游泳', '进步'], 1));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'careMedical', '昨天午餐检查了没有海鲜，吃了鸡腿和西兰花，胃口很好', ['饮食', '过敏'], 1));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'emotionBehavior', '昨天小组活动中小明主动帮助了同学，社交能力明显提升', ['社交', '进步'], 1));
+    mingRecs.push(r(mingId, mingMom.id, 'parent', 'workSupport', '今天带他去超市购物，自己选了水果和面包，还用图片卡告诉了收银员', ['购物', '沟通'], 0));
+    mingRecs.push(r(mingId, mingMom.id, 'parent', 'communicationGuide', '今天用图片卡成功表达了想喝橙汁，比以前用手指更准确了', ['沟通', '进步'], 0));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'careMedical', '今天午餐吃了清蒸鱼和青菜，全部吃完，胃口很好', ['饮食', '良好'], 0));
+    mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'emotionBehavior', '今天整体情绪平稳，午睡睡了一个小时，醒来精神很好', ['平稳', '睡眠'], 0));
+    mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'workSupport', '今天理货训练完成度95%，速度快了很多，可以独立完成简单分类', ['工作训练', '里程碑'], 0));
+
+    records[mingId] = mingRecs;
+
+    // === 小花 30天记录 ===
+    var huaRecs = [];
+    // 小花爸爸
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'emotionBehavior', '今天画了一幅花园的画，色彩搭配很漂亮，主动拿给我看', ['画画', '积极'], 29));
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'careMedical', '早上花粉过敏有点重，打了几个喷嚏，按时吃药后好转', ['过敏', '用药'], 29));
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'emotionBehavior', '去图书馆看了画册，很安静地看了半小时，非常专注', ['专注', '阅读'], 28));
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'careMedical', '今天花粉指数低，没有过敏症状，精神状态很好', ['过敏', '良好'], 27));
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'workSupport', '画了一幅向日葵，构图和配色都有进步，老师表扬了', ['画画', '进步'], 26));
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'emotionBehavior', '今天有点沉默，不太想说话，可能是昨晚没睡好', ['情绪', '低落'], 25));
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'careMedical', '晚上睡得不太好，翻来覆去，可能是白天太兴奋了', ['睡眠', '注意'], 25));
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'emotionBehavior', '今天恢复了，早上主动唱了歌，心情很好', ['恢复', '积极'], 24));
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'careMedical', '早餐确认没有牛奶制品，喝了豆浆，午餐避开了含奶食品', ['饮食', '过敏'], 24));
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'workSupport', '今天尝试了用水彩画画，虽然不熟练但很感兴趣', ['画画', '新技能'], 23));
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'emotionBehavior', '和小明一起做手工，合作得很愉快，两人都笑得很开心', ['社交', '合作'], 22));
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'careMedical', '今天按时吃了氯雷他定，一整天没有过敏反应', ['用药', '有效'], 21));
+    // 小花妈妈
+    huaRecs.push(r(huaId, huaMom.id, 'parent', 'workSupport', '带她去公园散步，看到花很开心，还哼起了歌，在草地上跳舞', ['户外', '开心'], 29));
+    huaRecs.push(r(huaId, huaMom.id, 'parent', 'communicationGuide', '用画画的方式表达了想穿裙子的想法，越来越会用画沟通了', ['沟通', '画画'], 27));
+    huaRecs.push(r(huaId, huaMom.id, 'parent', 'emotionBehavior', '在家里听到外面施工噪音，有点烦躁，给了耳机后安静了', ['噪音', '应对'], 25));
+    huaRecs.push(r(huaId, huaMom.id, 'parent', 'careMedical', '今天做了她喜欢的蔬菜粥，全部吃完了，胃口不错', ['饮食', '良好'], 24));
+    huaRecs.push(r(huaId, huaMom.id, 'parent', 'workSupport', '去图书馆借了新的画册，她选了一本动物画册，很喜欢', ['阅读', '兴趣'], 22));
+    huaRecs.push(r(huaId, huaMom.id, 'parent', 'communicationGuide', '今天用画表达了想去音乐教室的想法，画了钢琴和音符', ['沟通', '画画'], 20));
+    huaRecs.push(r(huaId, huaMom.id, 'parent', 'emotionBehavior', '今天主动帮妈妈整理衣服，做得很认真，还哼着歌', ['积极', '主动'], 18));
+    huaRecs.push(r(huaId, huaMom.id, 'parent', 'careMedical', '晚上有点咳嗽，给喝了温水，睡前吃了半片氯雷他定', ['健康', '用药'], 17));
+    // 小花保姆
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'emotionBehavior', '下午做手工时外面施工噪音很大，有点烦躁，给了耳机后安静了', ['噪音', '应对'], 28));
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'workSupport', '唱歌课学了新歌，学得很快，还主动给其他小朋友示范', ['唱歌', '自信'], 26));
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'careMedical', '午餐避开了所有奶制品，给她准备了豆浆和素菜', ['饮食', '过敏'], 26));
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'workSupport', '主动帮老师整理画具，把画笔按颜色分类放好，做得非常好', ['主动', '整理'], 24));
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'emotionBehavior', '今天整体情绪平稳，画画时非常专注，画了40分钟', ['平稳', '专注'], 23));
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'careMedical', '午睡睡了一个半小时，质量不错，醒来精神很好', ['睡眠', '良好'], 22));
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'workSupport', '今天练习了折纸，折了一只千纸鹤，手指灵活度有进步', ['手工', '进步'], 19));
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'emotionBehavior', '被小朋友不小心碰倒了水杯，有点不开心，但很快就好了', ['情绪', '恢复'], 16));
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'careMedical', '今天户外活动时花粉指数偏高，提前戴了口罩，没有过敏', ['过敏', '预防'], 14));
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'workSupport', '唱歌课表演了新学的歌，虽然有点紧张但完整唱完了', ['唱歌', '勇气'], 12));
+    // 王老师
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'workSupport', '艺术表达训练：用三种颜色画了情绪图，能准确表达开心和难过', ['艺术', '情绪表达'], 28));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'emotionBehavior', '小组讨论时主动举手发言了两次，虽然声音不大但是进步', ['社交', '进步'], 26));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'communicationGuide', '用画和小明交流了想一起玩拼图的想法，非语言沟通能力越来越强', ['沟通', '画画'], 24));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'workSupport', '社交互动训练：今天在小组中主动分享了自己的画作', ['社交', '进步'], 22));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'emotionBehavior', '今天画画时被同学不小心碰到了画纸，没有发脾气，自己重新画了', ['情绪', '里程碑'], 20));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'communicationGuide', '能用简短句子回答问题了，虽然声音小但意思清楚', ['语言', '进步'], 19));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'workSupport', '艺术训练：今天学会了调色，能调出三种不同的绿色', ['艺术', '技能'], 17));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'emotionBehavior', '今天情绪很好，主动帮老师分发了画纸给同学们', ['积极', '主动'], 15));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'communicationGuide', '在小组中用画表达了一天的安排，逻辑清晰，进步明显', ['沟通', '进步'], 14));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'workSupport', '今天尝试了图书整理任务，能按大小排列书本，完成度70%', ['工作训练', '新任务'], 12));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'emotionBehavior', '音乐课换了新老师，有点不适应，但跟着唱了半节课', ['情绪', '适应'], 10));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'workSupport', '艺术表达持续进步，这周画了三幅完整作品', ['艺术', '进步'], 8));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'communicationGuide', '今天主动对老师说"老师好"，声音比以前大了', ['语言', '进步'], 5));
+    // 志愿者小李
+    huaRecs.push(r(huaId, volunteerLi.id, 'volunteer', 'relationshipMap', '陪小花参加社区绘画活动，她画了一幅全家福，很温馨', ['社交', '画画'], 27));
+    huaRecs.push(r(huaId, volunteerLi.id, 'volunteer', 'workSupport', '社区手工课：小花做了一个漂亮的纸花篮，手指很灵巧', ['社区活动', '手工'], 20));
+    huaRecs.push(r(huaId, volunteerLi.id, 'volunteer', 'relationshipMap', '小花在活动中主动帮助了一个新来的小朋友，很有爱心', ['社交', '帮助'], 13));
+    huaRecs.push(r(huaId, volunteerLi.id, 'volunteer', 'workSupport', '音乐活动：小花独唱了一首歌，全场鼓掌，她笑得很开心', ['音乐', '自信'], 6));
+    // 近3天记录（确保日报有内容）
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'emotionBehavior', '前天画了一幅星空画，用了新学的调色技巧，色彩很美', ['画画', '进步'], 2));
+    huaRecs.push(r(huaId, huaDad.id, 'parent', 'careMedical', '前天花粉指数低，带她去公园散步一小时，没有过敏', ['户外', '良好'], 2));
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'workSupport', '昨天唱歌课学了新歌，还主动给其他小朋友示范了动作', ['唱歌', '自信'], 1));
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'careMedical', '昨天午睡睡得很好，醒来后自己叠了被子，生活习惯有进步', ['睡眠', '自理'], 1));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'emotionBehavior', '昨天小组活动中主动分享了自己的画，还夸奖了同学的画', ['社交', '积极'], 1));
+    huaRecs.push(r(huaId, huaMom.id, 'parent', 'workSupport', '今天去图书馆借了新的手工书，她选了折纸教程，很感兴趣', ['阅读', '兴趣'], 0));
+    huaRecs.push(r(huaId, huaMom.id, 'parent', 'communicationGuide', '今天用画描述了昨天唱歌课的内容，画面很丰富，表达越来越好了', ['沟通', '画画'], 0));
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'careMedical', '今天早餐确认无奶制品，午餐吃了番茄意面，全部吃完', ['饮食', '过敏'], 0));
+    huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'emotionBehavior', '今天情绪很好，主动帮忙整理了书架，还哼着歌', ['积极', '主动'], 0));
+    huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'workSupport', '今天图书整理训练完成度85%，能独立按大小和颜色分类书本', ['工作训练', '进步'], 0));
+
+    records[huaId] = huaRecs;
 
     set(KEYS.RECORDS, records);
-    console.log('测试数据初始化完成：小明、小花档案已创建，共 ' + (records[mingId].length + records[huaId].length) + ' 条记录');
+    console.log('测试数据初始化完成：小明 ' + mingRecs.length + ' 条、小花 ' + huaRecs.length + ' 条记录（30天模拟数据）');
 
+    // 初始化交接任务种子数据
+    _initHandoverSeedIfNeeded(profiles, accounts);
   }
 
 
