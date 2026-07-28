@@ -63,7 +63,9 @@ window.Constants = {
     charts: '数据可视化',
     analytics: '数据分析',
     government: '政府看板',
-    management: '管理'
+    management: '管理',
+    join: '加入申请',
+    approvals: '申请审批'
   },
 
   /**

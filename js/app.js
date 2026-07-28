@@ -1455,6 +1455,27 @@
     });
     // 管理员路由
     registerRoute('admin', Admin.showAdmin);
+    // 加入申请路由
+    registerRoute('join', function (params) {
+      if (!AppState.isLoggedIn) {
+        AppState.showToast('请先登录');
+        window.location.hash = 'login';
+        return;
+      }
+      if (!params.youthId) {
+        window.location.hash = 'dashboard';
+        return;
+      }
+      JoinRequest.renderJoinPage(params.youthId);
+    });
+    // 申请审批路由
+    registerRoute('approvals', function () {
+      if (!AppState.isLoggedIn) {
+        window.location.hash = 'login';
+        return;
+      }
+      JoinApproval.renderApprovalPage();
+    });
   }
 
   /**
