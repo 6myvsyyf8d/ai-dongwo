@@ -76,5 +76,13 @@ window.Constants = {
     { page: 'profile', icon: '📁', label: '档案' },
     { page: 'chat', icon: '💬', label: '对话' },
     { page: 'management', icon: '⚙️', label: '管理' }
+  ],
+
+  /**
+   * 管理员专属底部导航
+   */
+  ADMIN_NAV_ITEMS: [
+    { page: 'admin', icon: '🛡️', label: '管理' },
+    { page: 'dashboard', icon: '🏠', label: '主页' }
   ]
 };
