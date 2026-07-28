@@ -108,15 +108,11 @@ window.Permissions = (function () {
    * 检查管理权限
    */
   function _checkManage(grants, user) {
-    // 心青年本人可管理自己的授权
-    if (user.role === 'youth') return true;
-    // 家长检查 manage:grants scope
-    if (user.role === 'parent') {
-      for (var i = 0; i < grants.length; i++) {
-        if (grants[i].scope.indexOf('manage:grants') > -1) return true;
-      }
-    }
-    return false;
+    if (user.role === 'admin') return true;
+    if (user.role !== 'parent') return false;
+    var youth = AppState.currentYouth;
+    if (!youth) return false;
+    return youth.currentGuardianId === user.id;
   }
 
   /**
@@ -173,7 +169,7 @@ window.Permissions = (function () {
   /**
    * 创建授权令牌
    */
-  function grantAccess(youthId, granteeId, granteeRole, validUntil) {
+  function grantAccess(youthId, granteeId, granteeRole, validUntil, relation) {
     var user = AppState.getState().currentUser;
     if (!user) {
       return { success: false, error: '未登录' };
@@ -221,6 +217,7 @@ window.Permissions = (function () {
       grantorId: user.id,
       granteeId: granteeId,
       granteeRole: granteeRole,
+      relation: relation || null,
       scope: scope,
       validFrom: now,
       validUntil: validUntil || null,
