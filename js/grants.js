@@ -58,7 +58,9 @@ window.Grants = (function () {
         var account = Storage.getAccount(g.granteeId);
         var name = account ? account.name : '未知用户';
         var roleLabel = Constants.ROLE_LABELS[g.granteeRole] || g.granteeRole;
-        var isReadonly = g.scope.indexOf('write:') === -1 && g.scope.indexOf('manage:') === -1;
+        var isReadonly = !g.scope.some(function (s) {
+          return s.indexOf('write:') === 0 || s.indexOf('manage:') === 0;
+        });
         var scopeLabel = isReadonly ? '只读访问' : '完全访问';
         var roleIcon = _getRoleIcon(g.granteeRole);
 
@@ -68,7 +70,7 @@ window.Grants = (function () {
             '<div class="grant-item-name">' + Utils.escapeHtml(name) + '</div>' +
             '<div class="grant-item-meta">' + roleLabel + ' · ' + scopeLabel + '</div>' +
           '</div>' +
-          '<button class="grant-revoke-btn" data-grant-id="' + g.id + '" data-grant-name="' + Utils.escapeHtml(name) + '">撤销</button>' +
+          '<button class="grant-revoke-btn" data-grant-id="' + g.id + '">撤销</button>' +
         '</div>';
       }
     }
@@ -97,16 +99,12 @@ window.Grants = (function () {
    * 获取角色对应的 emoji 图标
    */
   function _getRoleIcon(role) {
-    var icons = {
-      parent: '👤',
-      teacher: '📚',
-      caregiver: '🤝',
-      volunteer: '💙',
-      youth: '🌻',
-      government: '🏛️',
-      admin: '🛡️'
-    };
-    return icons[role] || '👤';
+    for (var i = 0; i < Constants.ROLES.length; i++) {
+      if (Constants.ROLES[i].value === role) {
+        return Constants.ROLES[i].icon;
+      }
+    }
+    return '👤';
   }
 
   /**
@@ -117,7 +115,15 @@ window.Grants = (function () {
     for (var i = 0; i < btns.length; i++) {
       btns[i].addEventListener('click', function () {
         var grantId = this.getAttribute('data-grant-id');
-        var grantName = this.getAttribute('data-grant-name');
+        var grants = Storage.getAccessGrants(youthId);
+        var grantName = '该用户';
+        for (var j = 0; j < grants.length; j++) {
+          if (grants[j].id === grantId) {
+            var account = Storage.getAccount(grants[j].granteeId);
+            grantName = account ? account.name : '该用户';
+            break;
+          }
+        }
         _confirmRevoke(youthId, grantId, grantName);
       });
     }
@@ -152,13 +158,22 @@ window.Grants = (function () {
       '</div>';
     document.body.appendChild(overlay);
 
+    overlay.addEventListener('click', function (e) {
+      if (e.target === overlay) {
+        document.body.removeChild(overlay);
+      }
+    });
+
     document.getElementById('btn-confirm-cancel').addEventListener('click', function () {
       document.body.removeChild(overlay);
     });
 
     document.getElementById('btn-confirm-ok').addEventListener('click', function () {
-      Storage.revokeAccessGrant(grantId, '手动撤销');
+      var success = Storage.revokeAccessGrant(grantId, '手动撤销');
       document.body.removeChild(overlay);
+      if (!success) {
+        // Still re-render, the grant may already be revoked
+      }
       showGrants(youthId);
     });
   }
@@ -182,6 +197,7 @@ window.Grants = (function () {
     for (var id in allAccounts) {
       var a = allAccounts[id];
       if (GRANTABLE_ROLES.indexOf(a.role) === -1) continue;
+      if (a.isActive === false) continue;
       if (existingGranteeIds[id]) continue;
       if (a.id === currentUserId) continue;
       availableUsers.push(a);
@@ -295,6 +311,16 @@ window.Grants = (function () {
       if (result.success) {
         document.body.removeChild(overlay);
         showGrants(youth.id);
+      } else {
+        // Show error message in the sheet
+        var errorMsg = document.querySelector('.grants-sheet-error');
+        if (!errorMsg) {
+          errorMsg = document.createElement('div');
+          errorMsg.className = 'grants-sheet-error';
+          var sheet = document.getElementById('grants-sheet');
+          sheet.insertBefore(errorMsg, sheet.querySelector('.grants-sheet-confirm'));
+        }
+        errorMsg.textContent = result.error === 'GRANT_ALREADY_EXISTS' ? '该用户已有有效授权' : '授权失败，请重试';
       }
     });
   }
