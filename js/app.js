@@ -1236,6 +1236,28 @@
 
     var html = '<div class="page-content">';
 
+    // === 加入申请 ===
+    if (user.role === 'parent' || user.role === 'admin') {
+      var pendingCount = 0;
+      var allYouths = Permissions.getAccessibleYouths();
+      for (var i = 0; i < allYouths.length; i++) {
+        var pending = Storage.getPendingJoinRequests(allYouths[i].id);
+        pendingCount += pending.length;
+      }
+      html += '<div class="ios-card-group">';
+      html += '<div class="ios-card-group-header">📋 加入申请</div>';
+      html += '<div class="ios-card-row-static" id="btn-approvals" style="cursor:pointer;">' +
+        '<div class="ios-card-row-icon">📨</div>' +
+        '<div class="ios-card-row-body">' +
+          '<div class="ios-card-row-title">申请审批</div>' +
+          '<div class="ios-card-row-subtitle">' + (pendingCount > 0 ? pendingCount + ' 条待审批' : '暂无新申请') + '</div>' +
+        '</div>' +
+        (pendingCount > 0 ? '<span class="approval-badge">' + pendingCount + '</span>' : '') +
+        '<span class="ios-card-row-arrow">›</span>' +
+      '</div>';
+      html += '</div>';
+    }
+
     // === 档案管理 ===
     html += '<div class="ios-card-group">';
     html += '<div class="ios-card-group-header">📋 档案管理</div>';
@@ -1287,6 +1309,14 @@
     if (createBtn) {
       createBtn.addEventListener('click', function () {
         window.location.hash = 'profile?action=create';
+      });
+    }
+
+    // 绑定申请审批入口
+    var approvalsBtn = document.getElementById('btn-approvals');
+    if (approvalsBtn) {
+      approvalsBtn.addEventListener('click', function () {
+        window.location.hash = 'approvals';
       });
     }
 
