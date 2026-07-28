@@ -281,7 +281,7 @@ window.Grants = (function () {
       youthId: youth.id,
       grantorId: AppState.currentUser.id,
       code: code,
-      role: 'parent',
+      role: null,
       createdAt: Utils.formatDateTime(now),
       expiresAt: Utils.formatDateTime(expiresAt),
       status: 'active',
@@ -302,7 +302,7 @@ window.Grants = (function () {
             '<div style="font-size:36px;font-weight:700;letter-spacing:8px;color:var(--color-text-primary);">' + code + '</div>' +
             '<div style="font-size:13px;color:var(--color-text-secondary);margin-top:8px;">24 小时内有效</div>' +
           '</div>' +
-          '<div style="font-size:13px;color:var(--color-text-secondary);padding:0 16px;text-align:center;line-height:1.5;">将此邀请码发送给家庭成员，对方注册家长账号后输入此邀请码即可申请加入。</div>' +
+          '<div style="font-size:13px;color:var(--color-text-secondary);padding:0 16px;text-align:center;line-height:1.5;">将此邀请码发送给家庭成员（祖父母、兄弟姐妹、保姆等），对方注册账号后输入此邀请码即可申请加入。</div>' +
           '<button class="grants-sheet-confirm" id="btn-copy-code" style="margin-top:20px;">复制邀请码</button>' +
           '<button class="btn btn-secondary btn-block" id="btn-close-code" style="margin:8px 16px 0;">关闭</button>' +
         '</div>';
@@ -413,7 +413,7 @@ window.Grants = (function () {
             '<div class="grants-sheet-user-icon">🔗</div>' +
             '<div class="grants-sheet-user-info">' +
               '<div class="grants-sheet-user-name">邀请家庭成员</div>' +
-              '<div class="grants-sheet-user-role">生成邀请码，发送给祖父母、兄弟姐妹等</div>' +
+              '<div class="grants-sheet-user-role">生成邀请码，发送给家庭成员（含保姆等）</div>' +
             '</div>' +
             '<div class="grants-sheet-user-check"></div>' +
           '</div>' +
