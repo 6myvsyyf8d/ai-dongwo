@@ -24,7 +24,7 @@ window.AnalyticsUI = (function () {
 
     var today = Utils.formatDate(new Date());
     var summary = AnalyticsEngine.dailySummary(youth.id, today);
-    var modules = Modules.MODULES;
+    var modules = Modules.MODULES.filter(function (m) { return m.key !== 'relationshipMap'; });
 
     // 模块状态行
     var statusRows = '';
@@ -80,11 +80,6 @@ window.AnalyticsUI = (function () {
     footerHtml += '<span class="health-footer-link">查看完整分析 →</span>' +
     '</div>';
 
-    var analyticsLinkHtml =
-      '<div class="health-card-footer" style="padding:10px 16px;border-top:0.5px solid var(--color-border);text-align:center;">' +
-        '<a href="#analytics" style="font-size:13px;color:var(--color-accent);text-decoration:none;">查看详细分析 →</a>' +
-      '</div>';
-
     return '<div class="health-card" data-youth-id="' + youth.id + '" id="health-card">' +
       '<div class="health-card-header">' +
         '<span class="health-card-title">📊 今日健康速报</span>' +
@@ -93,7 +88,6 @@ window.AnalyticsUI = (function () {
       '<div class="health-module-grid">' + statusRows + '</div>' +
       alertHtml +
       footerHtml +
-      analyticsLinkHtml +
     '</div>';
   }
 
@@ -183,6 +177,7 @@ window.AnalyticsUI = (function () {
 
     container.innerHTML =
       '<div class="page-header">' +
+        '<button class="btn btn-sm btn-secondary" id="btn-analytics-back">← 返回</button>' +
         '<span class="page-title">📊 ' + Utils.escapeHtml(youth.name) + ' · 数据分析</span>' +
         '<span></span>' +
       '</div>' +
@@ -199,6 +194,14 @@ window.AnalyticsUI = (function () {
 
     // 渲染当前 Tab
     _renderCurrentTab(youth);
+
+    // 返回按钮
+    var backBtn = container.querySelector('#btn-analytics-back');
+    if (backBtn) {
+      backBtn.addEventListener('click', function () {
+        window.location.hash = 'dashboard';
+      });
+    }
 
     // 绑定 Tab 切换
     var tabs = container.querySelectorAll('.analytics-tab');

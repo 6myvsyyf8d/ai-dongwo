@@ -23,11 +23,7 @@ window.Permissions = (function () {
       'read:safety', 'read:own_records',
       'write:careMedical'
     ],
-    volunteer: [
-      'read:safety',
-      'write:relationshipMap'
-    ]
-  };
+    };
 
   // 所有可写入模块 — 从 Modules.MODULES 派生，避免重复定义
   var ALL_WRITE_MODULES = Modules.MODULES.map(function (m) { return m.key; });
@@ -203,13 +199,6 @@ window.Permissions = (function () {
     // 获取 scope 模板
     var scope = SCOPE_TEMPLATES[granteeRole] || [];
     var now = Utils.formatDateTime();
-
-    // volunteer 默认当天 23:59:59
-    if (granteeRole === 'volunteer' && !validUntil) {
-      var endOfDay = new Date();
-      endOfDay.setHours(23, 59, 59, 999);
-      validUntil = Utils.formatDateTime(endOfDay);
-    }
 
     var grant = {
       id: Utils.generateUUID(),

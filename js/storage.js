@@ -578,10 +578,6 @@ window.Storage = (function () {
       id: Utils.generateUUID(), name: '小明', phone: '13800138010', role: 'youth',
       pinHash: '', institutionName: null, registeredAt: now, lastLoginAt: null, isActive: true
     };
-    var volunteerLi = {
-      id: Utils.generateUUID(), name: '志愿者小李', phone: '13800138008', role: 'volunteer',
-      pinHash: '', institutionName: '社区服务中心', registeredAt: now, lastLoginAt: null, isActive: true
-    };
     var govObserver = {
       id: Utils.generateUUID(), name: '政府观察员', phone: '13800138009', role: 'government',
       pinHash: '', institutionName: '残联', registeredAt: now, lastLoginAt: null, isActive: true
@@ -600,7 +596,6 @@ window.Storage = (function () {
     accounts[huaNanny.id] = huaNanny;
     accounts[teacherWang.id] = teacherWang;
     accounts[mingYouth.id] = mingYouth;
-    accounts[volunteerLi.id] = volunteerLi;
     accounts[govObserver.id] = govObserver;
     accounts[adminUser.id] = adminUser;
     set(KEYS.ACCOUNTS, accounts);
@@ -608,7 +603,7 @@ window.Storage = (function () {
     // 异步设置 PIN 哈希（统一 PIN: 1234）
     Utils.hashPin('1234').then(function (hash) {
       var stored = getAccounts();
-      var ids = [mingDad.id, mingMom.id, mingNanny.id, huaDad.id, huaMom.id, huaNanny.id, teacherWang.id, mingYouth.id, volunteerLi.id, govObserver.id, adminUser.id];
+      var ids = [mingDad.id, mingMom.id, mingNanny.id, huaDad.id, huaMom.id, huaNanny.id, teacherWang.id, mingYouth.id, govObserver.id, adminUser.id];
       for (var i = 0; i < ids.length; i++) {
         if (stored[ids[i]]) stored[ids[i]].pinHash = hash;
       }
@@ -814,12 +809,10 @@ window.Storage = (function () {
       { id: Utils.generateUUID(), youthId: mingId, grantorId: mingId, granteeId: mingNanny.id, granteeRole: 'caregiver', scope: readScope, validFrom: now, validUntil: null, status: 'active', grantedAt: now, revokedAt: null, revokeReason: null },
       { id: Utils.generateUUID(), youthId: mingId, grantorId: mingId, granteeId: teacherWang.id, granteeRole: 'teacher', scope: readScope, validFrom: now, validUntil: null, status: 'active', grantedAt: now, revokedAt: null, revokeReason: null },
       { id: Utils.generateUUID(), youthId: mingId, grantorId: mingId, granteeId: mingYouth.id, granteeRole: 'youth', scope: fullScope, validFrom: now, validUntil: null, status: 'active', grantedAt: now, revokedAt: null, revokeReason: null },
-      { id: Utils.generateUUID(), youthId: mingId, grantorId: mingId, granteeId: volunteerLi.id, granteeRole: 'volunteer', scope: ['read:safety', 'write:relationshipMap'], validFrom: now, validUntil: null, status: 'active', grantedAt: now, revokedAt: null, revokeReason: null },
       { id: Utils.generateUUID(), youthId: huaId, grantorId: huaId, granteeId: huaDad.id, granteeRole: 'parent', scope: fullScope, validFrom: now, validUntil: null, status: 'active', grantedAt: now, revokedAt: null, revokeReason: null },
       { id: Utils.generateUUID(), youthId: huaId, grantorId: huaId, granteeId: huaMom.id, granteeRole: 'parent', scope: fullScope, validFrom: now, validUntil: null, status: 'active', grantedAt: now, revokedAt: null, revokeReason: null },
       { id: Utils.generateUUID(), youthId: huaId, grantorId: huaId, granteeId: huaNanny.id, granteeRole: 'caregiver', scope: readScope, validFrom: now, validUntil: null, status: 'active', grantedAt: now, revokedAt: null, revokeReason: null },
-      { id: Utils.generateUUID(), youthId: huaId, grantorId: huaId, granteeId: teacherWang.id, granteeRole: 'teacher', scope: readScope, validFrom: now, validUntil: null, status: 'active', grantedAt: now, revokedAt: null, revokeReason: null },
-      { id: Utils.generateUUID(), youthId: huaId, grantorId: huaId, granteeId: volunteerLi.id, granteeRole: 'volunteer', scope: ['read:safety', 'write:relationshipMap'], validFrom: now, validUntil: null, status: 'active', grantedAt: now, revokedAt: null, revokeReason: null }
+      { id: Utils.generateUUID(), youthId: huaId, grantorId: huaId, granteeId: teacherWang.id, granteeRole: 'teacher', scope: readScope, validFrom: now, validUntil: null, status: 'active', grantedAt: now, revokedAt: null, revokeReason: null }
     ];
     set(KEYS.ACCESS_GRANTS, grants);
 
@@ -883,11 +876,6 @@ window.Storage = (function () {
     mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'emotionBehavior', '情绪有点低落，因为今天没有游泳课，用拼图分散了注意力', ['情绪', '低落'], 10));
     mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'workSupport', '理货训练持续进步，今天速度比上周快了30%', ['工作训练', '进步'], 8));
     mingRecs.push(r(mingId, teacherWang.id, 'teacher', 'communicationGuide', '能主动对老师说"谢谢"和"再见"了，语言表达越来越自然', ['语言', '里程碑'], 5));
-    // 志愿者小李 — 周末活动记录
-    mingRecs.push(r(mingId, volunteerLi.id, 'volunteer', 'relationshipMap', '今天陪小明去超市购物，他和小花一起选了零食，互动很好', ['社交', '陪伴'], 27));
-    mingRecs.push(r(mingId, volunteerLi.id, 'volunteer', 'workSupport', '社区活动：参加了手工课，小明用彩纸做了一只小船', ['社区活动', '手工'], 20));
-    mingRecs.push(r(mingId, volunteerLi.id, 'volunteer', 'relationshipMap', '小明在社区活动中认识了新朋友小刚，两个人一起玩了积木', ['社交', '新朋友'], 13));
-    mingRecs.push(r(mingId, volunteerLi.id, 'volunteer', 'workSupport', '户外活动：带去操场玩球，能接住3次球了，手眼协调有进步', ['运动', '进步'], 6));
     // 小明本人 — 心青年记录
     mingRecs.push(r(mingId, mingYouth.id, 'youth', 'emotionBehavior', '今天很开心，去超市买了喜欢的饼干', ['心情', '购物'], 28));
     mingRecs.push(r(mingId, mingYouth.id, 'youth', 'workSupport', '我想学游泳，今天教练说我进步了', ['愿望', '游泳'], 24));
@@ -960,11 +948,6 @@ window.Storage = (function () {
     huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'emotionBehavior', '音乐课换了新老师，有点不适应，但跟着唱了半节课', ['情绪', '适应'], 10));
     huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'workSupport', '艺术表达持续进步，这周画了三幅完整作品', ['艺术', '进步'], 8));
     huaRecs.push(r(huaId, teacherWang.id, 'teacher', 'communicationGuide', '今天主动对老师说"老师好"，声音比以前大了', ['语言', '进步'], 5));
-    // 志愿者小李
-    huaRecs.push(r(huaId, volunteerLi.id, 'volunteer', 'relationshipMap', '陪小花参加社区绘画活动，她画了一幅全家福，很温馨', ['社交', '画画'], 27));
-    huaRecs.push(r(huaId, volunteerLi.id, 'volunteer', 'workSupport', '社区手工课：小花做了一个漂亮的纸花篮，手指很灵巧', ['社区活动', '手工'], 20));
-    huaRecs.push(r(huaId, volunteerLi.id, 'volunteer', 'relationshipMap', '小花在活动中主动帮助了一个新来的小朋友，很有爱心', ['社交', '帮助'], 13));
-    huaRecs.push(r(huaId, volunteerLi.id, 'volunteer', 'workSupport', '音乐活动：小花独唱了一首歌，全场鼓掌，她笑得很开心', ['音乐', '自信'], 6));
     // 近3天记录（确保日报有内容）
     huaRecs.push(r(huaId, huaDad.id, 'parent', 'emotionBehavior', '前天画了一幅星空画，用了新学的调色技巧，色彩很美', ['画画', '进步'], 2));
     huaRecs.push(r(huaId, huaDad.id, 'parent', 'careMedical', '前天花粉指数低，带她去公园散步一小时，没有过敏', ['户外', '良好'], 2));

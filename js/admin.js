@@ -57,7 +57,7 @@ window.Admin = (function () {
 
   /**
    * 渲染用户管理 Tab
-   * 按角色优先级排序：admin→0, parent→1, teacher→2, caregiver→3, volunteer→4, youth→5, government→6
+   * 按角色优先级排序：admin→0, parent→1, teacher→2, caregiver→3, youth→4, government→5
    */
   function _renderUsersTab() {
     var content = document.getElementById('admin-content');
@@ -71,7 +71,7 @@ window.Admin = (function () {
       }
     }
 
-    var roleOrder = { admin: 0, parent: 1, teacher: 2, caregiver: 3, volunteer: 4, youth: 5, government: 6 };
+    var roleOrder = { admin: 0, parent: 1, teacher: 2, caregiver: 3, youth: 4, government: 5 };
     userList.sort(function (a, b) {
       return (roleOrder[a.role] !== undefined ? roleOrder[a.role] : 99) - (roleOrder[b.role] !== undefined ? roleOrder[b.role] : 99);
     });

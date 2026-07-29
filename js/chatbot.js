@@ -23,6 +23,9 @@
     confirmed: false
   };
 
+  // ========== Tab 模式状态（组件内部，不持久化） ==========
+  var currentMode = 'chat';
+
   // ========== 建议问题（兼容旧版） ==========
   var SUGGESTIONS = [
     '今天心情怎么样？',
@@ -45,6 +48,57 @@
     var div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  // ========== Tab 切换栏（iOS 风格分段控件，样式见 chatbot.css） ==========
+  function renderTabBar() {
+    return '' +
+      '<div class="chat-mode-tabs">' +
+        '<button type="button" class="chat-mode-tab' + (currentMode === 'chat' ? ' active' : '') + '" data-mode="chat">💬 对话模式</button>' +
+        '<button type="button" class="chat-mode-tab' + (currentMode === 'form' ? ' active' : '') + '" data-mode="form">📝 表单模式</button>' +
+      '</div>';
+  }
+
+  function renderFormPanel() {
+    return '<div id="form-mode-panel" style="display:' + (currentMode === 'form' ? 'block' : 'none') + ';padding:24px 16px;">' +
+      '<div class="empty-state">' +
+        '<div class="empty-state-icon">📝</div>' +
+        '<div class="empty-state-title">表单模式开发中</div>' +
+        '<div class="empty-state-desc">请使用对话模式进行采集</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function bindTabEvents() {
+    var tabs = document.querySelectorAll('.chat-mode-tab');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].addEventListener('click', function () {
+        var mode = this.getAttribute('data-mode');
+        if (mode === currentMode) return;
+        currentMode = mode;
+
+        // 切换 active 状态（视觉由 CSS .chat-mode-tab.active 控制）
+        var allTabs = document.querySelectorAll('.chat-mode-tab');
+        for (var j = 0; j < allTabs.length; j++) {
+          allTabs[j].classList.toggle('active', allTabs[j].getAttribute('data-mode') === currentMode);
+        }
+
+        // 切换面板可见性（表单模式直接打开记录表单）
+        var chatPanel = document.getElementById('chat-mode-panel');
+        var formPanel = document.getElementById('form-mode-panel');
+        if (currentMode === 'form') {
+          if (chatPanel) chatPanel.style.display = 'none';
+          if (formPanel) formPanel.style.display = 'block';
+          // 调用 Records 模块化表单
+          if (window.Records && typeof window.Records.showRecordForm === 'function') {
+            window.Records.showRecordForm(state.youthId);
+          }
+        } else {
+          if (formPanel) formPanel.style.display = 'none';
+          if (chatPanel) chatPanel.style.display = '';
+        }
+      });
+    }
   }
 
   // ========== 主入口（兼容旧版 ChatBot.renderChat） ==========
@@ -134,6 +188,8 @@
         '<span class="page-title">' + escapeHtml(youth.name) + ' · 对话采集</span>' +
         '<span></span>' +
       '</div>' +
+      renderTabBar() +
+      '<div id="chat-mode-panel">' +
       '<div class="chat-layout">' +
         '<div class="chat-panel-col">' +
           '<div class="chat-messages" id="chat-messages"></div>' +
@@ -153,9 +209,12 @@
             '<button id="btn-confirm-record" disabled>✓ 确认以上记录</button>' +
           '</div>' +
         '</div>' +
-      '</div>';
+      '</div>' +
+      '</div>' +
+      renderFormPanel();
 
     bindEnhancedEvents();
+    bindTabEvents();
     renderQuickButtons();
 
     // 发送开场白
@@ -176,6 +235,8 @@
         '<span class="page-title">' + escapeHtml(youth.name) + ' · 对话采集</span>' +
         '<span></span>' +
       '</div>' +
+      renderTabBar() +
+      '<div id="chat-mode-panel">' +
       '<div class="chat-page">' +
         '<div class="chat-messages" id="chat-messages"></div>' +
         '<div class="chat-suggestions" id="chat-suggestions">' +
@@ -187,9 +248,12 @@
           '<textarea class="chat-input" id="chat-input" placeholder="输入消息..." rows="1"></textarea>' +
           '<button class="chat-send-btn" id="btn-send" aria-label="发送消息">➤</button>' +
         '</div>' +
-      '</div>';
+      '</div>' +
+      '</div>' +
+      renderFormPanel();
 
     bindLegacyEvents();
+    bindTabEvents();
     addAIMessage('你好！我是 AI 助手，可以帮你通过对话记录 ' + state.youthName + ' 的日常信息。你可以告诉我今天发生了什么，或者从下方建议问题开始。', 0);
   }
 

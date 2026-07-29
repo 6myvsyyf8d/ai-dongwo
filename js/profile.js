@@ -374,9 +374,9 @@ window.Profile = (function () {
 
     container.innerHTML =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-back">← 返回</button>' +
+        '<span></span>' +
         '<span class="page-title">档案详情</span>' +
-        '<button class="btn btn-sm btn-primary" id="btn-quickcard">📚 速读卡</button>' +
+        '<button class="btn btn-sm btn-secondary" id="btn-quickcard" title="速读卡">📚 速读卡</button>' +
       '</div>' +
       '<div class="profile-header">' +
         '<div class="profile-avatar">' + (youth.avatar || '👤') + '</div>' +
@@ -615,10 +615,6 @@ window.Profile = (function () {
    * 绑定详情页事件
    */
   function _bindDetailEvents(youthId) {
-    document.getElementById('btn-back').addEventListener('click', function () {
-      window.location.hash = 'dashboard';
-    });
-
     var quickcardBtn = document.getElementById('btn-quickcard');
     if (quickcardBtn) {
       quickcardBtn.addEventListener('click', function () {

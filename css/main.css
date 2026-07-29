@@ -1062,11 +1062,46 @@ ul, ol { list-style: none; }
   margin: 0 auto;
 }
 
+/* 顶部问候区 */
+.dashboard-greeting {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 16px 14px 10px;
+}
+
+.dashboard-greeting-left {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dashboard-greeting-date {
+  font-size: 12px;
+  color: var(--color-text-tertiary);
+  letter-spacing: -0.01em;
+}
+
+.dashboard-greeting-hello {
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  letter-spacing: -0.02em;
+}
+
+.dashboard-greeting-meta {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
 /* Card Group */
 .ios-card-group {
   background: var(--color-bg-secondary);
   border-radius: var(--radius-lg);
-  margin: 0 var(--spacing-lg) var(--spacing-lg);
+  margin: 0 8px 6px;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
 }
@@ -1077,7 +1112,7 @@ ul, ol { list-style: none; }
   color: var(--color-text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.04em;
-  padding: var(--spacing-md) var(--spacing-lg) var(--spacing-xs);
+  padding: 8px 12px 4px;
   margin: 0;
 }
 
@@ -1085,8 +1120,8 @@ ul, ol { list-style: none; }
 .ios-card-row {
   display: flex;
   align-items: center;
-  padding: var(--spacing-md) var(--spacing-lg);
-  min-height: 44px;
+  padding: 8px 12px;
+  min-height: 36px;
   gap: var(--spacing-md);
   cursor: pointer;
   transition: background var(--transition-fast);
@@ -1595,7 +1630,7 @@ ul, ol { list-style: none; }
   display: flex;
   align-items: center;
   gap: var(--spacing-sm);
-  padding: var(--spacing-sm) 0;
+  padding: 6px 0;
   text-decoration: none;
   color: inherit;
   cursor: pointer;
@@ -1606,7 +1641,7 @@ ul, ol { list-style: none; }
 }
 
 .safety-contact-icon {
-  font-size: 18px;
+  font-size: 16px;
   flex-shrink: 0;
 }
 
@@ -1614,7 +1649,8 @@ ul, ol { list-style: none; }
   flex: 1;
   min-width: 0;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: 4px;
 }
 
 .safety-contact-name {
@@ -1636,222 +1672,190 @@ ul, ol { list-style: none; }
 }
 
 /* ================================================================
-   每日交接任务卡片 — Apple Design
+   每日交接任务 — Monday.com 风格 4 列结构化表格
    ================================================================ */
 
-/* 状态统计栏 */
-.handover-summary {
-  display: flex;
+/* 表头行 */
+/* 表头行 — 与卡片标题合并，无独立背景/分隔线 */
+.handover-table-header {
+  display: grid;
+  grid-template-columns: 1fr 90px 90px 64px;
   gap: 6px;
-  padding: 12px 16px 10px;
-  font-size: 12px;
-  font-weight: 500;
-  letter-spacing: -0.01em;
-}
-
-.handover-stat {
-  padding: 5px 12px;
-  border-radius: 20px;
-  font-size: 12px;
-  font-weight: 500;
-  transition: all 0.2s ease;
-}
-
-.handover-stat.pending {
-  background: rgba(255, 159, 10, 0.10);
-  color: #B45309;
-}
-
-.handover-stat.in_progress {
-  background: rgba(0, 122, 255, 0.10);
-  color: #007AFF;
-}
-
-.handover-stat.done {
-  background: rgba(52, 199, 89, 0.10);
-  color: #34C759;
-}
-
-/* 分类标题 */
-.handover-section-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 14px 16px 6px;
-  font-size: 13px;
+  padding: 2px 14px 8px;
+  font-size: 11px;
   font-weight: 600;
-  color: var(--color-text-secondary);
-  letter-spacing: -0.01em;
-}
-
-.handover-section-header:first-of-type {
-  padding-top: 0;
-}
-
-/* 可折叠分类 */
-.handover-toggle {
-  cursor: pointer;
-  user-select: none;
-  -webkit-user-select: none;
-  padding: 12px 16px;
-  margin: 0;
-  transition: background 0.15s ease;
-}
-
-.handover-toggle:active {
-  background: rgba(0, 0, 0, 0.02);
-}
-
-.handover-chevron {
-  margin-left: auto;
-  font-size: var(--font-size-2xs);
-  color: #C7C7CC;
-  transition: transform 0.25s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.handover-chevron.open {
-  transform: rotate(180deg);
-}
-
-.handover-collapse-body {
-  max-height: 0;
-  overflow: hidden;
-  transition: max-height 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
-}
-
-.handover-collapse-body.open {
-  max-height: 2000px;
-}
-
-.handover-section-count {
-  font-size: 12px;
   color: var(--color-text-tertiary);
-  font-weight: 400;
-  background: var(--color-bg-tertiary);
-  padding: 1px 7px;
-  border-radius: 10px;
+  letter-spacing: 0.02em;
 }
 
-.handover-empty-hint {
-  padding: 10px 16px;
-  font-size: 13px;
-  color: var(--color-text-tertiary);
-  font-style: normal;
-  letter-spacing: -0.01em;
+.handover-table-header .handover-cell-from,
+.handover-table-header .handover-cell-to {
+  overflow: visible;
+  white-space: nowrap;
 }
 
-/* 任务卡片容器 — 嵌套在折叠区内，视觉上形成卡片层次 */
-.handover-task-list {
-  background: var(--color-bg-secondary);
-  border-radius: 12px;
-  margin: 4px 8px 8px;
-  overflow: hidden;
-  box-shadow: var(--shadow-sm);
-}
-
-.handover-task-list .handover-task-row + .handover-task-row {
-  border-top: 0.5px solid var(--color-border-light);
-}
-
-/* 任务行 */
-.handover-task-row {
+/* 表体 */
+.handover-table-body {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  padding: 12px 16px;
+  flex-direction: column;
+}
+
+/* 数据行 */
+.handover-table-row {
+  display: grid;
+  grid-template-columns: 1fr 90px 90px 64px;
+  gap: 6px;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 0.5px solid var(--color-border-light);
   transition: background 0.15s ease;
 }
 
-.handover-task-row:active {
+.handover-table-row:last-child {
+  border-bottom: none;
+}
+
+.handover-table-row:active {
   background: rgba(0, 0, 0, 0.02);
 }
 
-.handover-task-row.is-done {
-  opacity: 0.55;
+/* 待处理行：微红底色 */
+.handover-row-pending {
+  background: #FFF8F8;
 }
 
-.handover-task-row.is-done .handover-task-content {
+.handover-row-pending:active {
+  background: #FFEEF0;
+}
+
+/* 已完成行：删除线 + 灰色文字 */
+.handover-row-done .handover-cell-content {
+  color: var(--color-text-tertiary);
   text-decoration: line-through;
   text-decoration-color: var(--color-text-tertiary);
   text-decoration-thickness: 1px;
 }
 
-/* 状态切换按钮 — 文字标签 */
-.handover-status-btn {
-  height: 26px;
-  border-radius: 13px;
-  border: none;
-  cursor: pointer;
-  flex-shrink: 0;
-  margin-top: 1px;
-  transition: all 0.2s cubic-bezier(0.25, 0.1, 0.25, 1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 0 12px;
-  font-size: 11px;
-  line-height: 1;
-  font-weight: 500;
-  letter-spacing: 0.02em;
+.handover-row-done .handover-actor-name {
+  color: var(--color-text-tertiary);
 }
 
-.handover-status-btn:active {
-  transform: scale(0.92);
-}
-
-.handover-status-btn.pending {
-  background: #FFF3CD;
-  color: #856404;
-}
-
-.handover-status-btn.in_progress {
-  background: #CCE5FF;
-  color: #004085;
-}
-
-.handover-status-btn.done {
-  background: #D4EDDA;
-  color: #155724;
-}
-
-/* 任务主体 */
-.handover-task-body {
-  flex: 1;
+/* 单元格通用 */
+.handover-cell {
   min-width: 0;
+  overflow: hidden;
 }
 
-.handover-task-content {
+/* 任务内容列 */
+.handover-cell-content {
   font-size: 14px;
   color: var(--color-text-primary);
-  line-height: 1.45;
-  margin-bottom: 5px;
+  line-height: 1.4;
   word-break: break-word;
   letter-spacing: -0.01em;
 }
 
-.handover-task-meta {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 12px;
-  color: var(--color-text-tertiary);
-  flex-wrap: wrap;
-}
-
-.handover-task-from {
-  color: var(--color-text-secondary);
-  font-weight: 500;
-}
-
-.handover-task-to {
-  color: var(--color-primary);
-  font-weight: 500;
-}
-
-.handover-task-time {
-  margin-left: auto;
+.handover-cell-time {
+  margin-top: 3px;
   font-size: 11px;
   color: var(--color-text-tertiary);
+  font-weight: 400;
+}
+
+/* 发起人 / 接收人列 */
+.handover-cell-from,
+.handover-cell-to {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+
+.handover-actor-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+
+.handover-actor-name {
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 状态列 */
+.handover-cell-status {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* 状态药丸（Pill） */
+.handover-pill {
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  padding: 5px 10px;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.02em;
+  transition: transform 0.15s cubic-bezier(0.25, 0.1, 0.25, 1),
+              filter 0.15s ease;
+  white-space: nowrap;
+}
+
+.handover-pill:active {
+  transform: scale(0.92);
+}
+
+.handover-pill-pending {
+  background: #FDCB6E;
+  color: #7D5A00;
+}
+
+.handover-pill-pending:hover {
+  filter: brightness(0.96);
+}
+
+.handover-pill-done {
+  background: #D4EDDA;
+  color: #155724;
+}
+
+.handover-pill-done:hover {
+  filter: brightness(0.96);
+}
+
+/* 窄屏：手机端 4 列紧凑布局 */
+@media (max-width: 399px) {
+  .handover-table-header,
+  .handover-table-row {
+    grid-template-columns: 1fr 52px 52px 52px;
+  }
+
+  .handover-table-header {
+    font-size: 10px;
+    padding: 2px 10px 6px;
+  }
+
+  .handover-table-row {
+    padding: 10px 10px;
+  }
+
+  .handover-cell-content {
+    font-size: 13px;
+  }
+
+  .handover-actor-name {
+    font-size: 10px;
+  }
+
+  .handover-pill {
+    padding: 4px 6px;
+    font-size: 10px;
+  }
 }
 
 /* ================================================================

@@ -134,7 +134,7 @@ window.Records = (function () {
 
     // 是否有写入权限
     var canWrite = Permissions.canWrite('communicationGuide') || Permissions.canWrite('emotionBehavior') || Permissions.canWrite('careMedical') || Permissions.canWrite('workSupport');
-    var fabHtml = canWrite ? '<button class="fab" id="btn-add-record" aria-label="添加新记录">+</button>' : '';
+    var fabHtml = '';
 
     var chatEntryHtml =
       '<div class="ios-card-group" style="margin-bottom:16px;">' +
@@ -150,7 +150,7 @@ window.Records = (function () {
 
     container.innerHTML =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-back">← 返回</button>' +
+        '<span></span>' +
         '<span class="page-title">' + Utils.escapeHtml(youth.name) + ' · 记录</span>' +
         '<span></span>' +
       '</div>' +
@@ -228,10 +228,6 @@ window.Records = (function () {
    * 绑定列表事件
    */
   function _bindListEvents(youthId) {
-    document.getElementById('btn-back').addEventListener('click', function () {
-      window.location.hash = 'profile?youthId=' + encodeURIComponent(youthId);
-    });
-
     // 模块筛选 Chip
     var moduleChips = document.querySelectorAll('.records-filter-bar:not(.records-filter-bar--date) .filter-chip');
     for (var i = 0; i < moduleChips.length; i++) {
@@ -255,14 +251,6 @@ window.Records = (function () {
         this.classList.add('active');
         _filter.date = this.getAttribute('data-date');
         _applyFilter();
-      });
-    }
-
-    // 添加记录
-    var fab = document.getElementById('btn-add-record');
-    if (fab) {
-      fab.addEventListener('click', function () {
-        _showRecordForm(youthId);
       });
     }
 
@@ -620,6 +608,7 @@ window.Records = (function () {
     RECORD_TYPES: RECORD_TYPES,
     VISIBILITY_LEVELS: VISIBILITY_LEVELS,
     renderRecords: renderRecords,
+    showRecordForm: _showRecordForm,
     queryByModule: queryByModule,
     queryByDateRange: queryByDateRange,
     queryByTag: queryByTag,

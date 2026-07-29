@@ -8,7 +8,7 @@ window.Grants = (function () {
   'use strict';
 
   // 可授权角色（排除 youth / government / admin）
-  var GRANTABLE_ROLES = ['teacher', 'caregiver', 'volunteer'];
+  var GRANTABLE_ROLES = ['teacher', 'caregiver'];
 
   /**
    * 角色权限说明
@@ -16,8 +16,7 @@ window.Grants = (function () {
   var ROLE_PERMISSION_DESC = {
     parent: '家长 · 可查看全部模块并管理授权',
     teacher: '老师 · 可查看全部模块，可写沟通/情绪/工作/医疗',
-    caregiver: '照护者 · 可查看安全信息，可写照护医疗',
-    volunteer: '志愿者 · 可查看安全信息，可写关系地图'
+    caregiver: '照护者 · 可查看安全信息，可写照护医疗'
   };
 
   /**
