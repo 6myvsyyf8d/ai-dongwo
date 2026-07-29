@@ -29,5 +29,5 @@
 
 ## Task 5: 提交与标签
 - [x] 版本命名 `v1.0_20260729-1` 符合同日第二版规则
-- [ ] 提交信息含 fix(p0) 前缀
-- [ ] commit 与 tag 均推送到 origin
+- [x] 提交信息含 `fix(p0): handover toggle test precision + youth card latest record verified`
+- [x] commit (b3d372a) 与 tag v1.0_20260729-1 均已推送到 origin（已通过 `git ls-remote` 验证）

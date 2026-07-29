@@ -1,11 +1,11 @@
-"""Full cross-role integration test: 10 accounts, cross-role visibility, handover, analytics"""
+"""Full cross-role integration test: 9 accounts, cross-role visibility, handover, analytics"""
 from playwright.sync_api import sync_playwright
 import traceback
 
 BASE = 'http://localhost:8080'
 EXPECTED_NAV = ['首页', '记录', '档案', '管理']
 
-# All 10 test accounts
+# All 9 test accounts
 ALL_ACCOUNTS = [
     ('小明爸爸', 'parent', '.quick-login-item:has(.quick-login-name:text-is("小明爸爸"))'),
     ('小明妈妈', 'parent', '.quick-login-item:has(.quick-login-name:text-is("小明妈妈"))'),
@@ -15,7 +15,6 @@ ALL_ACCOUNTS = [
     ('小花保姆', 'caregiver', '.quick-login-item:has(.quick-login-name:text-is("小花保姆"))'),
     ('王老师', 'teacher', '.quick-login-item:has(.quick-login-name:text-is("王老师"))'),
     ('小明', 'youth', '.quick-login-item:has(.quick-login-name:text-is("小明"))'),
-    ('志愿者小李', 'volunteer', '.quick-login-item:has(.quick-login-name:text-is("志愿者小李"))'),
     ('政府观察员', 'government', '.quick-login-item:has(.quick-login-name:text-is("政府观察员"))'),
 ]
 
@@ -72,10 +71,10 @@ with sync_playwright() as p:
     browser = p.chromium.launch(headless=True)
 
     # ============================================================
-    # TASK 1: Full 10-account login test
+    # TASK 1: Full 9-account login test
     # ============================================================
     print("\n" + "="*60)
-    print("TASK 1: Full 10-Account Login Test")
+    print("TASK 1: Full 9-Account Login Test")
     print("="*60)
 
     for name, role, selector in ALL_ACCOUNTS:
@@ -161,37 +160,8 @@ with sync_playwright() as p:
     page.close()
     context.close()
 
-    # 2b: Volunteer sees only safety_only records
-    print("\n--- 2b: 志愿者小李 sees only safety_only records ---")
-    context = browser.new_context(viewport={'width': 430, 'height': 932})
-    page = context.new_page()
-    errors = []
-
-    try:
-        quick_login(page, '志愿者小李', ALL_ACCOUNTS[8][2])
-        page.goto(f'{BASE}/#records', wait_until='networkidle')
-        page.wait_for_timeout(2000)
-
-        page_text = page.inner_text('body')
-        has_safety_content = '过敏' in page_text or '饮食' in page_text or '用药' in page_text
-        # Check that volunteer does NOT see full records like emotions from other parents
-        print(f"  Page content length: {len(page_text)}, has_safety: {has_safety_content}")
-
-        if has_safety_content:
-            print(f"  Volunteer sees safety records: OK")
-        else:
-            print(f"  Volunteer sees safety records: NOTE (may have no matching records)")
-
-        page.screenshot(path=f'/tmp/test_cross_volunteer_records.png', full_page=True)
-    except Exception as e:
-        traceback.print_exc()
-        errors.append(str(e))
-    results.append(('volunteer', '志愿者小李-记录可见性', 'PASS' if not errors else 'FAIL', errors))
-    page.close()
-    context.close()
-
-    # 2c: Teacher sees both youths' records
-    print("\n--- 2c: 王老师 sees both youths' records ---")
+    # 2b: Teacher sees both youths' records
+    print("\n--- 2b: 王老师 sees both youths' records ---")
     context = browser.new_context(viewport={'width': 430, 'height': 932})
     page = context.new_page()
     errors = []

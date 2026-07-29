@@ -40,7 +40,7 @@
   --color-role-parent: #A8C9A0;
   --color-role-teacher: #D4A85A;
   --color-role-caregiver: #D4877B;
-  --color-role-volunteer: #9B85B8;
+  
   --color-role-government: #A89E92;
 
   /* — Module colors: 与 Modules.MODULES 一致 — */
@@ -737,10 +737,7 @@ ul, ol { list-style: none; }
   color: var(--color-role-caregiver);
 }
 
-.badge-volunteer {
-  background-color: rgba(139, 126, 200, 0.1);
-  color: var(--color-role-volunteer);
-}
+
 
 /* — 空状态 — */
 .empty-state {
@@ -1514,7 +1511,7 @@ ul, ol { list-style: none; }
 }
 
 /* ================================================================
-   安全速查卡 — 照护者/志愿者用
+   安全速查卡 — 照护者用
    ================================================================ */
 
 .safety-card {
@@ -1762,9 +1759,10 @@ ul, ol { list-style: none; }
   font-weight: 400;
 }
 
-/* 发起人 / 接收人列 */
+/* 发起人 / 接收人 / 学生列 */
 .handover-cell-from,
-.handover-cell-to {
+.handover-cell-to,
+.handover-cell-youth {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1855,6 +1853,27 @@ ul, ol { list-style: none; }
   .handover-pill {
     padding: 4px 6px;
     font-size: 10px;
+  }
+}
+
+/* 老师视图：5 列表格（含学生列） */
+.handover-table-teacher .handover-table-header {
+  grid-template-columns: 1fr 52px 80px 80px 56px;
+}
+
+.handover-table-teacher .handover-table-row {
+  grid-template-columns: 1fr 52px 80px 80px 56px;
+}
+
+@media (max-width: 399px) {
+  .handover-table-teacher .handover-table-header {
+    grid-template-columns: 1fr 40px 64px 64px 52px;
+    font-size: 10px;
+    padding: 2px 8px 6px;
+  }
+  .handover-table-teacher .handover-table-row {
+    grid-template-columns: 1fr 40px 64px 64px 52px;
+    padding: 10px 8px;
   }
 }
 

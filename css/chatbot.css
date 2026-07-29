@@ -260,7 +260,7 @@
 }
 
 /* 模块标签颜色 — Apple Design 色板 */
-.module-tag-communicationGuide { background: rgba(175, 82, 222, 0.1); color: var(--color-role-volunteer); }
+.module-tag-communicationGuide { background: rgba(175, 82, 222, 0.1); color: #9B85B8; }
 .module-tag-emotionBehavior { background: rgba(255, 59, 48, 0.1); color: var(--color-role-caregiver); }
 .module-tag-careMedical { background: rgba(52, 199, 89, 0.1); color: var(--color-role-parent); }
 .module-tag-workSupport { background: rgba(255, 159, 10, 0.1); color: var(--color-role-teacher); }
