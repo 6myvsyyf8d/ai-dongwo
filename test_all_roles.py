@@ -301,18 +301,24 @@ with sync_playwright() as p:
         if has_task:
             print(f"  Caregiver sees handover task: OK")
 
-            # Try to toggle status
-            status_btn = page.locator('.handover-status-btn').first
+            # Try to toggle status — use first pending task specifically,
+            # wait longer for dashboard rerender triggered by showDashboard({})
+            status_btn = page.locator('.handover-status-btn.pending').first
+            if status_btn.count() == 0:
+                status_btn = page.locator('.handover-status-btn').first
             if status_btn.count() > 0:
                 old_text = status_btn.inner_text()
+                task_id = status_btn.get_attribute('data-task-id')
                 status_btn.click()
-                page.wait_for_timeout(1500)
-                new_text = page.locator('.handover-status-btn').first.inner_text()
+                page.wait_for_timeout(3000)  # allow full dashboard rerender cycle
+                # Locate SAME task button again (via data-task-id) to avoid index shifts
+                new_btn = page.locator(f'.handover-status-btn[data-task-id="{task_id}"]').first if task_id else page.locator('.handover-status-btn').first
+                new_text = new_btn.inner_text() if new_btn.count() > 0 else '(missing)'
                 if old_text != new_text:
                     print(f"  Status toggled: {old_text} -> {new_text}: OK")
                 else:
-                    errors.append("Status did not toggle")
-                    print(f"  Status toggle: FAIL (no change)")
+                    errors.append(f"Status did not toggle ({old_text} -> {new_text})")
+                    print(f"  Status toggle: FAIL ({old_text} -> {new_text})")
             else:
                 print(f"  Status button: not found")
         else:
