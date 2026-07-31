@@ -255,8 +255,43 @@
   color: var(--color-text-tertiary);
 }
 
+/* 家庭混合并排 */
+.quick-login-family-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: var(--spacing-sm);
+}
+
+.quick-login-family-row {
+  display: flex;
+  gap: 8px;
+}
+
+.quick-login-family-row .quick-login-item {
+  flex: 1;
+  padding: var(--spacing-sm) var(--spacing-md);
+  min-height: 40px;
+}
+
+.quick-login-family-row .quick-login-name {
+  font-size: var(--font-size-xs);
+}
+
+.quick-login-family-row .quick-login-role {
+  font-size: var(--font-size-2xs);
+}
+
+.quick-login-item-empty {
+  visibility: hidden;
+}
+
 /* 响应式 */
 @media (max-width: 640px) {
+  .quick-login-family-row {
+    flex-direction: column;
+  }
+
   .auth-page {
     padding: var(--spacing-md);
   }

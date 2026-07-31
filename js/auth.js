@@ -19,6 +19,23 @@ window.Auth = (function () {
   };
 
   /**
+   * 渲染单个快速登录项
+   */
+  function _renderQuickLoginItem(acc) {
+    var roleInfo = ROLES.find(function (r) { return r.value === acc.role; });
+    return '<div class="quick-login-item" data-account-id="' + acc.id + '">' +
+      '<div class="quick-login-info">' +
+        '<span class="role-icon" style="font-size:20px;">' + (roleInfo ? roleInfo.icon : '👤') + '</span>' +
+        '<div>' +
+          '<div class="quick-login-name">' + Utils.escapeHtml(acc.name) + '</div>' +
+          '<div class="quick-login-role">' + (roleInfo ? roleInfo.label : acc.role) + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<span class="badge badge-' + acc.role + '">登录</span>' +
+    '</div>';
+  }
+
+  /**
    * 渲染登录页
    */
   function renderLogin(params) {
@@ -33,24 +50,38 @@ window.Auth = (function () {
 
     var quickLoginHtml = '';
     if (accountList.length > 0) {
+      // 家庭分组定义
+      var mingFamilyNames = ['小明爸爸', '小明妈妈', '小明保姆', '小明'];
+      var huaFamilyNames = ['小花爸爸', '小花妈妈', '小花保姆', '小花'];
+      var mingGroup = accountList.filter(function (a) { return mingFamilyNames.indexOf(a.name) !== -1; });
+      var huaGroup = accountList.filter(function (a) { return huaFamilyNames.indexOf(a.name) !== -1; });
+      var otherAccounts = accountList.filter(function (a) {
+        return mingFamilyNames.indexOf(a.name) === -1 && huaFamilyNames.indexOf(a.name) === -1;
+      });
+
       quickLoginHtml = '<div class="quick-login">' +
-        '<div class="quick-login-title">— 快速登录（测试账号）—</div>' +
-        '<div class="quick-login-list">';
-      for (var i = 0; i < accountList.length; i++) {
-        var acc = accountList[i];
-        var roleInfo = ROLES.find(function (r) { return r.value === acc.role; });
-        quickLoginHtml += '<div class="quick-login-item" data-account-id="' + acc.id + '">' +
-          '<div class="quick-login-info">' +
-            '<span class="role-icon" style="font-size:20px;">' + (roleInfo ? roleInfo.icon : '👤') + '</span>' +
-            '<div>' +
-              '<div class="quick-login-name">' + Utils.escapeHtml(acc.name) + '</div>' +
-              '<div class="quick-login-role">' + (roleInfo ? roleInfo.label : acc.role) + '</div>' +
-            '</div>' +
-          '</div>' +
-          '<span class="badge badge-' + acc.role + '">登录</span>' +
-        '</div>';
+        '<div class="quick-login-title">— 快速登录（测试账号）—</div>';
+
+      // 两家庭混合并排：每行左边小明家，右边小花家
+      var maxLen = Math.max(mingGroup.length, huaGroup.length);
+      quickLoginHtml += '<div class="quick-login-family-grid">';
+      for (var i = 0; i < maxLen; i++) {
+        var left = mingGroup[i] ? _renderQuickLoginItem(mingGroup[i]) : '<div class="quick-login-item quick-login-item-empty"></div>';
+        var right = huaGroup[i] ? _renderQuickLoginItem(huaGroup[i]) : '<div class="quick-login-item quick-login-item-empty"></div>';
+        quickLoginHtml += '<div class="quick-login-family-row">' + left + right + '</div>';
       }
-      quickLoginHtml += '</div></div>';
+      quickLoginHtml += '</div>';
+
+      // 其他账号 — 单列
+      if (otherAccounts.length > 0) {
+        quickLoginHtml += '<div class="quick-login-list">';
+        for (var i = 0; i < otherAccounts.length; i++) {
+          quickLoginHtml += _renderQuickLoginItem(otherAccounts[i]);
+        }
+        quickLoginHtml += '</div>';
+      }
+
+      quickLoginHtml += '</div>';
     }
 
     container.innerHTML =
