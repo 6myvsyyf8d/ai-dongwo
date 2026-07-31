@@ -50,7 +50,7 @@ window.QuickCard = (function () {
     // 顶部：关闭按钮 + 标题
     html +=
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-icon" id="btn-close-quickcard" style="width:32px;height:32px;padding:0;border:none;background:transparent;cursor:pointer;font-size:18px;color:var(--color-text-secondary);">✕</button>' +
+        '<button class="btn btn-sm btn-secondary" id="btn-close-quickcard">← 返回</button>' +
         '<span class="page-title">' + Utils.escapeHtml(youth.name) + ' · 速读卡</span>' +
         '<span></span>' +
       '</div>';

@@ -349,53 +349,358 @@ window.Profile = (function () {
     }
 
     var container = App.getContainer();
-    var age = Utils.calculateAge(youth.birthDate);
-    var genderLabel = youth.gender === 'male' ? '男' : youth.gender === 'female' ? '女' : '其他';
-    var lifecycleLabel = LIFECYCLE_LABELS[youth.lifeCycleStatus] || youth.lifeCycleStatus;
 
-    // 模块导航
-    var moduleNavHtml = '<div class="module-nav">';
-    for (var i = 0; i < Modules.MODULES.length; i++) {
-      moduleNavHtml += '<div class="module-tab' + (i === 0 ? ' active' : '') + '" data-module="' + Modules.MODULES[i].key + '">' +
-        '<div class="module-tab-icon">' + Modules.MODULES[i].icon + '</div>' +
-        '<div class="module-tab-label">' + Modules.MODULES[i].label + '</div>' +
-      '</div>';
-    }
-    moduleNavHtml += '</div>';
-
-    // 模块内容
-    var moduleContentHtml = '<div class="module-content" id="module-content">';
-    for (var i = 0; i < Modules.MODULES.length; i++) {
-      moduleContentHtml += '<div class="module-section' + (i === 0 ? ' active' : '') + '" data-module="' + Modules.MODULES[i].key + '">' +
-        _renderModuleContent(Modules.MODULES[i].key, youth.modules[Modules.MODULES[i].key], youth) +
-      '</div>';
-    }
-    moduleContentHtml += '</div>';
+    // 人物画像卡片 — 星座星图（含可点击节点 + 详情面板）
+    var portraitHtml = _generatePortrait(youth);
+    var panelsHtml = _renderPortraitPanels(youth);
 
     container.innerHTML =
       '<div class="page-header">' +
         '<span></span>' +
         '<span class="page-title">档案详情</span>' +
-        '<button class="btn btn-sm btn-secondary" id="btn-quickcard" title="速读卡">📚 速读卡</button>' +
+        '<button class="top-bar-btn" id="btn-quickcard" title="速读卡">📚</button>' +
       '</div>' +
-      '<div class="profile-header">' +
-        '<div class="profile-avatar">' + (youth.avatar || '👤') + '</div>' +
-        '<div class="profile-info">' +
-          '<div class="profile-name">' + Utils.escapeHtml(youth.name) + '</div>' +
-          '<div class="profile-meta">' +
-            '<span class="profile-meta-item">' + age + '岁</span>' +
-            '<span class="profile-meta-item">' + genderLabel + '</span>' +
-            '<span class="lifecycle-badge ' + youth.lifeCycleStatus + '">' + lifecycleLabel + '</span>' +
-          '</div>' +
-        '</div>' +
-      '</div>' +
-      moduleNavHtml +
-      '<div class="page-content">' +
-        moduleContentHtml +
-      '</div>' +
+      portraitHtml +
+      panelsHtml +
       _renderEmergencyBar(youth);
 
     _bindDetailEvents(youthId);
+  }
+
+  /**
+   * 生成人物画像 — 星座星图（含可点击节点 + 详情面板）
+   */
+  function _generatePortrait(profile) {
+    var modules = (profile && profile.modules) ? profile.modules : {};
+    var name = profile ? profile.name : '';
+    var age = profile ? Utils.calculateAge(profile.birthDate) : '';
+    var genderLabel = profile ? (profile.gender === 'male' ? '男' : profile.gender === 'female' ? '女' : '') : '';
+
+    // 收集数据
+    var commMethods = [];
+    if (modules.communicationGuide && modules.communicationGuide.preferredMethods) {
+      commMethods = modules.communicationGuide.preferredMethods;
+    }
+    var commDifficulties = (modules.communicationGuide && modules.communicationGuide.expressionDifficulties) ? modules.communicationGuide.expressionDifficulties : '';
+    var commHabits = (modules.communicationGuide && modules.communicationGuide.specialHabits) ? modules.communicationGuide.specialHabits : [];
+    var commSensory = (modules.communicationGuide && modules.communicationGuide.sensoryPreferences) ? modules.communicationGuide.sensoryPreferences : null;
+
+    var redLines = (modules.emotionBehavior && modules.emotionBehavior.behaviorRedLines) ? modules.emotionBehavior.behaviorRedLines : [];
+    var triggers = [];
+    var highRisks = [];
+    redLines.forEach(function (b) {
+      if (b.trigger) triggers.push(b);
+      if (b.severity === 'high' && b.description) highRisks.push(b);
+    });
+
+    var workPrefs = (modules.workSupport && modules.workSupport.workPreferences) ? modules.workSupport.workPreferences : [];
+    var ispPlans = (modules.workSupport && modules.workSupport.ispPlans) ? modules.workSupport.ispPlans : [];
+    var activePlans = ispPlans.filter(function (p) { return p.status === 'active'; });
+
+    var hasAnyData = commMethods.length > 0 || triggers.length > 0 || highRisks.length > 0 ||
+                     workPrefs.length > 0 || activePlans.length > 0;
+
+    // 辅助：生成节点标签
+    function nodeTag(cat, text) {
+      return '<span class="node-tag" style="background:rgba(' + cat + ',0.12);border:1px solid rgba(' + cat + ',0.2);color:#' + text + ';">' + Utils.escapeHtml(text) + '</span>';
+    }
+
+    // 背景星点
+    var bgStars = '';
+    var starPositions = [
+      [10,6,1.5,1.5,3,0,0.5], [82,10,1,1,2.5,0.8,0.4], [20,88,2,2,4,1.5,0.35],
+      [88,78,1,1,3.5,0.3,0.45], [6,48,1.5,1.5,2.8,2,0.3], [92,38,1,1,3.2,1,0.5],
+      [38,94,1.5,1.5,3.7,0.5,0.4], [62,4,1,1,2.6,1.8,0.35]
+    ];
+    starPositions.forEach(function (s) {
+      bgStars += '<div class="bg-star" style="left:' + s[0] + '%;top:' + s[1] + '%;width:' + s[2] + 'px;height:' + s[3] + 'px;--dur:' + s[4] + 's;--delay:' + s[5] + 's;--peak:' + s[6] + ';"></div>';
+    });
+
+    // 连线 SVG
+    var linesSvg = '<svg class="constellation-lines" viewBox="0 0 360 410" preserveAspectRatio="xMidYMid meet">' +
+      '<defs>' +
+        '<filter id="line-glow"><feGaussianBlur stdDeviation="1.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
+      '</defs>';
+
+    // 节点坐标定义
+    var nodeDefs = [
+      { key: 'communication', left: 27.8, top: 23.2, has: commMethods.length > 0, lineColor: 'rgba(120,170,230,0.25)', glowColor: 'rgba(120,170,230,0.35)' },
+      { key: 'emotion', left: 72.2, top: 23.2, has: triggers.length > 0, lineColor: 'rgba(170,140,220,0.25)', glowColor: 'rgba(170,140,220,0.35)' },
+      { key: 'caution', left: 27.8, top: 45.1, has: highRisks.length > 0, lineColor: 'rgba(245,180,100,0.25)', glowColor: 'rgba(245,180,100,0.35)' },
+      { key: 'work', left: 72.2, top: 45.1, has: workPrefs.length > 0, lineColor: 'rgba(130,200,150,0.25)', glowColor: 'rgba(130,200,150,0.35)' },
+      { key: 'training', left: 50, top: 76.8, has: activePlans.length > 0, lineColor: 'rgba(230,140,180,0.25)', glowColor: 'rgba(230,140,180,0.35)' }
+    ];
+
+    nodeDefs.forEach(function (nd) {
+      if (nd.has) {
+        var x = Math.round(nd.left * 3.6);
+        var y = Math.round(nd.top * 4.1);
+        linesSvg += '<line x1="180" y1="170" x2="' + x + '" y2="' + y + '" stroke="' + nd.lineColor + '" stroke-width="1" stroke-dasharray="3 5" filter="url(#line-glow)"/>';
+      }
+    });
+
+    // 星座外围环线
+    var ringPairs = [
+      [100,95,260,95], [100,95,100,185], [260,95,260,185],
+      [100,185,180,315], [260,185,180,315]
+    ];
+    ringPairs.forEach(function (p) {
+      linesSvg += '<line x1="' + p[0] + '" y1="' + p[1] + '" x2="' + p[2] + '" y2="' + p[3] + '" stroke="rgba(200,180,220,0.08)" stroke-width="0.5" stroke-dasharray="2 8"/>';
+    });
+
+    // 人体剪影（无腿）
+    linesSvg += '<g opacity="0.65">' +
+      '<ellipse cx="180" cy="195" rx="48" ry="65" fill="rgba(220,200,170,0.025)"/>' +
+      '<circle cx="180" cy="140" r="28" fill="none" stroke="rgba(220,200,170,0.3)" stroke-width="1.2"/>' +
+      '<circle cx="180" cy="140" r="28" fill="rgba(220,200,170,0.03)"/>' +
+      '<rect x="155" y="172" width="50" height="68" rx="10" fill="none" stroke="rgba(220,200,170,0.3)" stroke-width="1.2"/>' +
+      '<rect x="155" y="172" width="50" height="68" rx="10" fill="rgba(220,200,170,0.025)"/>' +
+      '<rect x="124" y="178" width="28" height="10" rx="5" fill="none" stroke="rgba(220,200,170,0.25)" stroke-width="1"/>' +
+      '<rect x="208" y="178" width="28" height="10" rx="5" fill="none" stroke="rgba(220,200,170,0.25)" stroke-width="1"/>' +
+    '</g></svg>';
+
+    // 节点光晕 + 可点击节点渲染
+    var nodesHtml = '';
+    var nodeConfigs = [
+      { key: 'communication', left: 27.8, top: 23.2, color: '#78aae6', glowColor: 'rgba(120,170,230,0.35)', label: '沟通方式',
+        has: commMethods.length > 0, delay: '0s',
+        tags: commMethods.slice(0, 3).map(function (m) { return nodeTag('120,170,230', m.method); }).join('') },
+      { key: 'emotion', left: 72.2, top: 23.2, color: '#aa8cdc', glowColor: 'rgba(170,140,220,0.35)', label: '情绪行为',
+        has: triggers.length > 0, delay: '0.5s',
+        tags: triggers.slice(0, 3).map(function (t) { return nodeTag('170,140,220', t.trigger); }).join('') },
+      { key: 'caution', left: 27.8, top: 45.1, color: '#f5b464', glowColor: 'rgba(245,180,100,0.35)', label: '特别注意',
+        has: highRisks.length > 0, delay: '1s',
+        tags: highRisks.slice(0, 2).map(function (r) { return nodeTag('245,180,100', r.description); }).join('') },
+      { key: 'work', left: 72.2, top: 45.1, color: '#82c896', glowColor: 'rgba(130,200,150,0.35)', label: '工作支持',
+        has: workPrefs.length > 0, delay: '1.5s',
+        tags: workPrefs.slice(0, 3).map(function (w) { return nodeTag('130,200,150', w); }).join('') },
+      { key: 'training', left: 50, top: 76.8, color: '#e68cb4', glowColor: 'rgba(230,140,180,0.35)', label: '正在训练',
+        has: activePlans.length > 0, delay: '2s',
+        tags: activePlans.slice(0, 2).map(function (p) { return nodeTag('230,140,180', p.title); }).join('') }
+    ];
+
+    nodeConfigs.forEach(function (nc) {
+      if (!nc.has) return;
+      nodesHtml += '<div class="node-glow" style="left:' + nc.left + '%;top:' + nc.top + '%;width:36px;height:36px;background:' + nc.glowColor + ';--delay:' + nc.delay + ';"></div>';
+      nodesHtml += '<div class="node-bubble" style="left:' + nc.left + '%;top:' + nc.top + '%;" onclick="Profile._selectNode(\'' + nc.key + '\')" id="node-' + nc.key + '">' +
+        '<div class="node-core" style="background:' + nc.color + ';color:' + nc.color + ';--delay:' + nc.delay + ';"></div>' +
+        '<div class="node-label" style="color:' + nc.color + ';">' + nc.label + '</div>' +
+        (nc.tags ? '<div class="node-tags">' + nc.tags + '</div>' : '') +
+      '</div>';
+    });
+
+    // 姓名
+    var avatarEmoji = (profile && profile.avatar) ? profile.avatar : '👤';
+    var lifecycleLabel = (profile && profile.lifeCycleStatus) ? (LIFECYCLE_LABELS[profile.lifeCycleStatus] || profile.lifeCycleStatus) : '';
+    var nameHtml = '<div class="name-zone">' +
+      '<div class="name-text">' + Utils.escapeHtml(name) + '</div>' +
+      '<div class="name-sub">' + age + '岁 · ' + genderLabel + (lifecycleLabel ? ' · ' + lifecycleLabel : '') + '</div>' +
+    '</div>';
+
+    // 头像
+    var avatarHtml = '<div class="avatar-zone"><div class="avatar-face">' + avatarEmoji + '</div></div>';
+
+    // 星座名
+    var constNameHtml = '<div class="constellation-name">✦ ' + Utils.escapeHtml(name) + ' 座 ✦</div>';
+
+    // 空状态
+    if (!profile || !hasAnyData) {
+      return '<div class="portrait-card">' +
+        '<div class="star-map"><div class="star-map-inner">' +
+          '<div class="star-field"></div>' +
+          bgStars +
+          nameHtml +
+          avatarHtml +
+          '<div class="portrait-empty">档案信息尚不完整，去补充更多内容吧</div>' +
+        '</div></div></div>';
+    }
+
+    return '<div class="portrait-card">' +
+      '<div class="star-map"><div class="star-map-inner">' +
+        '<div class="star-field"></div>' +
+        bgStars +
+        linesSvg +
+        nodesHtml +
+        nameHtml +
+        avatarHtml +
+        constNameHtml +
+      '</div></div>' +
+    '</div>';
+  }
+
+  /**
+   * 渲染星图详情面板
+   */
+  function _renderPortraitPanels(profile) {
+    var modules = (profile && profile.modules) ? profile.modules : {};
+    var html = '';
+
+    // 沟通说明书
+    var comm = modules.communicationGuide;
+    if (comm) {
+      html += '<div class="detail-panel" id="panel-communication">' +
+        '<div class="detail-panel-header">' +
+          '<div class="detail-panel-title"><span class="detail-panel-dot" style="background:#78aae6;"></span>沟通说明书</div>' +
+          '<button class="detail-panel-close" onclick="Profile._closePanel()">✕</button>' +
+        '</div>' +
+        '<div class="detail-panel-body">';
+
+      if (comm.preferredMethods && comm.preferredMethods.length > 0) {
+        html += '<div class="detail-section"><div class="detail-section-label">推荐沟通方式</div><div class="detail-tags">';
+        comm.preferredMethods.forEach(function (m) {
+          html += '<span class="detail-tag" style="background:rgba(120,170,230,0.12);border:1px solid rgba(120,170,230,0.2);color:#8ab8e8;">' + Utils.escapeHtml(m.method) + '</span>';
+        });
+        html += '</div></div>';
+
+        comm.preferredMethods.forEach(function (m) {
+          html += '<div class="detail-item"><span class="detail-item-icon">💬</span><div class="detail-item-body">' +
+            '<div class="detail-item-title">' + Utils.escapeHtml(m.method) + '</div>' +
+            (m.description ? '<div class="detail-item-desc">' + Utils.escapeHtml(m.description) + '</div>' : '') +
+          '</div></div>';
+        });
+      }
+
+      if (comm.expressionDifficulties) {
+        html += '<div class="detail-section" style="margin-top:12px;"><div class="detail-section-label">理解难点</div>' +
+          '<div class="detail-section-content">' + Utils.escapeHtml(comm.expressionDifficulties) + '</div></div>';
+      }
+
+      if (comm.specialHabits && comm.specialHabits.length > 0) {
+        html += '<div class="detail-section" style="margin-top:12px;"><div class="detail-section-label">特殊习惯</div><div class="detail-tags">';
+        comm.specialHabits.forEach(function (h) {
+          html += '<span class="detail-tag" style="background:rgba(120,170,230,0.12);border:1px solid rgba(120,170,230,0.2);color:#8ab8e8;">' + Utils.escapeHtml(h) + '</span>';
+        });
+        html += '</div></div>';
+      }
+
+      if (comm.sensoryPreferences) {
+        html += '<div class="detail-section" style="margin-top:12px;"><div class="detail-section-label">感官偏好</div>' +
+          '<div class="detail-section-content">避免：' + Utils.escapeHtml((comm.sensoryPreferences.avoid || []).join('、')) +
+          '<br>偏好：' + Utils.escapeHtml((comm.sensoryPreferences.prefer || []).join('、')) + '</div></div>';
+      }
+
+      html += '</div></div>';
+    }
+
+    // 情绪行为
+    var emo = modules.emotionBehavior;
+    if (emo && emo.behaviorRedLines && emo.behaviorRedLines.length > 0) {
+      html += '<div class="detail-panel" id="panel-emotion">' +
+        '<div class="detail-panel-header">' +
+          '<div class="detail-panel-title"><span class="detail-panel-dot" style="background:#aa8cdc;"></span>情绪与行为红线</div>' +
+          '<button class="detail-panel-close" onclick="Profile._closePanel()">✕</button>' +
+        '</div>' +
+        '<div class="detail-panel-body">';
+
+      emo.behaviorRedLines.forEach(function (r) {
+        html += '<div class="detail-item"><span class="detail-item-icon">⚠️</span><div class="detail-item-body">' +
+          '<div class="detail-item-title">' + Utils.escapeHtml(r.description) + '</div>' +
+          '<div class="detail-item-desc">' +
+            (r.trigger ? '触发：' + Utils.escapeHtml(r.trigger) + ' · ' : '') +
+            '应对：' + Utils.escapeHtml(r.response || '') +
+          '</div>' +
+        '</div></div>';
+      });
+
+      html += '</div></div>';
+    }
+
+    // 特别注意
+    if (highRisksOnly(modules) || (comm && comm.specialHabits && comm.specialHabits.length > 0)) {
+      html += '<div class="detail-panel" id="panel-caution">' +
+        '<div class="detail-panel-header">' +
+          '<div class="detail-panel-title"><span class="detail-panel-dot" style="background:#f5b464;"></span>特别注意</div>' +
+          '<button class="detail-panel-close" onclick="Profile._closePanel()">✕</button>' +
+        '</div>' +
+        '<div class="detail-panel-body">';
+
+      var highOnly = highRisksOnly(modules);
+      if (highOnly && highOnly.length > 0) {
+        highOnly.forEach(function (r) {
+          html += '<div class="detail-item"><span class="detail-item-icon">⚠️</span><div class="detail-item-body">' +
+            '<div class="detail-item-title">' + Utils.escapeHtml(r.description) + '</div>' +
+            '<div class="detail-item-desc">严重程度：高 · ' + Utils.escapeHtml(r.response || '') + '</div>' +
+          '</div></div>';
+        });
+      }
+
+      if (comm && comm.specialHabits && comm.specialHabits.length > 0) {
+        html += '<div class="detail-section" style="margin-top:12px;"><div class="detail-section-label">特殊习惯</div><div class="detail-tags">';
+        comm.specialHabits.forEach(function (h) {
+          html += '<span class="detail-tag" style="background:rgba(245,180,100,0.12);border:1px solid rgba(245,180,100,0.2);color:#f5c888;">' + Utils.escapeHtml(h) + '</span>';
+        });
+        html += '</div></div>';
+      }
+
+      html += '</div></div>';
+    }
+
+    // 工作支持
+    var ws = modules.workSupport;
+    if (ws && (ws.workPreferences && ws.workPreferences.length > 0 || ws.ispPlans && ws.ispPlans.length > 0)) {
+      html += '<div class="detail-panel" id="panel-work">' +
+        '<div class="detail-panel-header">' +
+          '<div class="detail-panel-title"><span class="detail-panel-dot" style="background:#82c896;"></span>工作支持</div>' +
+          '<button class="detail-panel-close" onclick="Profile._closePanel()">✕</button>' +
+        '</div>' +
+        '<div class="detail-panel-body">';
+
+      if (ws.workPreferences && ws.workPreferences.length > 0) {
+        html += '<div class="detail-section"><div class="detail-section-label">工作偏好</div><div class="detail-tags">';
+        ws.workPreferences.forEach(function (w) {
+          html += '<span class="detail-tag" style="background:rgba(130,200,150,0.12);border:1px solid rgba(130,200,150,0.2);color:#8ed0a0;">' + Utils.escapeHtml(w) + '</span>';
+        });
+        html += '</div></div>';
+      }
+
+      if (ws.ispPlans && ws.ispPlans.length > 0) {
+        html += '<div class="detail-section" style="margin-top:12px;"><div class="detail-section-label">ISP 训练计划</div>';
+        ws.ispPlans.forEach(function (p) {
+          var statusLabels = { active: '进行中', completed: '已完成', paused: '已暂停' };
+          html += '<div class="detail-item"><span class="detail-item-icon">📋</span><div class="detail-item-body">' +
+            '<div class="detail-item-title">' + Utils.escapeHtml(p.title) + '</div>' +
+            '<div class="detail-item-desc">状态：' + (statusLabels[p.status] || p.status) +
+              (p.goals && p.goals.length > 0 ? ' · 目标：' + Utils.escapeHtml(p.goals.join('、')) : '') +
+            '</div>' +
+          '</div></div>';
+        });
+        html += '</div>';
+      }
+
+      html += '</div></div>';
+    }
+
+    // 正在训练
+    if (ws && ws.ispPlans) {
+      var activeOnly = ws.ispPlans.filter(function (p) { return p.status === 'active'; });
+      if (activeOnly.length > 0) {
+        html += '<div class="detail-panel" id="panel-training">' +
+          '<div class="detail-panel-header">' +
+            '<div class="detail-panel-title"><span class="detail-panel-dot" style="background:#e68cb4;"></span>正在训练</div>' +
+            '<button class="detail-panel-close" onclick="Profile._closePanel()">✕</button>' +
+          '</div>' +
+          '<div class="detail-panel-body">';
+
+        activeOnly.forEach(function (p) {
+          html += '<div class="detail-item"><span class="detail-item-icon">🎯</span><div class="detail-item-body">' +
+            '<div class="detail-item-title">' + Utils.escapeHtml(p.title) + '</div>' +
+            '<div class="detail-item-desc">状态：进行中' +
+              (p.goals && p.goals.length > 0 ? ' · 目标：' + Utils.escapeHtml(p.goals.join('、')) : '') +
+            '</div>' +
+          '</div></div>';
+        });
+
+        html += '</div></div>';
+      }
+    }
+
+    return html;
+  }
+
+  function highRisksOnly(modules) {
+    var emo = modules.emotionBehavior;
+    if (!emo || !emo.behaviorRedLines) return [];
+    return emo.behaviorRedLines.filter(function (b) { return b.severity === 'high'; });
   }
 
   /**
@@ -622,28 +927,6 @@ window.Profile = (function () {
       });
     }
 
-    // 模块切换
-    var tabs = document.querySelectorAll('.module-tab');
-    for (var i = 0; i < tabs.length; i++) {
-      tabs[i].addEventListener('click', function () {
-        var moduleKey = this.getAttribute('data-module');
-        // 切换 tab
-        var allTabs = document.querySelectorAll('.module-tab');
-        for (var j = 0; j < allTabs.length; j++) {
-          allTabs[j].classList.remove('active');
-        }
-        this.classList.add('active');
-        // 切换内容
-        var allSections = document.querySelectorAll('.module-section');
-        for (var j = 0; j < allSections.length; j++) {
-          allSections[j].classList.remove('active');
-          if (allSections[j].getAttribute('data-module') === moduleKey) {
-            allSections[j].classList.add('active');
-          }
-        }
-      });
-    }
-
     // 紧急联系人栏切换
     var emergencyToggle = document.getElementById('emergency-bar-toggle');
     if (emergencyToggle) {
@@ -663,11 +946,56 @@ window.Profile = (function () {
     window.location.hash = 'dashboard';
   }
 
+  // 星图节点选中状态
+  var _selectedPortraitNode = null;
+
+  /**
+   * 选中星图节点，展开详情面板
+   */
+  function _selectNode(key) {
+    // 取消之前选中
+    if (_selectedPortraitNode) {
+      var prevNode = document.getElementById('node-' + _selectedPortraitNode);
+      var prevPanel = document.getElementById('panel-' + _selectedPortraitNode);
+      if (prevNode) prevNode.classList.remove('selected');
+      if (prevPanel) prevPanel.classList.remove('active');
+    }
+
+    // 点击同一个节点：取消选中
+    if (_selectedPortraitNode === key) {
+      _selectedPortraitNode = null;
+      return;
+    }
+
+    _selectedPortraitNode = key;
+    var node = document.getElementById('node-' + key);
+    var panel = document.getElementById('panel-' + key);
+    if (node) node.classList.add('selected');
+    if (panel) {
+      panel.classList.add('active');
+    }
+  }
+
+  /**
+   * 关闭详情面板
+   */
+  function _closePanel() {
+    if (_selectedPortraitNode) {
+      var node = document.getElementById('node-' + _selectedPortraitNode);
+      var panel = document.getElementById('panel-' + _selectedPortraitNode);
+      if (node) node.classList.remove('selected');
+      if (panel) panel.classList.remove('active');
+      _selectedPortraitNode = null;
+    }
+  }
+
   return {
     MODULES: Modules.MODULES,
     LIFECYCLE_LABELS: LIFECYCLE_LABELS,
     renderProfile: renderProfile,
     _renderModuleCard: _renderModuleCard,
-    _renderDataItem: _renderDataItem
+    _renderDataItem: _renderDataItem,
+    _selectNode: _selectNode,
+    _closePanel: _closePanel
   };
 })();

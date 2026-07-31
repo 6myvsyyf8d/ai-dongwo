@@ -199,7 +199,7 @@ window.AnalyticsUI = (function () {
     var backBtn = container.querySelector('#btn-analytics-back');
     if (backBtn) {
       backBtn.addEventListener('click', function () {
-        window.location.hash = 'dashboard';
+        window.location.hash = 'records';
       });
     }
 
@@ -311,6 +311,9 @@ window.AnalyticsUI = (function () {
         '<button class="analytics-share-btn" id="btn-copy-share">📋 复制分享文本</button>' +
       '</div>';
     }
+
+    // 时间线洞察
+    html += _renderTimelineInsights(youth.id);
 
     content.innerHTML = html;
 
@@ -741,6 +744,101 @@ window.AnalyticsUI = (function () {
 
   function _isCurrentMonth(monthStart) {
     return monthStart === Utils.formatDate(new Date()).substring(0, 7) + '-01';
+  }
+
+  // ========== 时间线洞察 ==========
+
+  function _renderTimelineInsights(youthId) {
+    var records = Storage.getRecords(youthId);
+    if (!records || records.length === 0) {
+      return '<div class="ios-card-group">' +
+        '<div class="ios-card-group-header"><span>📈 时间线洞察</span></div>' +
+        '<div class="ios-card-row-static"><div class="ios-card-row-title" style="color:var(--color-text-tertiary);">暂无足够数据生成洞察</div></div>' +
+      '</div>';
+    }
+
+    // 按时间正序排列
+    records.sort(function(a, b) {
+      return new Date(a.recordedAt) - new Date(b.recordedAt);
+    });
+
+    var html = '<div class="ios-card-group">';
+    html += '<div class="ios-card-group-header"><span>📈 时间线洞察</span></div>';
+
+    // 1. 情绪趋势
+    var emotionRecords = records.filter(function(r) { return r.module === 'emotionBehavior'; });
+    if (emotionRecords.length > 0) {
+      html += '<div class="ios-card-row-static">' +
+        '<div class="ios-card-row-body">' +
+          '<div class="ios-card-row-title">😊 情绪趋势</div>';
+      // 取最近 10 条
+      var recentEmotions = emotionRecords.slice(-10);
+      var positiveCount = 0;
+      var negativeCount = 0;
+      for (var i = 0; i < recentEmotions.length; i++) {
+        var tags = (recentEmotions[i].content && recentEmotions[i].content.tags) || [];
+        var isPositive = tags.some(function(t) { return ['平静','愉悦','配合','专注'].indexOf(t) > -1; });
+        if (isPositive) positiveCount++; else negativeCount++;
+      }
+      var positiveRate = Math.round(positiveCount / recentEmotions.length * 100);
+      html += '<div class="timeline-bar-wrap">' +
+        '<div class="timeline-bar-positive" style="width:' + positiveRate + '%;">' + positiveRate + '%</div>' +
+        '<div class="timeline-bar-negative" style="width:' + (100 - positiveRate) + '%;">' + (100 - positiveRate) + '%</div>' +
+      '</div>';
+      html += '<div class="ios-card-row-subtitle">最近 ' + recentEmotions.length + ' 条记录，积极情绪占比 ' + positiveRate + '%</div>';
+      html += '</div></div>';
+    }
+
+    // 2. 能力变化
+    var achievementRecords = records.filter(function(r) { return r.recordType === 'achievement'; });
+    if (achievementRecords.length > 0) {
+      html += '<div class="ios-card-row-static">' +
+        '<div class="ios-card-row-body">' +
+          '<div class="ios-card-row-title">🏆 能力成长</div>';
+      var recentAchievements = achievementRecords.slice(-5).reverse();
+      for (var ai = 0; ai < recentAchievements.length; ai++) {
+        html += '<div class="timeline-event">' +
+          '<div class="timeline-event-date">' + Utils.formatDate(recentAchievements[ai].recordedAt) + '</div>' +
+          '<div class="timeline-event-text">' + Utils.escapeHtml(recentAchievements[ai].content.text || '') + '</div>' +
+        '</div>';
+      }
+      html += '</div></div>';
+    }
+
+    // 3. 兴趣偏好演变
+    var preferenceRecords = records.filter(function(r) { return r.recordType === 'preference'; });
+    if (preferenceRecords.length > 0) {
+      html += '<div class="ios-card-row-static">' +
+        '<div class="ios-card-row-body">' +
+          '<div class="ios-card-row-title">❤️ 兴趣演变</div>';
+      var recentPrefs = preferenceRecords.slice(-5).reverse();
+      for (var pi = 0; pi < recentPrefs.length; pi++) {
+        html += '<div class="timeline-event">' +
+          '<div class="timeline-event-date">' + Utils.formatDate(recentPrefs[pi].recordedAt) + '</div>' +
+          '<div class="timeline-event-text">' + Utils.escapeHtml(recentPrefs[pi].content.text || '') + '</div>' +
+        '</div>';
+      }
+      html += '</div></div>';
+    }
+
+    // 4. 事件记录
+    var incidentRecords = records.filter(function(r) { return r.recordType === 'incident'; });
+    if (incidentRecords.length > 0) {
+      html += '<div class="ios-card-row-static">' +
+        '<div class="ios-card-row-body">' +
+          '<div class="ios-card-row-title">⚠️ 事件记录</div>';
+      var recentIncidents = incidentRecords.slice(-5).reverse();
+      for (var ii = 0; ii < recentIncidents.length; ii++) {
+        html += '<div class="timeline-event">' +
+          '<div class="timeline-event-date">' + Utils.formatDate(recentIncidents[ii].recordedAt) + '</div>' +
+          '<div class="timeline-event-text">' + Utils.escapeHtml(recentIncidents[ii].content.text || '') + '</div>' +
+        '</div>';
+      }
+      html += '</div></div>';
+    }
+
+    html += '</div>';
+    return html;
   }
 
   // ========== 暴露全局接口 ==========

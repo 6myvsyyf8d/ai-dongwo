@@ -87,7 +87,8 @@ window.Constants = {
     { page: 'dashboard', icon: '🏠', label: '首页' },
     { page: 'records', icon: '📋', label: '记录' },
     { page: 'profile', icon: '📁', label: '档案' },
-    { page: 'management', icon: '⚙️', label: '管理' }
+    { page: 'management', icon: '⚙️', label: '管理' },
+    { page: 'analytics', icon: '📊', label: '分析' }
   ],
 
   /**
@@ -96,5 +97,50 @@ window.Constants = {
   ADMIN_NAV_ITEMS: [
     { page: 'admin', icon: '🛡️', label: '管理' },
     { page: 'dashboard', icon: '🏠', label: '主页' }
-  ]
+  ],
+
+  /**
+   * 记录矩阵 — 模块×类型有效组合
+   * key 为模块 key，value 为该模块支持的记录类型 value 数组
+   * 仅列出的组合可点击，未列出的组合在矩阵中置灰
+   */
+  RECORD_MATRIX: {
+    emotionBehavior: ['observation', 'daily_care', 'incident', 'preference'],
+    communicationGuide: ['observation', 'daily_care', 'incident', 'achievement', 'preference'],
+    careMedical: ['observation', 'daily_care', 'incident', 'medical'],
+    workSupport: ['observation', 'daily_care', 'incident', 'achievement', 'preference']
+  },
+
+  /**
+   * 模块快捷标签池 — 按模块动态渲染
+   */
+  MODULE_TAGS: {
+    emotionBehavior: ['平静', '愉悦', '低落', '焦虑', '兴奋', '易怒', '配合', '抗拒'],
+    communicationGuide: ['主动表达', '被动回应', '清晰', '模糊', '肢体语言', '辅助沟通'],
+    careMedical: ['按时服药', '拒绝服药', '睡眠良好', '睡眠不佳', '食欲正常', '身体不适'],
+    workSupport: ['独立完成', '需要提示', '需要协助', '专注', '分心', '完成质量高', '速度正常']
+  },
+
+  /**
+   * 默认可见性配置 — 角色可见的页面和档案模块
+   * 管理员可在管理页调整，存储在 ai_dongwo_visibility_config
+   */
+  DEFAULT_VISIBILITY_CONFIG: {
+    pages: {
+      parent:     ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics'],
+      teacher:    ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'teacher-workbench'],
+      caregiver:  ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics'],
+      youth:      ['dashboard', 'profile', 'youth-chat'],
+      government: ['government'],
+      admin:      ['admin', 'dashboard']
+    },
+    modules: {
+      parent:     ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport', 'relationshipMap'],
+      teacher:    ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport'],
+      caregiver:  ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport'],
+      youth:      ['communicationGuide', 'careMedical'],
+      government: [],
+      admin:      ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport', 'relationshipMap']
+    }
+  }
 };

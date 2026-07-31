@@ -27,6 +27,7 @@ window.Admin = (function () {
         '<div class="admin-tabs">' +
           '<button class="admin-tab active" data-tab="users">👥 用户管理</button>' +
           '<button class="admin-tab" data-tab="grants">🔑 全局授权</button>' +
+          '<button class="admin-tab" data-tab="visibility">👁️ 可见性配置</button>' +
         '</div>' +
         '<div id="admin-content"></div>' +
       '</div>';
@@ -50,6 +51,8 @@ window.Admin = (function () {
           _renderUsersTab();
         } else if (tab === 'grants') {
           _renderGrantsTab();
+        } else if (tab === 'visibility') {
+          _renderVisibilityTab();
         }
       });
     }
@@ -161,6 +164,104 @@ window.Admin = (function () {
         Grants.showGrants(youthId);
       });
     }
+  }
+
+  /**
+   * 渲染可见性配置 Tab
+   * 配置每个角色可访问的页面和档案模块
+   */
+  function _renderVisibilityTab() {
+    var content = document.getElementById('admin-content');
+    var config = Storage.getVisibilityConfig();
+    var roles = [
+      { key: 'parent', label: '👨‍👩‍👧 家长', icon: '👨‍👩‍👧' },
+      { key: 'teacher', label: '👩‍🏫 老师', icon: '👩‍🏫' },
+      { key: 'caregiver', label: '🤝 照护者', icon: '🤝' },
+      { key: 'youth', label: '🌻 心青年', icon: '🌻' },
+      { key: 'government', label: '🏛️ 政府', icon: '🏛️' },
+      { key: 'admin', label: '🛡️ 管理员', icon: '🛡️' }
+    ];
+    var pages = [
+      { key: 'dashboard', label: '首页' },
+      { key: 'records', label: '记录' },
+      { key: 'profile', label: '档案' },
+      { key: 'quickcard', label: '速读卡' },
+      { key: 'management', label: '管理' },
+      { key: 'analytics', label: '分析' },
+      { key: 'government', label: '政府看板' },
+      { key: 'admin', label: '系统管理' }
+    ];
+    // 档案模块从 Modules.MODULES 获取
+    var modules = (window.Modules && window.Modules.MODULES) || [];
+
+    var html = '<div class="visibility-config">';
+    html += '<div class="visibility-intro" style="font-size:13px;color:var(--color-text-secondary,#a0a0b8);margin-bottom:12px;">勾选每个角色可访问的页面和档案模块，保存后即时生效。</div>';
+
+    for (var ri = 0; ri < roles.length; ri++) {
+      var role = roles[ri];
+      var allowedPages = (config.pages && config.pages[role.key]) || [];
+      var allowedModules = (config.modules && config.modules[role.key]) || [];
+
+      html += '<div class="visibility-role-card" style="background:var(--color-card,#fff);border-radius:16px;padding:16px;margin-bottom:12px;">';
+      html += '<div style="font-size:16px;font-weight:600;margin-bottom:10px;">' + role.label + '</div>';
+
+      // 页面勾选
+      html += '<div style="font-size:12px;font-weight:600;color:var(--color-text-secondary,#a0a0b8);margin-bottom:6px;">可访问页面</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">';
+      for (var pi = 0; pi < pages.length; pi++) {
+        var checked = allowedPages.indexOf(pages[pi].key) > -1 ? 'checked' : '';
+        html += '<label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;">' +
+          '<input type="checkbox" class="vis-page-cb" data-role="' + role.key + '" data-page="' + pages[pi].key + '" ' + checked + ' style="width:16px;height:16px;">' +
+          '<span>' + pages[pi].label + '</span></label>';
+      }
+      html += '</div>';
+
+      // 模块勾选
+      html += '<div style="font-size:12px;font-weight:600;color:var(--color-text-secondary,#a0a0b8);margin-bottom:6px;">档案可见模块</div>';
+      html += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
+      for (var mi = 0; mi < modules.length; mi++) {
+        var mchecked = allowedModules.indexOf(modules[mi].key) > -1 ? 'checked' : '';
+        html += '<label style="display:flex;align-items:center;gap:4px;font-size:13px;cursor:pointer;">' +
+          '<input type="checkbox" class="vis-module-cb" data-role="' + role.key + '" data-module="' + modules[mi].key + '" ' + mchecked + ' style="width:16px;height:16px;">' +
+          '<span>' + modules[mi].icon + ' ' + modules[mi].label + '</span></label>';
+      }
+      html += '</div>';
+
+      html += '</div>';
+    }
+
+    html += '<button class="btn btn-primary" id="vis-save-btn" style="width:100%;padding:14px;font-size:16px;border-radius:14px;border:none;">💾 保存配置</button>';
+    html += '</div>';
+
+    content.innerHTML = html;
+
+    // 绑定保存
+    document.getElementById('vis-save-btn').addEventListener('click', function() {
+      var newConfig = { pages: {}, modules: {} };
+      for (var ri2 = 0; ri2 < roles.length; ri2++) {
+        var rk = roles[ri2].key;
+        newConfig.pages[rk] = [];
+        newConfig.modules[rk] = [];
+      }
+      var pageCBs = document.querySelectorAll('.vis-page-cb');
+      for (var i = 0; i < pageCBs.length; i++) {
+        if (pageCBs[i].checked) {
+          var rp = pageCBs[i].getAttribute('data-role');
+          var pp = pageCBs[i].getAttribute('data-page');
+          newConfig.pages[rp].push(pp);
+        }
+      }
+      var moduleCBs = document.querySelectorAll('.vis-module-cb');
+      for (var j = 0; j < moduleCBs.length; j++) {
+        if (moduleCBs[j].checked) {
+          var rm = moduleCBs[j].getAttribute('data-role');
+          var mm = moduleCBs[j].getAttribute('data-module');
+          newConfig.modules[rm].push(mm);
+        }
+      }
+      Storage.saveVisibilityConfig(newConfig);
+      AppState.showToast('✅ 可见性配置已保存');
+    });
   }
 
   /**

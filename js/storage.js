@@ -17,7 +17,8 @@ window.Storage = (function () {
     HANDOVER_TASKS: 'ai_dongwo_handover_tasks',
     JOIN_REQUESTS: 'ai_dongwo_join_requests',
     INVITATIONS: 'ai_dongwo_invitations',
-    CURRENT_USER: 'ai_dongwo_current_user'
+    CURRENT_USER: 'ai_dongwo_current_user',
+    VISIBILITY_CONFIG: 'ai_dongwo_visibility_config'
   };
 
   /**
@@ -512,11 +513,11 @@ window.Storage = (function () {
     var h2 = dayAgo(2);
 
     handover[mingId] = [
-      { id: Utils.generateUUID(), youthId: mingId, fromUserId: mingDad.id, fromRole: 'parent', toUserId: mingNanny.id, toRole: 'caregiver', content: '小明今天游泳课后需要用毛巾擦干头发，避免感冒', status: 'pending', createdAt: h0, updatedAt: h0 },
-      { id: Utils.generateUUID(), youthId: mingId, fromUserId: mingNanny.id, fromRole: 'caregiver', toUserId: mingDad.id, toRole: 'parent', content: '小明下午零食吃完了，需要补充无糖饼干和苹果', status: 'pending', createdAt: h0, updatedAt: h0 },
-      { id: Utils.generateUUID(), youthId: mingId, fromUserId: teacherWang.id, fromRole: 'teacher', toUserId: mingNanny.id, toRole: 'caregiver', content: '明天超市实习需要穿运动鞋，不要穿凉鞋', status: 'pending', createdAt: h1, updatedAt: h1 },
-      { id: Utils.generateUUID(), youthId: mingId, fromUserId: mingDad.id, fromRole: 'parent', toUserId: teacherWang.id, toRole: 'teacher', content: '小明的情绪记录本在书包里，请老师帮忙检查今天的情绪变化', status: 'done', createdAt: h2, updatedAt: h0 },
-      { id: Utils.generateUUID(), youthId: mingId, fromUserId: mingMom.id, fromRole: 'parent', toUserId: mingNanny.id, toRole: 'caregiver', content: '周末活动请带小明去公园散步，他喜欢看湖里的鸭子', status: 'pending', createdAt: h1, updatedAt: h1 }
+      { id: Utils.generateUUID(), youthId: mingId, fromUserId: mingDad.id, fromRole: 'parent', toUserId: mingNanny.id, toRole: 'caregiver', content: '小明今天游泳课后需要用毛巾擦干头发，避免感冒', status: 'pending', targetType: 'caregiver', createdAt: h0, updatedAt: h0 },
+      { id: Utils.generateUUID(), youthId: mingId, fromUserId: mingNanny.id, fromRole: 'caregiver', toUserId: mingDad.id, toRole: 'parent', content: '小明下午零食吃完了，需要补充无糖饼干和苹果', status: 'pending', targetType: 'caregiver', createdAt: h0, updatedAt: h0 },
+      { id: Utils.generateUUID(), youthId: mingId, fromUserId: teacherWang.id, fromRole: 'teacher', toUserId: mingNanny.id, toRole: 'caregiver', content: '明天超市实习需要穿运动鞋，不要穿凉鞋', status: 'pending', targetType: 'caregiver', createdAt: h1, updatedAt: h1 },
+      { id: Utils.generateUUID(), youthId: mingId, fromUserId: mingDad.id, fromRole: 'parent', toUserId: teacherWang.id, toRole: 'teacher', content: '小明的情绪记录本在书包里，请老师帮忙检查今天的情绪变化', status: 'done', targetType: 'caregiver', createdAt: h2, updatedAt: h0 },
+      { id: Utils.generateUUID(), youthId: mingId, fromUserId: mingMom.id, fromRole: 'parent', toUserId: mingNanny.id, toRole: 'caregiver', content: '周末活动请带小明去公园散步，他喜欢看湖里的鸭子', status: 'pending', targetType: 'caregiver', createdAt: h1, updatedAt: h1 }
     ];
     set(KEYS.HANDOVER_TASKS, handover);
     console.log('交接任务种子数据初始化完成：小明 ' + handover[mingId].length + ' 条任务');
@@ -995,6 +996,9 @@ window.Storage = (function () {
     if (!task.status) {
       task.status = 'pending';
     }
+    if (!task.targetType) {
+      task.targetType = 'caregiver';
+    }
     tasks[youthId].push(task);
     set(KEYS.HANDOVER_TASKS, tasks);
     return { success: true };
@@ -1020,6 +1024,32 @@ window.Storage = (function () {
     tasks[youthId] = list.filter(function (t) { return t.id !== taskId; });
     set(KEYS.HANDOVER_TASKS, tasks);
     return true;
+  }
+
+  // ==================== VisibilityConfig ====================
+
+  function getVisibilityConfig() {
+    var config = get(KEYS.VISIBILITY_CONFIG);
+    if (!config) {
+      return Constants.DEFAULT_VISIBILITY_CONFIG;
+    }
+    // 合并默认配置（防止新增角色后旧配置缺失）
+    var merged = {
+      pages: {},
+      modules: {}
+    };
+    var allRoles = Object.keys(Constants.DEFAULT_VISIBILITY_CONFIG.pages);
+    for (var i = 0; i < allRoles.length; i++) {
+      var role = allRoles[i];
+      merged.pages[role] = (config.pages && config.pages[role]) || Constants.DEFAULT_VISIBILITY_CONFIG.pages[role];
+      merged.modules[role] = (config.modules && config.modules[role]) || Constants.DEFAULT_VISIBILITY_CONFIG.modules[role];
+    }
+    return merged;
+  }
+
+  function saveVisibilityConfig(config) {
+    set(KEYS.VISIBILITY_CONFIG, config);
+    return { success: true };
   }
 
   return {
@@ -1079,6 +1109,9 @@ window.Storage = (function () {
     addHandoverTask: addHandoverTask,
     updateHandoverTask: updateHandoverTask,
     deleteHandoverTask: deleteHandoverTask,
+    // VisibilityConfig
+    getVisibilityConfig: getVisibilityConfig,
+    saveVisibilityConfig: saveVisibilityConfig,
     // TestData
     initTestData: initTestData
   };

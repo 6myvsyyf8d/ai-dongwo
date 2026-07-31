@@ -428,6 +428,28 @@ window.Permissions = (function () {
     return Storage.addGuardianshipTransfer(transfer);
   }
 
+  /**
+   * 检查角色是否有权访问指定页面
+   * @param {string} role - 角色名
+   * @param {string} page - 页面路由名
+   * @returns {boolean}
+   */
+  function canAccessPage(role, page) {
+    var config = Storage.getVisibilityConfig();
+    var allowedPages = (config.pages && config.pages[role]) || [];
+    return allowedPages.indexOf(page) > -1;
+  }
+
+  /**
+   * 获取角色在档案中可见的模块列表
+   * @param {string} role - 角色名
+   * @returns {string[]} 模块 key 数组
+   */
+  function getVisibleModules(role) {
+    var config = Storage.getVisibilityConfig();
+    return (config.modules && config.modules[role]) || [];
+  }
+
   return {
     SCOPE_TEMPLATES: SCOPE_TEMPLATES,
     refresh: refresh,
@@ -439,6 +461,8 @@ window.Permissions = (function () {
     checkRecordVisibility: checkRecordVisibility,
     checkExpired: checkExpired,
     getAccessibleYouths: getAccessibleYouths,
-    initGuardianshipTransfer: initGuardianshipTransfer
+    initGuardianshipTransfer: initGuardianshipTransfer,
+    canAccessPage: canAccessPage,
+    getVisibleModules: getVisibleModules
   };
 })();

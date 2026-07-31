@@ -91,13 +91,70 @@ window.Records = (function () {
   }
 
   /**
-   * 渲染记录列表 — iOS 内嵌分组卡片风格
+   * 渲染记录页 — 矩阵导航（主视图）+ 近期记录列表
+   * 按 record-matrix-form-design.md 规范
    */
   function _renderRecordList(youth, records) {
     var container = App.getContainer();
 
-    // 模块筛选 Chip 行
-    var filterHtml = '<div class="records-filter-bar">' +
+    // === 矩阵导航 ===
+    var matrix = window.Constants ? window.Constants.RECORD_MATRIX : {};
+    var matrixModules = Modules.MODULES.filter(function (m) { return matrix.hasOwnProperty(m.key); });
+
+    var matrixHtml = '<div class="ios-card-group" style="margin-bottom:12px;">' +
+      '<div class="ios-card-group-header">📝 快速记录</div>' +
+      '<div class="matrix-wrap">' +
+      '<table class="matrix-table">' +
+      '<tr><th class="matrix-corner">模块 \\ 类型</th>';
+    for (var t = 0; t < RECORD_TYPES.length; t++) {
+      matrixHtml += '<th class="matrix-col-header">' + RECORD_TYPES[t].icon + ' ' + RECORD_TYPES[t].label + '</th>';
+    }
+    matrixHtml += '</tr>';
+    for (var r = 0; r < matrixModules.length; r++) {
+      var mod = matrixModules[r];
+      var validTypes = matrix[mod.key] || [];
+      matrixHtml += '<tr><th class="matrix-row-label">' + mod.icon + ' ' + mod.shortLabel + '</th>';
+      for (var c = 0; c < RECORD_TYPES.length; c++) {
+        if (validTypes.indexOf(RECORD_TYPES[c].value) > -1) {
+          matrixHtml += '<td class="matrix-cell-nav" data-module="' + mod.key +
+            '" data-module-label="' + Utils.escapeHtml(mod.label) +
+            '" data-type="' + RECORD_TYPES[c].value +
+            '" data-type-label="' + Utils.escapeHtml(RECORD_TYPES[c].label) +
+            '"><span class="matrix-cell-icon">📝</span></td>';
+        } else {
+          matrixHtml += '<td class="matrix-cell-na">—</td>';
+        }
+      }
+      matrixHtml += '</tr>';
+    }
+    matrixHtml += '</table></div>';
+    matrixHtml += '<div style="font-size:11px;color:var(--color-text-tertiary);text-align:center;padding:8px 0 4px;">点击对应格子快速记录</div>';
+    matrixHtml += '</div>';
+
+    // === 对话采集入口 ===
+    var chatEntryHtml =
+      '<div class="ios-card-group" style="margin-bottom:12px;">' +
+        '<div class="ios-card-row" data-action="chat" style="cursor:pointer;">' +
+          '<div class="ios-card-row-icon" style="font-size:24px;background:rgba(139,168,136,0.12);border-radius:12px;">💬</div>' +
+          '<div class="ios-card-row-body">' +
+            '<div class="ios-card-row-title">对话采集</div>' +
+            '<div class="ios-card-row-subtitle">AI 对话式记录，边聊边记</div>' +
+          '</div>' +
+          '<span class="ios-card-row-arrow">›</span>' +
+        '</div>' +
+      '</div>';
+
+    // === 日期筛选 Chip 行 ===
+    var filterHtml = '<div class="records-filter-bar records-filter-bar--date" style="margin-bottom:8px;">' +
+      '<div class="filter-chip date-chip active" data-date="all">全部时间</div>' +
+      '<div class="filter-chip date-chip" data-date="today">今天</div>' +
+      '<div class="filter-chip date-chip" data-date="yesterday">昨天</div>' +
+      '<div class="filter-chip date-chip" data-date="this_week">本周</div>' +
+      '<div class="filter-chip date-chip" data-date="this_month">本月</div>' +
+    '</div>';
+
+    // === 模块筛选 Chip 行 ===
+    filterHtml += '<div class="records-filter-bar" style="margin-bottom:12px;">' +
       '<div class="filter-chip active" data-module="all">全部</div>';
     for (var i = 0; i < Modules.MODULES.length; i++) {
       filterHtml += '<div class="filter-chip" data-module="' + Modules.MODULES[i].key + '">' +
@@ -106,47 +163,23 @@ window.Records = (function () {
     }
     filterHtml += '</div>';
 
-    // 日期筛选 Chip 行（新增）
-    filterHtml += '<div class="records-filter-bar records-filter-bar--date">' +
-      '<div class="filter-chip date-chip active" data-date="all">全部时间</div>' +
-      '<div class="filter-chip date-chip" data-date="today">今天</div>' +
-      '<div class="filter-chip date-chip" data-date="yesterday">昨天</div>' +
-      '<div class="filter-chip date-chip" data-date="this_week">本周</div>' +
-      '<div class="filter-chip date-chip" data-date="this_month">本月</div>' +
-    '</div>';
-
-    // 记录列表 — iOS 卡片分组
+    // === 近期记录列表 ===
     var listHtml = '';
     if (records.length === 0) {
       listHtml = '<div class="empty-state">' +
         '<div class="empty-state-icon">📝</div>' +
         '<div class="empty-state-title">暂无记录</div>' +
-        '<div class="empty-state-desc">点击右下角按钮添加第一条记录</div>' +
+        '<div class="empty-state-desc">使用上方矩阵或对话采集添加第一条记录</div>' +
       '</div>';
     } else {
       listHtml = '<div class="records-list" id="record-list">' +
-        '<div class="ios-card-group">';
+        '<div class="ios-card-group">' +
+        '<div class="ios-card-group-header">📋 最近记录 · ' + records.length + ' 条</div>';
       for (var i = 0; i < records.length; i++) {
         listHtml += _renderRecordItem(records[i]);
       }
       listHtml += '</div></div>';
     }
-
-    // 是否有写入权限
-    var canWrite = Permissions.canWrite('communicationGuide') || Permissions.canWrite('emotionBehavior') || Permissions.canWrite('careMedical') || Permissions.canWrite('workSupport');
-    var fabHtml = '';
-
-    var chatEntryHtml =
-      '<div class="ios-card-group" style="margin-bottom:16px;">' +
-        '<div class="record-chat-entry" data-action="chat" style="display:flex;align-items:center;padding:14px 16px;cursor:pointer;">' +
-          '<div style="font-size:24px;margin-right:12px;">💬</div>' +
-          '<div style="flex:1;">' +
-            '<div style="font-size:15px;font-weight:600;color:var(--color-text-primary);">对话采集</div>' +
-            '<div style="font-size:12px;color:var(--color-text-secondary);margin-top:2px;">AI 对话式记录，边聊边记</div>' +
-          '</div>' +
-          '<span style="color:var(--color-text-tertiary);">›</span>' +
-        '</div>' +
-      '</div>';
 
     container.innerHTML =
       '<div class="page-header">' +
@@ -154,10 +187,12 @@ window.Records = (function () {
         '<span class="page-title">' + Utils.escapeHtml(youth.name) + ' · 记录</span>' +
         '<span></span>' +
       '</div>' +
-      filterHtml +
-      chatEntryHtml +
-      listHtml +
-      fabHtml;
+      '<div class="page-content">' +
+        matrixHtml +
+        chatEntryHtml +
+        filterHtml +
+        listHtml +
+      '</div>';
 
     _bindListEvents(youth.id);
   }
@@ -251,6 +286,18 @@ window.Records = (function () {
         this.classList.add('active');
         _filter.date = this.getAttribute('data-date');
         _applyFilter();
+      });
+    }
+
+    // 矩阵格子点击 → 打开底部 Sheet 表单
+    var matrixCells = document.querySelectorAll('.matrix-cell-nav');
+    for (var ci = 0; ci < matrixCells.length; ci++) {
+      matrixCells[ci].addEventListener('click', function () {
+        var mk = this.getAttribute('data-module');
+        var ml = this.getAttribute('data-module-label');
+        var tt = this.getAttribute('data-type');
+        var tl = this.getAttribute('data-type-label');
+        openMatrixForm(mk, tt, ml, tl, youthId);
       });
     }
 
@@ -536,6 +583,235 @@ window.Records = (function () {
   }
 
   /**
+   * 矩阵表单 — 底部弹出 sheet（语音/打字 + 快捷标签）
+   * @param {string} moduleKey - 模块 key
+   * @param {string} recordType - 记录类型 value
+   * @param {string} moduleLabel - 模块中文标签
+   * @param {string} typeLabel - 类型中文标签
+   * @param {string} youthId - 心青年 ID
+   */
+  function openMatrixForm(moduleKey, recordType, moduleLabel, typeLabel, youthId) {
+    // 权限检查
+    if (!Permissions.canWrite(moduleKey)) {
+      AppState.showToast('您没有写入该模块的权限');
+      return;
+    }
+
+    // 移除已有弹层
+    var existing = document.getElementById('matrix-form-overlay');
+    if (existing) existing.parentNode.removeChild(existing);
+
+    var overlay = document.createElement('div');
+    overlay.className = 'matrix-form-overlay';
+    overlay.id = 'matrix-form-overlay';
+
+    overlay.innerHTML =
+      '<div class="matrix-form-sheet">' +
+        '<div class="matrix-sheet-handle"></div>' +
+        '<div class="matrix-sheet-header">' +
+          '<div class="matrix-sheet-context">' +
+            '<span class="matrix-module-tag">' + Utils.escapeHtml(moduleLabel) + '</span>' +
+            '<span class="matrix-type-tag">' + Utils.escapeHtml(typeLabel) + '</span>' +
+          '</div>' +
+          '<button class="matrix-sheet-close" id="matrix-btn-close">✕</button>' +
+        '</div>' +
+        '<div class="matrix-sheet-body">' +
+          '<div class="matrix-input-tabs">' +
+            '<button class="matrix-input-tab active" data-mode="voice">🎤 语音</button>' +
+            '<button class="matrix-input-tab" data-mode="write">✍️ 打字/手写</button>' +
+          '</div>' +
+          '<div class="matrix-voice-panel active" id="matrix-voice-panel">' +
+            '<button class="matrix-voice-btn" id="matrix-voice-btn">🎤</button>' +
+            '<div class="matrix-voice-hint" id="matrix-voice-hint">点击开始录音</div>' +
+            '<div class="matrix-voice-result" id="matrix-voice-result"></div>' +
+          '</div>' +
+          '<div class="matrix-write-panel" id="matrix-write-panel">' +
+            '<textarea class="matrix-write-area" id="matrix-write-area" placeholder="描述观察到的具体情况…" maxlength="500"></textarea>' +
+            '<div class="matrix-char-count"><span id="matrix-char-count">0</span>/500</div>' +
+          '</div>' +
+          '<div class="matrix-section-label">快捷标签</div>' +
+          '<div class="matrix-quick-tags" id="matrix-quick-tags"></div>' +
+          '<div class="matrix-form-error" id="matrix-form-error" style="display:none;"></div>' +
+          '<button class="matrix-btn-submit" id="matrix-btn-submit">📝 提交记录</button>' +
+        '</div>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+
+    // 触发动画
+    requestAnimationFrame(function() {
+      overlay.classList.add('show');
+    });
+
+    _bindMatrixFormEvents(overlay, moduleKey, recordType, moduleLabel, typeLabel, youthId);
+  }
+
+  function _bindMatrixFormEvents(overlay, moduleKey, recordType, moduleLabel, typeLabel, youthId) {
+    var state = {
+      inputMode: 'voice',
+      voiceText: '',
+      writeText: '',
+      tags: [],
+      isRecording: false,
+      recognition: null
+    };
+
+    // 关闭
+    function closeSheet() {
+      overlay.classList.remove('show');
+      setTimeout(function() {
+        if (overlay.parentNode) overlay.parentNode.removeChild(overlay);
+      }, 300);
+    }
+
+    overlay.querySelector('#matrix-btn-close').addEventListener('click', closeSheet);
+    overlay.addEventListener('click', function(e) {
+      if (e.target === overlay) closeSheet();
+    });
+
+    // 输入方式切换
+    var tabs = overlay.querySelectorAll('.matrix-input-tab');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].addEventListener('click', function() {
+        for (var j = 0; j < tabs.length; j++) tabs[j].classList.remove('active');
+        this.classList.add('active');
+        state.inputMode = this.getAttribute('data-mode');
+        overlay.querySelector('#matrix-voice-panel').classList.toggle('active', state.inputMode === 'voice');
+        overlay.querySelector('#matrix-write-panel').classList.toggle('active', state.inputMode === 'write');
+      });
+    }
+
+    // 快捷标签渲染
+    var moduleTags = (window.Constants && window.Constants.MODULE_TAGS) || {};
+    var tags = moduleTags[moduleKey] || [];
+    var tagsContainer = overlay.querySelector('#matrix-quick-tags');
+    tagsContainer.innerHTML = '';
+    for (var ti = 0; ti < tags.length; ti++) {
+      (function(tagText) {
+        var span = document.createElement('span');
+        span.className = 'matrix-quick-tag';
+        span.setAttribute('data-tag', tagText);
+        span.textContent = tagText;
+        span.addEventListener('click', function() {
+          if (this.classList.contains('selected')) {
+            this.classList.remove('selected');
+            state.tags = state.tags.filter(function(x) { return x !== tagText; });
+          } else {
+            this.classList.add('selected');
+            state.tags.push(tagText);
+          }
+        });
+        tagsContainer.appendChild(span);
+      })(tags[ti]);
+    }
+
+    // 语音输入
+    var voiceBtn = overlay.querySelector('#matrix-voice-btn');
+    var voiceHint = overlay.querySelector('#matrix-voice-hint');
+    var voiceResult = overlay.querySelector('#matrix-voice-result');
+    var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+      voiceBtn.disabled = true;
+      voiceBtn.style.opacity = '0.4';
+      voiceBtn.style.cursor = 'not-allowed';
+      voiceHint.textContent = '当前浏览器不支持语音输入，请使用打字';
+    } else {
+      voiceBtn.addEventListener('click', function() {
+        if (state.isRecording) {
+          // 停止录音
+          if (state.recognition) state.recognition.stop();
+          return;
+        }
+        state.isRecording = true;
+        voiceBtn.classList.add('recording');
+        voiceBtn.textContent = '⏹';
+        voiceHint.textContent = '正在录音…点击停止';
+        voiceResult.classList.remove('show');
+
+        var recognition = new SpeechRecognition();
+        recognition.lang = 'zh-CN';
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.onresult = function(event) {
+          var text = event.results[0][0].transcript;
+          state.voiceText = text;
+          voiceResult.textContent = text;
+          voiceResult.classList.add('show');
+          voiceHint.textContent = '点击重新录音';
+        };
+
+        recognition.onerror = function() {
+          voiceHint.textContent = '录音失败，请重试或使用打字';
+        };
+
+        recognition.onend = function() {
+          state.isRecording = false;
+          voiceBtn.classList.remove('recording');
+          voiceBtn.textContent = '🎤';
+          if (!state.voiceText) {
+            voiceHint.textContent = '点击开始录音';
+          }
+        };
+
+        state.recognition = recognition;
+        recognition.start();
+      });
+    }
+
+    // 打字输入
+    var writeArea = overlay.querySelector('#matrix-write-area');
+    var charCount = overlay.querySelector('#matrix-char-count');
+    writeArea.addEventListener('input', function() {
+      state.writeText = this.value;
+      charCount.textContent = this.value.length;
+    });
+
+    // 提交
+    var errorEl = overlay.querySelector('#matrix-form-error');
+    overlay.querySelector('#matrix-btn-submit').addEventListener('click', function() {
+      var content = state.inputMode === 'voice' ? state.voiceText : state.writeText;
+      content = (content || '').trim();
+
+      if (!content) {
+        errorEl.textContent = '请输入记录内容';
+        errorEl.style.display = 'block';
+        return;
+      }
+      errorEl.style.display = 'none';
+
+      var user = AppState.currentUser;
+      var now = Utils.formatDateTime();
+
+      var record = {
+        id: Utils.generateUUID(),
+        youthId: youthId,
+        recorderId: user.id,
+        recorderRole: user.role,
+        module: moduleKey,
+        recordType: recordType,
+        content: { text: content, tags: state.tags.slice() },
+        inputMode: state.inputMode,
+        visibilityLevel: 'full',
+        recordedAt: now,
+        isOffline: !navigator.onLine,
+        syncedAt: navigator.onLine ? now : null
+      };
+
+      Storage.addRecord(youthId, record);
+      AppState.showToast('✅ 已提交「' + moduleLabel + '·' + typeLabel + '」');
+
+      closeSheet();
+
+      // 刷新记录列表
+      var youth = Storage.getProfile(youthId);
+      var records = Storage.getRecords(youthId);
+      _renderRecordList(youth, records);
+    });
+  }
+
+  /**
    * 按模块查询记录
    * @param {string} youthId
    * @param {string} moduleKey
@@ -609,6 +885,7 @@ window.Records = (function () {
     VISIBILITY_LEVELS: VISIBILITY_LEVELS,
     renderRecords: renderRecords,
     showRecordForm: _showRecordForm,
+    openMatrixForm: openMatrixForm,
     queryByModule: queryByModule,
     queryByDateRange: queryByDateRange,
     queryByTag: queryByTag,

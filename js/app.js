@@ -81,11 +81,27 @@
   function renderBottomNav(currentPage) {
     var navItems = Constants.NAV_ITEMS;
     var youth = AppState.currentYouth;
+    var user = AppState.getState().currentUser;
+    // 心青年特殊导航：对话 + 我
+    if (user && user.role === 'youth') {
+      navItems = [
+        { page: 'youth-chat', icon: '💬', label: '对话' },
+        { page: 'profile', icon: '👤', label: '我' }
+      ];
+    }
+    // 管理员特殊导航
+    if (user && user.role === 'admin') {
+      navItems = Constants.ADMIN_NAV_ITEMS;
+    }
     var youthId = youth ? youth.id : null;
 
     var html = '<nav class="bottom-nav" role="navigation" aria-label="主导航">';
     for (var i = 0; i < navItems.length; i++) {
       var item = navItems[i];
+      // 可见性过滤：非心青年角色按配置过滤
+      if (user && !Permissions.canAccessPage(user.role, item.page)) {
+        continue;
+      }
       var active = item.page === currentPage ? ' active' : '';
       var href = '#' + item.page;
       // 档案、记录、对话、速读卡需要 youthId 参数
@@ -138,9 +154,18 @@
       return;
     }
 
-    // 已登录但访问 login/register，重定向到 dashboard
+    // 已登录但访问 login/register，重定向到对应首页
     if (AppState.isLoggedIn && PUBLIC_PAGES.indexOf(page) > -1) {
-      window.location.hash = 'dashboard';
+      var curUser = AppState.currentUser;
+      if (curUser && curUser.role === 'youth') {
+        window.location.hash = 'youth-chat';
+      } else if (curUser && curUser.role === 'admin') {
+        window.location.hash = 'admin';
+      } else if (curUser && curUser.role === 'government') {
+        window.location.hash = 'government';
+      } else {
+        window.location.hash = 'dashboard';
+      }
       return;
     }
 
@@ -148,6 +173,14 @@
     if (AppState.currentUser && AppState.currentUser.role === 'government' && page !== 'government') {
       window.location.hash = 'government';
       return;
+    }
+
+    // 可见性检查：非公开页面需验证角色权限
+    if (PUBLIC_PAGES.indexOf(page) === -1) {
+      var currentUser = AppState.getState().currentUser;
+      if (currentUser && !Permissions.canAccessPage(currentUser.role, page)) {
+        page = 'dashboard';
+      }
     }
 
     // 调用已注册的路由渲染函数
@@ -401,6 +434,7 @@
     var roleIcon = { youth: '🌻', parent: '👨‍👩‍👧', teacher: '📚', caregiver: '🤝', government: '🏛️' }[user.role] || '👤';
     return '<div class="page-header">' +
       '<span class="page-title">AI懂我</span>' +
+      '<span class="header-version">v1.0_20260731-0</span>' +
       '<div class="header-user-badge">' +
         '<span class="header-user-name">' + Utils.escapeHtml(user.name) + '</span>' +
         '<span class="header-user-role">' + roleIcon + ' ' + Utils.escapeHtml(youthLabel) + '</span>' +
@@ -409,7 +443,7 @@
   }
 
   /**
-   * 心青年主页：自己档案 + 心情/愿望 + 最近动态 + 速读卡
+   * 心青年主页：自己档案 + 心情/愿望 + 最近动态
    */
   function _renderYouthDashboard(user, youths) {
     var html = '';
@@ -468,19 +502,88 @@
     // 每日交接
     html += _renderDailyHandover(youth);
 
-    // 管理入口
+    // 管理入口（不含速读卡，已移至档案页）
     html += '<div class="dashboard-section">' +
       '<div class="dashboard-section-title">📌 管理</div>' +
       '<div class="management-portal">' +
-        '<button class="management-btn" id="btn-open-quickcard">' +
-          '<span class="management-btn-icon">📚</span>' +
-          '<span class="management-btn-label">我的速读卡</span>' +
+        '<button class="management-btn" data-youth-id="' + youth.id + '" data-action="profile">' +
+          '<span class="management-btn-icon">📋</span>' +
+          '<span class="management-btn-label">查看完整档案</span>' +
           '<span class="management-btn-arrow">→</span>' +
         '</button>' +
       '</div>' +
     '</div>';
 
     return html;
+  }
+
+  function _getAIFindings(youths) {
+    var allFindings = [];
+    for (var i = 0; i < youths.length; i++) {
+      var key = 'ai_dongwo_ai_findings_' + youths[i].id;
+      try {
+        var raw = localStorage.getItem(key);
+        var findings = raw ? JSON.parse(raw) : [];
+        for (var j = 0; j < findings.length; j++) {
+          if (findings[j].status === 'pending') {
+            findings[j]._youthId = youths[i].id;
+            allFindings.push(findings[j]);
+          }
+        }
+      } catch (e) {}
+    }
+    return allFindings;
+  }
+
+  function _reviewAIFinding(findingId, action) {
+    // 遍历所有心青年的 AI 发现
+    var youths = Permissions.getAccessibleYouths();
+    for (var i = 0; i < youths.length; i++) {
+      var key = 'ai_dongwo_ai_findings_' + youths[i].id;
+      try {
+        var raw = localStorage.getItem(key);
+        var findings = raw ? JSON.parse(raw) : [];
+        var found = false;
+        for (var j = 0; j < findings.length; j++) {
+          if (findings[j].id === findingId) {
+            if (action === 'approve') {
+              findings[j].status = 'approved';
+              // 写入档案记录
+              var user = AppState.currentUser;
+              var record = {
+                id: Utils.generateUUID(),
+                youthId: youths[i].id,
+                recorderId: user.id,
+                recorderRole: user.role,
+                module: findings[j].module,
+                recordType: 'observation',
+                content: { text: findings[j].text, tags: ['AI发现'] },
+                inputMode: 'ai',
+                visibilityLevel: 'full',
+                recordedAt: Utils.formatDateTime(),
+                isOffline: !navigator.onLine,
+                syncedAt: navigator.onLine ? Utils.formatDateTime() : null
+              };
+              Storage.addRecord(youths[i].id, record);
+              AppState.showToast('✅ 已采纳并写入档案');
+            } else {
+              findings[j].status = 'rejected';
+              AppState.showToast('已忽略');
+            }
+            found = true;
+            break;
+          }
+        }
+        if (found) {
+          localStorage.setItem(key, JSON.stringify(findings));
+          // 刷新首页
+          var hash = window.location.hash;
+          window.location.hash = '';
+          window.location.hash = hash;
+          break;
+        }
+      } catch (e) {}
+    }
   }
 
   /**
@@ -510,6 +613,25 @@
         '<div class="dashboard-greeting-meta">' + Utils.escapeHtml(y.name) + ' · ' + age + '岁</div>' +
       '</div>' +
     '</div>';
+
+    // AI 发现区块（仅家长可见）
+    var aiFindings = _getAIFindings(youths);
+    if (aiFindings.length > 0) {
+      html += '<div class="ios-card-group">';
+      html += '<div class="ios-card-group-header"><span>💡 AI 发现</span><span style="font-size:11px;color:var(--color-text-tertiary);">' + aiFindings.length + ' 条待审核</span></div>';
+      for (var fi = 0; fi < aiFindings.length; fi++) {
+        var f = aiFindings[fi];
+        html += '<div class="ios-card-row-static" style="display:flex;align-items:center;gap:8px;">' +
+          '<div style="flex:1;">' +
+            '<div class="ios-card-row-title" style="font-size:14px;">' + Utils.escapeHtml(f.text) + '</div>' +
+            '<div class="ios-card-row-subtitle">' + Utils.formatDate(f.timestamp) + ' · ' + (f.module === 'emotionBehavior' ? '😊 情绪行为' : f.module === 'workSupport' ? '💼 工作支持' : '💬 沟通') + '</div>' +
+          '</div>' +
+          '<button class="btn btn-sm" style="background:#34c759;color:white;border:none;border-radius:8px;padding:6px 12px;" data-finding-id="' + f.id + '" data-action="approve">✓ 采纳</button>' +
+          '<button class="btn btn-sm" style="background:rgba(255,255,255,0.04);color:var(--color-text-secondary);border:none;border-radius:8px;padding:6px 12px;" data-finding-id="' + f.id + '" data-action="reject">✕</button>' +
+        '</div>';
+      }
+      html += '</div>';
+    }
 
     // 今日交接（Monday.com 风格）
     html += _renderDailyHandover(y);
@@ -559,6 +681,19 @@
       '</div>' +
     '</div>';
 
+    // 专业工作台入口
+    html += '<div class="dashboard-section">' +
+      '<div class="ios-card-group">' +
+        '<a href="#teacher-workbench" class="ios-card-row-static" style="text-decoration:none;color:inherit;">' +
+          '<div class="ios-card-row-body">' +
+            '<div class="ios-card-row-title">🎓 专业工作台</div>' +
+            '<div class="ios-card-row-subtitle">ISP · 能力评估 · 干预记录 · 情绪趋势</div>' +
+          '</div>' +
+          '<div style="font-size:20px;">›</div>' +
+        '</a>' +
+      '</div>' +
+    '</div>';
+
     html += '<div class="dashboard-footer-space"></div>';
 
     return html;
@@ -575,7 +710,7 @@
       var tasks = Storage.getHandoverTasks(y.id);
       for (var j = 0; j < tasks.length; j++) {
         var t = tasks[j];
-        if (t.toUserId === user.id || t.toRole === user.role) {
+        if ((t.toUserId === user.id || t.toRole === user.role) && t.targetType !== 'youth') {
           t._youthName = y.name;
           t._youthId = y.id;
           allTasks.push(t);
@@ -891,6 +1026,19 @@
         '</div>' +
         '<div class="record-form-body">' +
           '<div class="form-group">' +
+            '<label class="form-label">提醒对象</label>' +
+            '<div class="task-target-selector">' +
+              '<div class="task-target-option selected" data-target="caregiver">' +
+                '<span style="font-size:20px;">🤝</span>' +
+                '<span>照护者</span>' +
+              '</div>' +
+              '<div class="task-target-option" data-target="youth">' +
+                '<span style="font-size:20px;">🌻</span>' +
+                '<span>心青年</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div class="form-group">' +
             '<label class="form-label">交接给谁</label>' +
             '<select class="form-input" id="handover-to-user">' + userOptions + '</select>' +
           '</div>' +
@@ -914,10 +1062,26 @@
       }
     });
 
+    var targetOptions = overlay.querySelectorAll('.task-target-option');
+    for (var ti = 0; ti < targetOptions.length; ti++) {
+      targetOptions[ti].addEventListener('click', function () {
+        for (var tj = 0; tj < targetOptions.length; tj++) {
+          targetOptions[tj].classList.remove('selected');
+        }
+        this.classList.add('selected');
+      });
+    }
+
     overlay.querySelector('#btn-save-handover').addEventListener('click', function () {
       var toUserId = overlay.querySelector('#handover-to-user').value;
       var contentText = overlay.querySelector('#handover-content').value.trim();
       var errorEl = overlay.querySelector('#handover-form-error');
+
+      var targetType = 'caregiver';
+      var selectedTarget = overlay.querySelector('.task-target-option.selected');
+      if (selectedTarget) {
+        targetType = selectedTarget.getAttribute('data-target');
+      }
 
       if (!toUserId) {
         errorEl.textContent = '请选择接收人';
@@ -943,7 +1107,8 @@
         toUserId: toUserId,
         toRole: toAccount ? toAccount.role : 'parent',
         content: contentText,
-        status: 'pending'
+        status: 'pending',
+        targetType: targetType
       });
 
       document.body.removeChild(overlay);
@@ -1012,10 +1177,13 @@
   function _renderDailyHandover(youth, currentUser) {
     var tasks = Storage.getHandoverTasks(youth.id);
 
+    // 过滤掉 targetType=youth 的任务（这些任务出现在心青年 AI 对话中，不在交接看板）
+    tasks = tasks.filter(function (t) { return t.targetType !== 'youth'; });
+
     // 如果指定了当前用户，只显示与该用户相关的任务
     if (currentUser) {
       tasks = tasks.filter(function (t) {
-        return t.toUserId === currentUser.id || t.toRole === currentUser.role;
+        return (t.toUserId === currentUser.id || t.toRole === currentUser.role);
       });
     }
 
@@ -1106,6 +1274,27 @@
     var youths = Permissions.getAccessibleYouths();
 
     var html = '<div class="page-content">';
+
+    // 授权状态区块（只读）
+    var grants = AppState.currentGrants || [];
+    if (user && user.role !== 'admin' && grants.length > 0) {
+      html += '<div class="ios-card-group">';
+      html += '<div class="ios-card-group-header"><span>🔓 授权状态</span></div>';
+      for (var gi = 0; gi < grants.length; gi++) {
+        var g = grants[gi];
+        var grantor = Storage.getAccount(g.grantorId);
+        var grantorName = grantor ? grantor.name : '未知';
+        var scopeText = (g.scope || []).join(', ').replace(/read:full/g, '完整读取').replace(/read:safety/g, '安全读取').replace(/read:own_records/g, '仅自己记录').replace(/write:/g, '写入：').replace(/manage:grants/g, '管理授权');
+        html += '<div class="ios-card-row-static">' +
+          '<div class="ios-card-row-body">' +
+            '<div class="ios-card-row-title" style="font-size:14px;">授权人：' + Utils.escapeHtml(grantorName) + '</div>' +
+            '<div class="ios-card-row-subtitle">有效期至：' + (g.validUntil ? Utils.formatDate(g.validUntil) : '长期有效') + '</div>' +
+            '<div class="ios-card-row-subtitle">范围：' + Utils.escapeHtml(scopeText) + '</div>' +
+          '</div>' +
+        '</div>';
+      }
+      html += '</div>';
+    }
 
     // === 授权管理 ===（家长可见，含待审批红点）
     if (user.role === 'parent' && youths.length > 0) {
@@ -1355,14 +1544,7 @@
       });
     }
 
-    // 速读卡按钮
-    var quickcardBtn = document.getElementById('btn-open-quickcard');
-    if (quickcardBtn && youths.length > 0) {
-      quickcardBtn.addEventListener('click', function () {
-        AppState.selectYouth(youths[0].id);
-        window.location.hash = 'quickcard?youthId=' + encodeURIComponent(youths[0].id);
-      });
-    }
+    // 档案入口按钮（替代速读卡按钮，速读卡已移至档案页）
 
     // 用药提醒
     var medBtn = document.getElementById('btn-med-reminder');
@@ -1409,6 +1591,22 @@
           });
         }
       })(youths[i]);
+    }
+
+    // AI 发现审核
+    var approveBtns = document.querySelectorAll('[data-action="approve"]');
+    var rejectBtns = document.querySelectorAll('[data-action="reject"]');
+    for (var ai = 0; ai < approveBtns.length; ai++) {
+      approveBtns[ai].addEventListener('click', function() {
+        var findingId = this.getAttribute('data-finding-id');
+        _reviewAIFinding(findingId, 'approve');
+      });
+    }
+    for (var ri = 0; ri < rejectBtns.length; ri++) {
+      rejectBtns[ri].addEventListener('click', function() {
+        var findingId = this.getAttribute('data-finding-id');
+        _reviewAIFinding(findingId, 'reject');
+      });
     }
   }
 
@@ -1474,6 +1672,10 @@
     registerRoute('timeline', Timeline.renderTimeline);
     // US3 路由
     registerRoute('chat', ChatBot.renderChat);
+    // 心青年 AI 对话首页
+    registerRoute('youth-chat', function() { YouthChat.render(); });
+    // 老师专业工作台
+    registerRoute('teacher-workbench', function() { TeacherWorkbench.render(); });
     // US4 路由
     registerRoute('charts', Charts.renderCharts);
     registerRoute('analytics', AnalyticsUI.renderAnalytics);
@@ -1549,7 +1751,16 @@
     // 初始加载：根据当前 hash 渲染
     var parsed = parseHash();
     if (AppState.isLoggedIn && (parsed.page === 'login' || parsed.page === 'register')) {
-      window.location.hash = 'dashboard';
+      var initUser = AppState.currentUser;
+      if (initUser && initUser.role === 'youth') {
+        window.location.hash = 'youth-chat';
+      } else if (initUser && initUser.role === 'admin') {
+        window.location.hash = 'admin';
+      } else if (initUser && initUser.role === 'government') {
+        window.location.hash = 'government';
+      } else {
+        window.location.hash = 'dashboard';
+      }
     } else if (!AppState.isLoggedIn && PUBLIC_PAGES.indexOf(parsed.page) === -1) {
       window.location.hash = 'login';
     } else {

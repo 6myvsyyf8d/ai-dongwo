@@ -60,13 +60,40 @@
   }
 
   function renderFormPanel() {
-    return '<div id="form-mode-panel" style="display:' + (currentMode === 'form' ? 'block' : 'none') + ';padding:24px 16px;">' +
-      '<div class="empty-state">' +
-        '<div class="empty-state-icon">📝</div>' +
-        '<div class="empty-state-title">表单模式开发中</div>' +
-        '<div class="empty-state-desc">请使用对话模式进行采集</div>' +
-      '</div>' +
-    '</div>';
+    var matrix = window.Constants ? window.Constants.RECORD_MATRIX : {};
+    var types = (window.Records && window.Records.RECORD_TYPES) || [];
+    var modules = (window.Modules && window.Modules.MODULES) || [];
+    // 仅显示矩阵中定义的模块（排除 relationshipMap）
+    var matrixModules = modules.filter(function(m) { return matrix.hasOwnProperty(m.key); });
+
+    var html = '<div id="form-mode-panel" style="display:' + (currentMode === 'form' ? 'block' : 'none') + ';padding:12px 16px;">';
+    html += '<div class="matrix-wrap">';
+    html += '<table class="matrix-table">';
+    // 表头
+    html += '<tr><th class="matrix-corner">模块 \\ 类型</th>';
+    for (var t = 0; t < types.length; t++) {
+      html += '<th class="matrix-col-header">' + types[t].icon + ' ' + types[t].label + '</th>';
+    }
+    html += '</tr>';
+    // 行
+    for (var r = 0; r < matrixModules.length; r++) {
+      var mod = matrixModules[r];
+      var validTypes = matrix[mod.key] || [];
+      html += '<tr><th class="matrix-row-label">' + mod.icon + ' ' + mod.shortLabel + '</th>';
+      for (var c = 0; c < types.length; c++) {
+        if (validTypes.indexOf(types[c].value) > -1) {
+          html += '<td class="matrix-cell-nav" data-module="' + mod.key + '" data-module-label="' + escapeHtml(mod.label) + '" data-type="' + types[c].value + '" data-type-label="' + escapeHtml(types[c].label) + '"><span class="matrix-cell-icon">📝</span></td>';
+        } else {
+          html += '<td class="matrix-cell-na">—</td>';
+        }
+      }
+      html += '</tr>';
+    }
+    html += '</table>';
+    html += '</div>';
+    html += '<p style="font-size:12px;color:var(--color-text-tertiary);text-align:center;margin-top:8px;">点击对应格子快速记录</p>';
+    html += '</div>';
+    return html;
   }
 
   function bindTabEvents() {
@@ -89,9 +116,18 @@
         if (currentMode === 'form') {
           if (chatPanel) chatPanel.style.display = 'none';
           if (formPanel) formPanel.style.display = 'block';
-          // 调用 Records 模块化表单
-          if (window.Records && typeof window.Records.showRecordForm === 'function') {
-            window.Records.showRecordForm(state.youthId);
+          // 绑定矩阵格子点击事件
+          var cells = formPanel.querySelectorAll('.matrix-cell-nav');
+          for (var ci = 0; ci < cells.length; ci++) {
+            cells[ci].onclick = function() {
+              var mk = this.getAttribute('data-module');
+              var ml = this.getAttribute('data-module-label');
+              var tt = this.getAttribute('data-type');
+              var tl = this.getAttribute('data-type-label');
+              if (window.Records && typeof window.Records.openMatrixForm === 'function') {
+                window.Records.openMatrixForm(mk, tt, ml, tl, state.youthId);
+              }
+            };
           }
         } else {
           if (formPanel) formPanel.style.display = 'none';

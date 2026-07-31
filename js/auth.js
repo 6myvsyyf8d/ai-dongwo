@@ -143,9 +143,13 @@ window.Auth = (function () {
     errorEl.style.display = 'none';
     AppState.login(account);
 
-    // 政府角色跳转政府看板，其他跳转 dashboard
+    // 政府角色跳转政府看板，心青年跳转对话页，管理员跳转管理页，其他跳转 dashboard
     if (account.role === 'government') {
       window.location.hash = 'government';
+    } else if (account.role === 'youth') {
+      window.location.hash = 'youth-chat';
+    } else if (account.role === 'admin') {
+      window.location.hash = 'admin';
     } else {
       window.location.hash = 'dashboard';
     }
@@ -433,6 +437,8 @@ window.Auth = (function () {
       window.location.hash = 'admin';
     } else if (account.role === 'parent') {
       window.location.hash = 'welcome';
+    } else if (account.role === 'youth') {
+      window.location.hash = 'youth-chat';
     } else {
       window.location.hash = 'dashboard';
     }
