@@ -21,7 +21,7 @@ window.Admin = (function () {
     container.innerHTML =
       '<div class="page-header">' +
         '<span class="page-title">🛡️ 系统管理</span>' +
-        '<span></span>' +
+        '<button class="top-bar-btn" id="btn-admin-logout" title="退出登录">退出</button>' +
       '</div>' +
       '<div class="page-content">' +
         '<div class="admin-tabs">' +
@@ -34,6 +34,16 @@ window.Admin = (function () {
 
     _renderUsersTab();
     _bindTabs();
+
+    // 绑定退出按钮
+    var logoutBtn = document.getElementById('btn-admin-logout');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function () {
+        if (confirm('确定要退出登录吗？')) {
+          AppState.logout();
+        }
+      });
+    }
   }
 
   /**
@@ -60,50 +70,110 @@ window.Admin = (function () {
 
   /**
    * 渲染用户管理 Tab
-   * 按角色优先级排序：admin→0, parent→1, teacher→2, caregiver→3, youth→4, government→5
+   * 按家庭单位（心青年）分组显示用户
    */
   function _renderUsersTab() {
     var content = document.getElementById('admin-content');
     if (!content) return;
 
     var accounts = Storage.getAccounts();
-    var userList = [];
-    for (var id in accounts) {
-      if (accounts[id]) {
-        userList.push(accounts[id]);
+    var profiles = Storage.getProfiles();
+    var allGrants = Storage.getAccessGrants(); // 所有授权记录
+
+    // 构建 youthId → 关联用户 ID 集合
+    var youthUsers = {}; // youthId → { profile, userIds: Set }
+    var linkedUserIds = {}; // userId → true（标记已关联到某个家庭的用户）
+
+    for (var pid in profiles) {
+      if (profiles[pid]) {
+        youthUsers[pid] = { profile: profiles[pid], userIds: {} };
       }
     }
 
-    var roleOrder = { admin: 0, parent: 1, teacher: 2, caregiver: 3, youth: 4, government: 5 };
-    userList.sort(function (a, b) {
+    // 遍历所有授权记录，建立用户-家庭关联
+    for (var gi = 0; gi < allGrants.length; gi++) {
+      var g = allGrants[gi];
+      if (g.status === 'active' && youthUsers[g.youthId] && accounts[g.granteeId]) {
+        youthUsers[g.youthId].userIds[g.granteeId] = true;
+        linkedUserIds[g.granteeId] = true;
+      }
+    }
+
+    var html = '<div class="admin-user-count">共 ' + Object.keys(accounts).length + ' 个用户</div>';
+
+    // 按家庭分组渲染
+    for (var yid in youthUsers) {
+      var yu = youthUsers[yid];
+      var userIds = Object.keys(yu.userIds);
+      if (userIds.length === 0) continue; // 没有关联用户的家庭跳过
+      var age = Utils.calculateAge(yu.profile.birthDate);
+      html += '<div class="admin-family-group">';
+      html += '<div class="admin-family-header">' +
+        '<span class="admin-family-icon">' + (yu.profile.avatar || '🧑') + '</span>' +
+        '<span class="admin-family-name">' + Utils.escapeHtml(yu.profile.name) + '</span>' +
+        '<span class="admin-family-meta">' + age + '岁</span>' +
+      '</div>';
+
+      for (var ui = 0; ui < userIds.length; ui++) {
+        var u = accounts[userIds[ui]];
+        if (!u) continue;
+        html += _renderUserItem(u);
+      }
+      html += '</div>';
+    }
+
+    // 未关联家庭的用户（admin、government 等）
+    var unlinkedUsers = [];
+    for (var aid in accounts) {
+      if (accounts[aid] && !linkedUserIds[aid]) {
+        unlinkedUsers.push(accounts[aid]);
+      }
+    }
+
+    // 按角色排序未关联用户
+    var roleOrder = { admin: 0, government: 1, parent: 2, teacher: 3, caregiver: 4, youth: 5 };
+    unlinkedUsers.sort(function (a, b) {
       return (roleOrder[a.role] !== undefined ? roleOrder[a.role] : 99) - (roleOrder[b.role] !== undefined ? roleOrder[b.role] : 99);
     });
 
-    var html = '<div class="admin-user-count">共 ' + userList.length + ' 个用户</div>';
-
-    for (var i = 0; i < userList.length; i++) {
-      var u = userList[i];
-      var roleLabel = Constants.ROLE_LABELS[u.role] || u.role;
-      var isActive = u.isActive !== false;
-      var statusClass = isActive ? 'active' : 'disabled';
-      var statusText = isActive ? '正常' : '已禁用';
-      var metaText = roleLabel + (u.institutionName ? ' · ' + Utils.escapeHtml(u.institutionName) : '');
-
-      html += '<div class="admin-user-item" data-user-id="' + u.id + '">' +
-        '<div class="admin-user-avatar">' + _getRoleIcon(u.role) + '</div>' +
-        '<div class="admin-user-body">' +
-          '<div class="admin-user-name">' + Utils.escapeHtml(u.name) + '</div>' +
-          '<div class="admin-user-meta">' + metaText + '</div>' +
-        '</div>' +
-        '<span class="admin-user-status ' + statusClass + '">' + statusText + '</span>' +
-        (u.role !== 'admin'
-          ? '<button class="admin-user-toggle" data-user-id="' + u.id + '" data-active="' + isActive + '">' + (isActive ? '禁用' : '启用') + '</button>'
-          : '') +
+    if (unlinkedUsers.length > 0) {
+      html += '<div class="admin-family-group">';
+      html += '<div class="admin-family-header">' +
+        '<span class="admin-family-icon">⚙️</span>' +
+        '<span class="admin-family-name">未关联家庭</span>' +
+        '<span class="admin-family-meta">' + unlinkedUsers.length + '人</span>' +
       '</div>';
+      for (var ui2 = 0; ui2 < unlinkedUsers.length; ui2++) {
+        html += _renderUserItem(unlinkedUsers[ui2]);
+      }
+      html += '</div>';
     }
 
     content.innerHTML = html;
     _bindUserToggleButtons();
+  }
+
+  /**
+   * 渲染单个用户条目（供分组复用）
+   */
+  function _renderUserItem(u) {
+    var roleLabel = Constants.ROLE_LABELS[u.role] || u.role;
+    var isActive = u.isActive !== false;
+    var statusClass = isActive ? 'active' : 'disabled';
+    var statusText = isActive ? '正常' : '已禁用';
+    var metaText = roleLabel + (u.institutionName ? ' · ' + Utils.escapeHtml(u.institutionName) : '');
+
+    return '<div class="admin-user-item" data-user-id="' + u.id + '">' +
+      '<div class="admin-user-avatar">' + _getRoleIcon(u.role) + '</div>' +
+      '<div class="admin-user-body">' +
+        '<div class="admin-user-name">' + Utils.escapeHtml(u.name) + '</div>' +
+        '<div class="admin-user-meta">' + metaText + '</div>' +
+      '</div>' +
+      '<span class="admin-user-status ' + statusClass + '">' + statusText + '</span>' +
+      (u.role !== 'admin'
+        ? '<button class="admin-user-toggle" data-user-id="' + u.id + '" data-active="' + isActive + '">' + (isActive ? '禁用' : '启用') + '</button>'
+        : '') +
+    '</div>';
   }
 
   /**
@@ -202,11 +272,16 @@ window.Admin = (function () {
       var allowedPages = (config.pages && config.pages[role.key]) || [];
       var allowedModules = (config.modules && config.modules[role.key]) || [];
 
-      html += '<div class="visibility-role-card" style="background:var(--color-card,#fff);border-radius:16px;padding:16px;margin-bottom:12px;">';
-      html += '<div style="font-size:16px;font-weight:600;margin-bottom:10px;">' + role.label + '</div>';
+      // 可折叠卡片，默认折叠
+      html += '<div class="visibility-role-card">';
+      html += '<div class="visibility-role-header" onclick="Admin._toggleVisCard(this)" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;padding:16px;">';
+      html += '<span style="font-size:16px;font-weight:600;">' + role.label + '</span>';
+      html += '<span class="vis-collapse-icon" style="font-size:14px;color:var(--color-text-tertiary);transition:transform 0.2s;">▸</span>';
+      html += '</div>';
+      html += '<div class="visibility-role-body" style="display:none;padding:0 16px 16px;">';
 
       // 页面勾选
-      html += '<div style="font-size:12px;font-weight:600;color:var(--color-text-secondary,#a0a0b8);margin-bottom:6px;">可访问页面</div>';
+      html += '<div style="font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:6px;">可访问页面</div>';
       html += '<div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px;">';
       for (var pi = 0; pi < pages.length; pi++) {
         var checked = allowedPages.indexOf(pages[pi].key) > -1 ? 'checked' : '';
@@ -217,7 +292,7 @@ window.Admin = (function () {
       html += '</div>';
 
       // 模块勾选
-      html += '<div style="font-size:12px;font-weight:600;color:var(--color-text-secondary,#a0a0b8);margin-bottom:6px;">档案可见模块</div>';
+      html += '<div style="font-size:12px;font-weight:600;color:var(--color-text-secondary);margin-bottom:6px;">档案可见模块</div>';
       html += '<div style="display:flex;flex-wrap:wrap;gap:8px;">';
       for (var mi = 0; mi < modules.length; mi++) {
         var mchecked = allowedModules.indexOf(modules[mi].key) > -1 ? 'checked' : '';
@@ -227,7 +302,7 @@ window.Admin = (function () {
       }
       html += '</div>';
 
-      html += '</div>';
+      html += '</div></div>';
     }
 
     html += '<button class="btn btn-primary" id="vis-save-btn" style="width:100%;padding:14px;font-size:16px;border-radius:14px;border:none;">💾 保存配置</button>';
@@ -265,6 +340,23 @@ window.Admin = (function () {
   }
 
   /**
+   * 切换可见性配置卡片展开/折叠
+   */
+  function _toggleVisCard(headerEl) {
+    var body = headerEl.nextElementSibling;
+    var icon = headerEl.querySelector('.vis-collapse-icon');
+    if (!body || !icon) return;
+    var isOpen = body.style.display !== 'none';
+    if (isOpen) {
+      body.style.display = 'none';
+      icon.style.transform = 'rotate(0deg)';
+    } else {
+      body.style.display = 'block';
+      icon.style.transform = 'rotate(90deg)';
+    }
+  }
+
+  /**
    * 从 Constants.ROLES 查询角色图标
    * 不使用本地字典，保持唯一数据源
    */
@@ -278,6 +370,7 @@ window.Admin = (function () {
   }
 
   return {
-    showAdmin: showAdmin
+    showAdmin: showAdmin,
+    _toggleVisCard: _toggleVisCard
   };
 })();

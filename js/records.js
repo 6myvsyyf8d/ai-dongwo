@@ -24,12 +24,6 @@ window.Records = (function () {
     { value: 'private', label: '仅自己/家长', icon: '🔒', desc: '仅记录者和家长可见' }
   ];
 
-  // 当前筛选状态
-  var _filter = {
-    module: 'all',
-    date: 'all'
-  };
-
   /**
    * 渲染记录列表页
    */
@@ -65,8 +59,7 @@ window.Records = (function () {
       return;
     }
 
-    var records = Storage.getRecords(youthId);
-    _renderRecordList(youth, records);
+    _renderRecordList(youth);
   }
 
   /**
@@ -94,42 +87,44 @@ window.Records = (function () {
    * 渲染记录页 — 矩阵导航（主视图）+ 近期记录列表
    * 按 record-matrix-form-design.md 规范
    */
-  function _renderRecordList(youth, records) {
+  function _renderRecordList(youth) {
     var container = App.getContainer();
 
-    // === 矩阵导航 ===
+    // === 两级快速记录选择器 ===
     var matrix = window.Constants ? window.Constants.RECORD_MATRIX : {};
     var matrixModules = Modules.MODULES.filter(function (m) { return matrix.hasOwnProperty(m.key); });
 
-    var matrixHtml = '<div class="ios-card-group" style="margin-bottom:12px;">' +
-      '<div class="ios-card-group-header">📝 快速记录</div>' +
-      '<div class="matrix-wrap">' +
-      '<table class="matrix-table">' +
-      '<tr><th class="matrix-corner">模块 \\ 类型</th>';
-    for (var t = 0; t < RECORD_TYPES.length; t++) {
-      matrixHtml += '<th class="matrix-col-header">' + RECORD_TYPES[t].icon + ' ' + RECORD_TYPES[t].label + '</th>';
-    }
-    matrixHtml += '</tr>';
+    // 默认选中第一个模块
+    var defaultModule = matrixModules.length > 0 ? matrixModules[0] : null;
+
+    // 模块选择行
+    var moduleRowHtml = '<div class="quick-module-row">';
     for (var r = 0; r < matrixModules.length; r++) {
       var mod = matrixModules[r];
-      var validTypes = matrix[mod.key] || [];
-      matrixHtml += '<tr><th class="matrix-row-label">' + mod.icon + ' ' + mod.shortLabel + '</th>';
-      for (var c = 0; c < RECORD_TYPES.length; c++) {
-        if (validTypes.indexOf(RECORD_TYPES[c].value) > -1) {
-          matrixHtml += '<td class="matrix-cell-nav" data-module="' + mod.key +
-            '" data-module-label="' + Utils.escapeHtml(mod.label) +
-            '" data-type="' + RECORD_TYPES[c].value +
-            '" data-type-label="' + Utils.escapeHtml(RECORD_TYPES[c].label) +
-            '"><span class="matrix-cell-icon">📝</span></td>';
-        } else {
-          matrixHtml += '<td class="matrix-cell-na">—</td>';
-        }
-      }
-      matrixHtml += '</tr>';
+      var isActive = mod.key === (defaultModule ? defaultModule.key : '');
+      moduleRowHtml += '<button class="quick-module-chip' + (isActive ? ' active' : '') + '" data-module="' + mod.key + '">' +
+        '<span class="quick-module-icon">' + mod.icon + '</span>' +
+        '<span class="quick-module-label">' + mod.shortLabel + '</span>' +
+      '</button>';
     }
-    matrixHtml += '</table></div>';
-    matrixHtml += '<div style="font-size:11px;color:var(--color-text-tertiary);text-align:center;padding:8px 0 4px;">点击对应格子快速记录</div>';
-    matrixHtml += '</div>';
+    moduleRowHtml += '</div>';
+
+    // 类型选择行（初始显示默认模块的类型）
+    var typeRowHtml = '<div class="quick-type-row" id="quick-type-row">';
+    if (defaultModule) {
+      var validTypes = matrix[defaultModule.key] || [];
+      typeRowHtml += _renderTypeChips(validTypes, defaultModule);
+    }
+    typeRowHtml += '</div>';
+
+    var matrixHtml = '<div class="ios-card-group" style="margin-bottom:12px;">' +
+      '<div class="ios-card-group-header">📝 快速记录</div>' +
+      '<div class="quick-record-picker">' +
+        moduleRowHtml +
+        typeRowHtml +
+      '</div>' +
+      '<div style="font-size:11px;color:var(--color-text-tertiary);text-align:center;padding:6px 0 2px;">先选模块，再点类型快速记录</div>' +
+    '</div>';
 
     // === 对话采集入口 ===
     var chatEntryHtml =
@@ -144,43 +139,6 @@ window.Records = (function () {
         '</div>' +
       '</div>';
 
-    // === 日期筛选 Chip 行 ===
-    var filterHtml = '<div class="records-filter-bar records-filter-bar--date" style="margin-bottom:8px;">' +
-      '<div class="filter-chip date-chip active" data-date="all">全部时间</div>' +
-      '<div class="filter-chip date-chip" data-date="today">今天</div>' +
-      '<div class="filter-chip date-chip" data-date="yesterday">昨天</div>' +
-      '<div class="filter-chip date-chip" data-date="this_week">本周</div>' +
-      '<div class="filter-chip date-chip" data-date="this_month">本月</div>' +
-    '</div>';
-
-    // === 模块筛选 Chip 行 ===
-    filterHtml += '<div class="records-filter-bar" style="margin-bottom:12px;">' +
-      '<div class="filter-chip active" data-module="all">全部</div>';
-    for (var i = 0; i < Modules.MODULES.length; i++) {
-      filterHtml += '<div class="filter-chip" data-module="' + Modules.MODULES[i].key + '">' +
-        '<span class="filter-chip-icon">' + Modules.MODULES[i].icon + '</span>' + Modules.MODULES[i].label +
-      '</div>';
-    }
-    filterHtml += '</div>';
-
-    // === 近期记录列表 ===
-    var listHtml = '';
-    if (records.length === 0) {
-      listHtml = '<div class="empty-state">' +
-        '<div class="empty-state-icon">📝</div>' +
-        '<div class="empty-state-title">暂无记录</div>' +
-        '<div class="empty-state-desc">使用上方矩阵或对话采集添加第一条记录</div>' +
-      '</div>';
-    } else {
-      listHtml = '<div class="records-list" id="record-list">' +
-        '<div class="ios-card-group">' +
-        '<div class="ios-card-group-header">📋 最近记录 · ' + records.length + ' 条</div>';
-      for (var i = 0; i < records.length; i++) {
-        listHtml += _renderRecordItem(records[i]);
-      }
-      listHtml += '</div></div>';
-    }
-
     container.innerHTML =
       '<div class="page-header">' +
         '<span></span>' +
@@ -190,8 +148,6 @@ window.Records = (function () {
       '<div class="page-content">' +
         matrixHtml +
         chatEntryHtml +
-        filterHtml +
-        listHtml +
       '</div>';
 
     _bindListEvents(youth.id);
@@ -263,43 +219,23 @@ window.Records = (function () {
    * 绑定列表事件
    */
   function _bindListEvents(youthId) {
-    // 模块筛选 Chip
-    var moduleChips = document.querySelectorAll('.records-filter-bar:not(.records-filter-bar--date) .filter-chip');
-    for (var i = 0; i < moduleChips.length; i++) {
-      moduleChips[i].addEventListener('click', function () {
-        for (var j = 0; j < moduleChips.length; j++) {
-          moduleChips[j].classList.remove('active');
-        }
-        this.classList.add('active');
-        _filter.module = this.getAttribute('data-module');
-        _applyFilter();
-      });
-    }
-
-    // 日期筛选 Chip
-    var dateChips = document.querySelectorAll('.records-filter-bar--date .filter-chip');
-    for (var i = 0; i < dateChips.length; i++) {
-      dateChips[i].addEventListener('click', function () {
-        for (var j = 0; j < dateChips.length; j++) {
-          dateChips[j].classList.remove('active');
-        }
-        this.classList.add('active');
-        _filter.date = this.getAttribute('data-date');
-        _applyFilter();
-      });
-    }
-
-    // 矩阵格子点击 → 打开底部 Sheet 表单
-    var matrixCells = document.querySelectorAll('.matrix-cell-nav');
-    for (var ci = 0; ci < matrixCells.length; ci++) {
-      matrixCells[ci].addEventListener('click', function () {
+    // 模块切换
+    var moduleChips = document.querySelectorAll('.quick-module-chip');
+    for (var mi = 0; mi < moduleChips.length; mi++) {
+      moduleChips[mi].addEventListener('click', function () {
         var mk = this.getAttribute('data-module');
-        var ml = this.getAttribute('data-module-label');
-        var tt = this.getAttribute('data-type');
-        var tl = this.getAttribute('data-type-label');
-        openMatrixForm(mk, tt, ml, tl, youthId);
+        // 更新 active 状态
+        for (var mj = 0; mj < moduleChips.length; mj++) {
+          moduleChips[mj].classList.remove('active');
+        }
+        this.classList.add('active');
+        // 更新类型行
+        _updateTypeRow(mk, youthId);
       });
     }
+
+    // 类型 chip 点击 → 打开底部 Sheet 表单
+    _bindTypeChips(youthId);
 
     // 对话采集入口跳转
     var chatEntry = document.querySelector('[data-action="chat"]');
@@ -311,85 +247,51 @@ window.Records = (function () {
   }
 
   /**
-   * 应用筛选
+   * 渲染类型 chip 行
    */
-  function _applyFilter() {
-    var items = document.querySelectorAll('.record-item');
-    var visibleCount = 0;
-    for (var i = 0; i < items.length; i++) {
-      var module = items[i].getAttribute('data-module');
-      var dateStr = items[i].getAttribute('data-date');
-      var moduleMatch = _filter.module === 'all' || module === _filter.module;
-      var dateMatch = _filter.date === 'all' || _isInDateRange(dateStr, _filter.date);
-      if (moduleMatch && dateMatch) {
-        items[i].style.display = '';
-        visibleCount++;
-      } else {
-        items[i].style.display = 'none';
+  function _renderTypeChips(validTypes, mod) {
+    var html = '';
+    for (var c = 0; c < RECORD_TYPES.length; c++) {
+      if (validTypes.indexOf(RECORD_TYPES[c].value) > -1) {
+        html += '<button class="quick-type-chip" data-module="' + mod.key +
+          '" data-module-label="' + Utils.escapeHtml(mod.label) +
+          '" data-type="' + RECORD_TYPES[c].value +
+          '" data-type-label="' + Utils.escapeHtml(RECORD_TYPES[c].label) + '">' +
+          '<span class="quick-type-icon">' + RECORD_TYPES[c].icon + '</span>' +
+          '<span class="quick-type-text">' + RECORD_TYPES[c].label + '</span>' +
+        '</button>';
       }
     }
-    // 空状态处理
-    var emptyEl = document.getElementById('filter-empty-state');
-    if (visibleCount === 0) {
-      if (!emptyEl) {
-        var listEl = document.getElementById('record-list');
-        if (listEl) {
-          var div = document.createElement('div');
-          div.id = 'filter-empty-state';
-          div.className = 'empty-state';
-          div.innerHTML = '<div class="empty-state-icon">🔍</div><div class="empty-state-title">该条件下暂无记录</div>';
-          listEl.parentNode.insertBefore(div, listEl);
-          listEl.style.display = 'none';
-        }
-      }
-    } else {
-      if (emptyEl) {
-        emptyEl.parentNode.removeChild(emptyEl);
-      }
-      var listEl = document.getElementById('record-list');
-      if (listEl) {
-        listEl.style.display = '';
-      }
-    }
+    return html;
   }
 
   /**
-   * 判断日期是否在指定范围内
-   * @param {string} dateStr - YYYY-MM-DD 格式的日期字符串
-   * @param {string} range - today | yesterday | this_week | this_month
-   * @returns {boolean}
+   * 更新类型行（模块切换时）
    */
-  function _isInDateRange(dateStr, range) {
-    if (!dateStr) return false;
+  function _updateTypeRow(moduleKey, youthId) {
+    var typeRow = document.getElementById('quick-type-row');
+    if (!typeRow) return;
+    var matrix = window.Constants ? window.Constants.RECORD_MATRIX : {};
+    var mod = Modules.MODULES.find(function (m) { return m.key === moduleKey; });
+    if (!mod) return;
+    var validTypes = matrix[moduleKey] || [];
+    typeRow.innerHTML = _renderTypeChips(validTypes, mod);
+    _bindTypeChips(youthId);
+  }
 
-    var now = new Date();
-    var d = new Date(dateStr + 'T00:00:00');
-    if (isNaN(d.getTime())) return false;
-
-    var today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-
-    switch (range) {
-      case 'today':
-        return d.getTime() === today.getTime();
-
-      case 'yesterday':
-        var yesterday = new Date(today.getTime() - 86400000);
-        return d.getTime() === yesterday.getTime();
-
-      case 'this_week': {
-        // 本周一 00:00
-        var dayOfWeek = today.getDay();
-        // getDay(): 0=周日, 所以周一=1, 周日需要特殊处理
-        var daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
-        var monday = new Date(today.getTime() - daysFromMonday * 86400000);
-        return d.getTime() >= monday.getTime();
-      }
-
-      case 'this_month':
-        return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
-
-      default:
-        return true;
+  /**
+   * 绑定类型 chip 点击事件
+   */
+  function _bindTypeChips(youthId) {
+    var typeChips = document.querySelectorAll('.quick-type-chip');
+    for (var ti = 0; ti < typeChips.length; ti++) {
+      typeChips[ti].addEventListener('click', function () {
+        var mk = this.getAttribute('data-module');
+        var ml = this.getAttribute('data-module-label');
+        var tt = this.getAttribute('data-type');
+        var tl = this.getAttribute('data-type-label');
+        openMatrixForm(mk, tt, ml, tl, youthId);
+      });
     }
   }
 

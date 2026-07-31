@@ -108,8 +108,13 @@
       if (youthId && ['profile', 'quickcard', 'records', 'chat', 'timeline', 'charts', 'analytics'].indexOf(item.page) > -1) {
         href += '?youthId=' + encodeURIComponent(youthId);
       }
+      var iconHtml = item.icon;
+      // 如果是 icon-xxx 格式的 class 名，渲染为 span 元素
+      if (item.icon.indexOf('icon-') === 0) {
+        iconHtml = '<span class="' + item.icon + '"></span>';
+      }
       html += '<a class="bottom-nav-item' + active + '" href="' + href + '" role="link" aria-label="' + item.label + '">' +
-        '<span class="bottom-nav-icon">' + item.icon + '</span>' +
+        '<span class="bottom-nav-icon">' + iconHtml + '</span>' +
         '<span class="bottom-nav-label">' + item.label + '</span>' +
         '</a>';
     }
@@ -429,16 +434,9 @@
    * 渲染页头（所有角色共用）
    */
   function _renderDashboardHeader() {
-    var user = AppState.currentUser;
-    var youthLabel = (Constants.ROLE_LABELS[user.role] || user.role);
-    var roleIcon = { youth: '🌻', parent: '👨‍👩‍👧', teacher: '📚', caregiver: '🤝', government: '🏛️' }[user.role] || '👤';
     return '<div class="page-header">' +
       '<span class="page-title">AI懂我</span>' +
-      '<span class="header-version">v1.0_20260731-0</span>' +
-      '<div class="header-user-badge">' +
-        '<span class="header-user-name">' + Utils.escapeHtml(user.name) + '</span>' +
-        '<span class="header-user-role">' + roleIcon + ' ' + Utils.escapeHtml(youthLabel) + '</span>' +
-      '</div>' +
+      '<span class="header-version">v1.0_20260731-1</span>' +
     '</div>';
   }
 
@@ -610,7 +608,6 @@
       '<div class="dashboard-greeting-left">' +
         '<div class="dashboard-greeting-date">' + today + ' ' + weekday + '</div>' +
         '<div class="dashboard-greeting-hello">' + greeting + '，' + Utils.escapeHtml(user.name) + '</div>' +
-        '<div class="dashboard-greeting-meta">' + Utils.escapeHtml(y.name) + ' · ' + age + '岁</div>' +
       '</div>' +
     '</div>';
 
@@ -1275,24 +1272,18 @@
 
     var html = '<div class="page-content">';
 
-    // 授权状态区块（只读）
-    var grants = AppState.currentGrants || [];
-    if (user && user.role !== 'admin' && grants.length > 0) {
+    // 我的权限 — 入口卡片
+    var userHasRead = AppState.canRead;
+    if (user && user.role !== 'admin' && userHasRead) {
       html += '<div class="ios-card-group">';
-      html += '<div class="ios-card-group-header"><span>🔓 授权状态</span></div>';
-      for (var gi = 0; gi < grants.length; gi++) {
-        var g = grants[gi];
-        var grantor = Storage.getAccount(g.grantorId);
-        var grantorName = grantor ? grantor.name : '未知';
-        var scopeText = (g.scope || []).join(', ').replace(/read:full/g, '完整读取').replace(/read:safety/g, '安全读取').replace(/read:own_records/g, '仅自己记录').replace(/write:/g, '写入：').replace(/manage:grants/g, '管理授权');
-        html += '<div class="ios-card-row-static">' +
-          '<div class="ios-card-row-body">' +
-            '<div class="ios-card-row-title" style="font-size:14px;">授权人：' + Utils.escapeHtml(grantorName) + '</div>' +
-            '<div class="ios-card-row-subtitle">有效期至：' + (g.validUntil ? Utils.formatDate(g.validUntil) : '长期有效') + '</div>' +
-            '<div class="ios-card-row-subtitle">范围：' + Utils.escapeHtml(scopeText) + '</div>' +
-          '</div>' +
-        '</div>';
-      }
+      html += '<div class="ios-card-row" data-action="permissions" style="cursor:pointer;">' +
+        '<div class="ios-card-row-icon" style="background:rgba(138, 168, 232, 0.1);border-radius:12px;">🔓</div>' +
+        '<div class="ios-card-row-body">' +
+          '<div class="ios-card-row-title">我的权限</div>' +
+          '<div class="ios-card-row-subtitle">查看可访问的模块和功能</div>' +
+        '</div>' +
+        '<span class="ios-card-row-arrow">›</span>' +
+      '</div>';
       html += '</div>';
     }
 
@@ -1365,6 +1356,15 @@
       });
     }
 
+    // 绑定权限入口卡片点击
+    var permRow = document.querySelector('[data-action="permissions"]');
+    if (permRow) {
+      permRow.addEventListener('click', function(e) {
+        e.stopPropagation();
+        window.location.hash = 'permissions';
+      });
+    }
+
     // 绑定授权管理点击
     var grantRows = document.querySelectorAll('.ios-card-row[data-action="grants"]');
     for (var i = 0; i < grantRows.length; i++) {
@@ -1390,6 +1390,45 @@
         }
       });
     }
+  }
+
+  function showPermissions(params) {
+    var container = getContainer();
+    var user = AppState.currentUser;
+    var modules = Modules.MODULES;
+
+    var html = '<div class="page-header">' +
+      '<button class="btn btn-sm btn-secondary" id="btn-perm-back">← 返回</button>' +
+      '<span class="page-title">🔓 我的权限</span>' +
+      '<span></span>' +
+    '</div>' +
+    '<div class="page-content">';
+
+    html += '<div class="ios-card-group">';
+    html += '<div class="ios-card-group-header"><span>模块访问权限</span></div>';
+    for (var i = 0; i < modules.length; i++) {
+      var m = modules[i];
+      var canWriteModule = Permissions.canWrite(m.key);
+      html += '<div class="ios-card-row-static">' +
+        '<div class="ios-card-row-icon" style="font-size:24px;">' + m.icon + '</div>' +
+        '<div class="ios-card-row-body">' +
+          '<div class="ios-card-row-title">' + m.label + '</div>' +
+          '<div class="ios-card-row-subtitle">' +
+            '<span style="color:var(--color-success);">✓ 查看</span>' +
+            (canWriteModule ? ' · <span style="color:var(--color-warning);">✓ 记录</span>' : ' · <span style="color:var(--color-text-tertiary);">✗ 记录</span>') +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }
+    html += '</div>';
+
+    html += '</div>';
+
+    container.innerHTML = html;
+
+    document.getElementById('btn-perm-back').addEventListener('click', function() {
+      window.location.hash = 'management';
+    });
   }
 
   /**
@@ -1693,6 +1732,8 @@
     });
     // 管理员路由
     registerRoute('admin', Admin.showAdmin);
+    // 权限详情路由
+    registerRoute('permissions', showPermissions);
     // 加入申请路由
     registerRoute('join', function (params) {
       if (!AppState.isLoggedIn) {

@@ -44,6 +44,7 @@ window.QuickCard = (function () {
     var age = Utils.calculateAge(youth.birthDate);
     var genderLabel = youth.gender === 'male' ? '男' : youth.gender === 'female' ? '女' : '其他';
     var m = youth.modules;
+    var avatar = youth.avatar || '🌟';
 
     var html = '';
 
@@ -51,85 +52,84 @@ window.QuickCard = (function () {
     html +=
       '<div class="page-header">' +
         '<button class="btn btn-sm btn-secondary" id="btn-close-quickcard">← 返回</button>' +
-        '<span class="page-title">' + Utils.escapeHtml(youth.name) + ' · 速读卡</span>' +
+        '<span class="page-title">速读卡</span>' +
         '<span></span>' +
       '</div>';
 
-    html += '<div class="quickcard-page quickcard-compact" style="padding-bottom:80px;">';
+    html += '<div class="quickcard-page quickcard-redesign">';
 
-    // 1. 基本信息
-    html +=
-      '<div class="ios-card-group">' +
-        '<div class="quickcard-basic" style="display:flex;align-items:center;gap:10px;padding:8px 12px;">' +
-          '<div class="quickcard-basic-avatar" style="font-size:28px;width:40px;height:40px;display:flex;align-items:center;justify-content:center;background:var(--color-bg-secondary);border-radius:10px;">' + (youth.avatar || '🧑') + '</div>' +
-          '<div class="quickcard-basic-info">' +
-            '<div class="quickcard-basic-name" style="font-size:16px;font-weight:600;color:var(--color-text-primary);">' + Utils.escapeHtml(youth.name) + '</div>' +
-            '<div class="quickcard-basic-meta" style="font-size:12px;color:var(--color-text-secondary);margin-top:1px;">' + age + '岁 · ' + genderLabel + '</div>' +
+    // ---- 头部：头像 + 姓名 + 基本信息 ----
+    html += '<div class="qc-hero">' +
+      '<div class="qc-hero-avatar">' + avatar + '</div>' +
+      '<div class="qc-hero-info">' +
+        '<div class="qc-hero-name">' + Utils.escapeHtml(youth.name) + '</div>' +
+        '<div class="qc-hero-meta">' + age + '岁 · ' + genderLabel + '</div>' +
+      '</div>' +
+    '</div>';
+
+    // ---- 过敏源 ----
+    if (m.careMedical && m.careMedical.allergies && m.careMedical.allergies.length > 0) {
+      html += '<div class="qc-card qc-card-allergy">' +
+        '<div class="qc-card-accent"></div>' +
+        '<div class="qc-card-body">' +
+          '<div class="qc-card-header">' +
+            '<span class="qc-card-icon">⚠️</span>' +
+            '<span class="qc-card-title">过敏源</span>' +
+          '</div>' +
+          '<div class="qc-card-content">' +
+            m.careMedical.allergies.map(function(a) { return '<span class="qc-tag qc-tag-danger">' + Utils.escapeHtml(a) + '</span>'; }).join('') +
           '</div>' +
         '</div>' +
       '</div>';
-
-    // 2. 过敏源
-    if (m.careMedical && m.careMedical.allergies && m.careMedical.allergies.length > 0) {
-      html +=
-        '<div class="ios-card-group">' +
-          '<div class="quickcard-section-header" style="display:flex;align-items:center;gap:6px;padding:6px 12px 2px;font-size:12px;font-weight:600;color:var(--color-text-secondary);">' +
-            '<span class="quickcard-section-icon" style="font-size:13px;">⚠️</span>' +
-            '<span class="quickcard-section-title">过敏源</span>' +
-          '</div>' +
-          '<div class="quickcard-item" style="padding:6px 12px;font-size:13px;line-height:1.4;color:var(--color-text-primary);">' +
-            '<div class="quickcard-item-text">' + m.careMedical.allergies.map(Utils.escapeHtml).join('、') + '</div>' +
-          '</div>' +
-        '</div>';
     }
 
-    // 3. 行为红线
+    // ---- 行为红线 ----
     if (m.emotionBehavior && m.emotionBehavior.behaviorRedLines && m.emotionBehavior.behaviorRedLines.length > 0) {
-      html +=
-        '<div class="ios-card-group">' +
-          '<div class="quickcard-section-header" style="display:flex;align-items:center;gap:6px;padding:6px 12px 2px;font-size:12px;font-weight:600;color:var(--color-text-secondary);">' +
-            '<span class="quickcard-section-icon" style="font-size:13px;">🚫</span>' +
-            '<span class="quickcard-section-title">行为红线</span>' +
-          '</div>';
+      html += '<div class="qc-card qc-card-redline">' +
+        '<div class="qc-card-accent"></div>' +
+        '<div class="qc-card-body">' +
+          '<div class="qc-card-header">' +
+            '<span class="qc-card-icon">🚫</span>' +
+            '<span class="qc-card-title">行为红线</span>' +
+          '</div>' +
+          '<div class="qc-card-content">';
       for (var i = 0; i < m.emotionBehavior.behaviorRedLines.length; i++) {
         var r = m.emotionBehavior.behaviorRedLines[i];
-        html +=
-          '<div class="quickcard-item" style="padding:6px 12px;font-size:13px;line-height:1.4;color:var(--color-text-primary);">' +
-            '<div class="quickcard-item-text">' +
-              '<strong>' + Utils.escapeHtml(r.description) + '</strong>' +
-              (r.response ? '<br><span class="quickcard-item-sub" style="font-size:11px;color:var(--color-text-tertiary);">应对：' + Utils.escapeHtml(r.response) + '</span>' : '') +
-            '</div>' +
-          '</div>';
+        html += '<div class="qc-redline-item">' +
+          '<div class="qc-redline-desc">' + Utils.escapeHtml(r.description) + '</div>' +
+          (r.response ? '<div class="qc-redline-response">应对：' + Utils.escapeHtml(r.response) + '</div>' : '') +
+        '</div>';
       }
-      html += '</div>';
+      html += '</div></div></div>';
     }
 
-    // 4. 紧急联系人（放最后）
+    // ---- 紧急联系人 ----
     if (youth.emergencyContacts && youth.emergencyContacts.length > 0) {
-      html +=
-        '<div class="ios-card-group">' +
-          '<div class="quickcard-section-header" style="display:flex;align-items:center;gap:6px;padding:6px 12px 2px;font-size:12px;font-weight:600;color:var(--color-text-secondary);">' +
-            '<span class="quickcard-section-icon" style="font-size:13px;">🚨</span>' +
-            '<span class="quickcard-section-title">紧急联系人</span>' +
-          '</div>';
+      html += '<div class="qc-card qc-card-emergency">' +
+        '<div class="qc-card-accent"></div>' +
+        '<div class="qc-card-body">' +
+          '<div class="qc-card-header">' +
+            '<span class="qc-card-icon">🚨</span>' +
+            '<span class="qc-card-title">紧急联系人</span>' +
+          '</div>' +
+          '<div class="qc-card-content">';
       for (var i = 0; i < youth.emergencyContacts.length; i++) {
         var c = youth.emergencyContacts[i];
-        html +=
-          '<div class="quickcard-item" style="padding:6px 12px;font-size:13px;line-height:1.4;color:var(--color-text-primary);">' +
-            '<div class="quickcard-item-text">' +
-              Utils.escapeHtml(c.name) + '（' + Utils.escapeHtml(c.relation || '') + '）' +
-              '<br><span class="quickcard-item-sub" style="font-size:11px;color:var(--color-text-tertiary);">📞 ' + Utils.escapeHtml(c.phone) + '</span>' +
-            '</div>' +
-          '</div>';
+        html += '<a class="qc-emergency-item" href="tel:' + Utils.escapeHtml(c.phone) + '">' +
+          '<div class="qc-emergency-info">' +
+            '<span class="qc-emergency-name">' + Utils.escapeHtml(c.name) + '</span>' +
+            '<span class="qc-emergency-relation">' + Utils.escapeHtml(c.relation || '') + '</span>' +
+          '</div>' +
+          '<span class="qc-emergency-phone">📞 ' + Utils.escapeHtml(c.phone) + '</span>' +
+        '</a>';
       }
-      html += '</div>';
+      html += '</div></div></div>';
     }
 
-    // 底部：查看完整档案
-    html +=
-      '<div class="quickcard-footer" style="position:fixed;bottom:0;left:0;right:0;padding:12px 16px;background:var(--color-bg-primary);border-top:0.5px solid var(--color-border);padding-bottom:calc(12px + env(safe-area-inset-bottom));">' +
-        '<button class="btn btn-primary btn-block" id="btn-full-profile">查看完整档案 →</button>' +
-      '</div>';
+    // ---- 底部操作 ----
+    html += '<div class="qc-footer">' +
+      '<button class="qc-btn-primary" id="btn-full-profile">查看完整档案 →</button>' +
+    '</div>';
 
     html += '</div>';
 

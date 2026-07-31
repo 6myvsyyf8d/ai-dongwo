@@ -358,11 +358,18 @@ window.Profile = (function () {
       '<div class="page-header">' +
         '<span></span>' +
         '<span class="page-title">档案详情</span>' +
-        '<button class="top-bar-btn" id="btn-quickcard" title="速读卡">📚</button>' +
+        '<div class="top-bar-actions">' +
+          (youth.emergencyContacts && youth.emergencyContacts.length > 0 ? '<button class="top-bar-btn" id="btn-emergency" title="紧急联系人">🚨 ' + youth.emergencyContacts.length + '</button>' : '') +
+          '<button class="top-bar-btn" id="btn-quickcard" title="速读卡">速读卡</button>' +
+        '</div>' +
       '</div>' +
       portraitHtml +
-      panelsHtml +
-      _renderEmergencyBar(youth);
+      panelsHtml;
+
+    // 紧急联系人下拉面板
+    if (youth.emergencyContacts && youth.emergencyContacts.length > 0) {
+      container.innerHTML += _renderEmergencyDropdown(youth);
+    }
 
     _bindDetailEvents(youthId);
   }
@@ -417,32 +424,32 @@ window.Profile = (function () {
     });
 
     // 连线 SVG
-    var linesSvg = '<svg class="constellation-lines" viewBox="0 0 360 410" preserveAspectRatio="xMidYMid meet">' +
+    var linesSvg = '<svg class="constellation-lines" viewBox="0 0 360 370" preserveAspectRatio="xMidYMid meet">' +
       '<defs>' +
         '<filter id="line-glow"><feGaussianBlur stdDeviation="1.5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>' +
       '</defs>';
 
     // 节点坐标定义
     var nodeDefs = [
-      { key: 'communication', left: 27.8, top: 23.2, has: commMethods.length > 0, lineColor: 'rgba(120,170,230,0.25)', glowColor: 'rgba(120,170,230,0.35)' },
-      { key: 'emotion', left: 72.2, top: 23.2, has: triggers.length > 0, lineColor: 'rgba(170,140,220,0.25)', glowColor: 'rgba(170,140,220,0.35)' },
-      { key: 'caution', left: 27.8, top: 45.1, has: highRisks.length > 0, lineColor: 'rgba(245,180,100,0.25)', glowColor: 'rgba(245,180,100,0.35)' },
-      { key: 'work', left: 72.2, top: 45.1, has: workPrefs.length > 0, lineColor: 'rgba(130,200,150,0.25)', glowColor: 'rgba(130,200,150,0.35)' },
-      { key: 'training', left: 50, top: 76.8, has: activePlans.length > 0, lineColor: 'rgba(230,140,180,0.25)', glowColor: 'rgba(230,140,180,0.35)' }
+      { key: 'communication', left: 25, top: 22, has: commMethods.length > 0, lineColor: 'rgba(120,170,230,0.25)', glowColor: 'rgba(120,170,230,0.35)' },
+      { key: 'emotion', left: 75, top: 22, has: triggers.length > 0, lineColor: 'rgba(170,140,220,0.25)', glowColor: 'rgba(170,140,220,0.35)' },
+      { key: 'caution', left: 25, top: 48, has: highRisks.length > 0, lineColor: 'rgba(245,180,100,0.25)', glowColor: 'rgba(245,180,100,0.35)' },
+      { key: 'work', left: 75, top: 48, has: workPrefs.length > 0, lineColor: 'rgba(130,200,150,0.25)', glowColor: 'rgba(130,200,150,0.35)' },
+      { key: 'training', left: 50, top: 74, has: activePlans.length > 0, lineColor: 'rgba(230,140,180,0.25)', glowColor: 'rgba(230,140,180,0.35)' }
     ];
 
     nodeDefs.forEach(function (nd) {
       if (nd.has) {
         var x = Math.round(nd.left * 3.6);
-        var y = Math.round(nd.top * 4.1);
+        var y = Math.round(nd.top * 3.7);
         linesSvg += '<line x1="180" y1="170" x2="' + x + '" y2="' + y + '" stroke="' + nd.lineColor + '" stroke-width="1" stroke-dasharray="3 5" filter="url(#line-glow)"/>';
       }
     });
 
     // 星座外围环线
     var ringPairs = [
-      [100,95,260,95], [100,95,100,185], [260,95,260,185],
-      [100,185,180,315], [260,185,180,315]
+      [90,81,270,81], [90,81,90,178], [270,81,270,178],
+      [90,178,180,274], [270,178,180,274]
     ];
     ringPairs.forEach(function (p) {
       linesSvg += '<line x1="' + p[0] + '" y1="' + p[1] + '" x2="' + p[2] + '" y2="' + p[3] + '" stroke="rgba(200,180,220,0.08)" stroke-width="0.5" stroke-dasharray="2 8"/>';
@@ -462,19 +469,19 @@ window.Profile = (function () {
     // 节点光晕 + 可点击节点渲染
     var nodesHtml = '';
     var nodeConfigs = [
-      { key: 'communication', left: 27.8, top: 23.2, color: '#78aae6', glowColor: 'rgba(120,170,230,0.35)', label: '沟通方式',
+      { key: 'communication', left: 25, top: 22, color: '#78aae6', glowColor: 'rgba(120,170,230,0.35)', label: '沟通方式',
         has: commMethods.length > 0, delay: '0s',
         tags: commMethods.slice(0, 3).map(function (m) { return nodeTag('120,170,230', m.method); }).join('') },
-      { key: 'emotion', left: 72.2, top: 23.2, color: '#aa8cdc', glowColor: 'rgba(170,140,220,0.35)', label: '情绪行为',
+      { key: 'emotion', left: 75, top: 22, color: '#aa8cdc', glowColor: 'rgba(170,140,220,0.35)', label: '情绪行为',
         has: triggers.length > 0, delay: '0.5s',
         tags: triggers.slice(0, 3).map(function (t) { return nodeTag('170,140,220', t.trigger); }).join('') },
-      { key: 'caution', left: 27.8, top: 45.1, color: '#f5b464', glowColor: 'rgba(245,180,100,0.35)', label: '特别注意',
+      { key: 'caution', left: 25, top: 48, color: '#f5b464', glowColor: 'rgba(245,180,100,0.35)', label: '特别注意',
         has: highRisks.length > 0, delay: '1s',
         tags: highRisks.slice(0, 2).map(function (r) { return nodeTag('245,180,100', r.description); }).join('') },
-      { key: 'work', left: 72.2, top: 45.1, color: '#82c896', glowColor: 'rgba(130,200,150,0.35)', label: '工作支持',
+      { key: 'work', left: 75, top: 48, color: '#82c896', glowColor: 'rgba(130,200,150,0.35)', label: '工作支持',
         has: workPrefs.length > 0, delay: '1.5s',
         tags: workPrefs.slice(0, 3).map(function (w) { return nodeTag('130,200,150', w); }).join('') },
-      { key: 'training', left: 50, top: 76.8, color: '#e68cb4', glowColor: 'rgba(230,140,180,0.35)', label: '正在训练',
+      { key: 'training', left: 50, top: 74, color: '#e68cb4', glowColor: 'rgba(230,140,180,0.35)', label: '正在训练',
         has: activePlans.length > 0, delay: '2s',
         tags: activePlans.slice(0, 2).map(function (p) { return nodeTag('230,140,180', p.title); }).join('') }
     ];
@@ -887,32 +894,30 @@ window.Profile = (function () {
   }
 
   /**
-   * 渲染紧急联系人底部固定栏 — Apple 风格
+   * 渲染紧急联系人下拉面板
    */
-  function _renderEmergencyBar(youth) {
+  function _renderEmergencyDropdown(youth) {
     if (!youth.emergencyContacts || youth.emergencyContacts.length === 0) return '';
 
     var itemsHtml = '';
     for (var i = 0; i < youth.emergencyContacts.length; i++) {
       var c = youth.emergencyContacts[i];
-      itemsHtml += '<a class="emergency-bar-item" href="tel:' + Utils.escapeHtml(c.phone) + '">' +
-        '<span class="emergency-bar-item-icon">📞</span>' +
-        '<span class="emergency-bar-item-name">' + Utils.escapeHtml(c.name) + '</span>' +
-        '<span class="emergency-bar-item-relation">' + Utils.escapeHtml(c.relation || '') + '</span>' +
-        '<span class="emergency-bar-item-phone">' + Utils.escapeHtml(c.phone) + '</span>' +
+      itemsHtml += '<a class="emergency-dropdown-item" href="tel:' + Utils.escapeHtml(c.phone) + '">' +
+        '<span class="emergency-dropdown-item-icon">📞</span>' +
+        '<div class="emergency-dropdown-item-body">' +
+          '<span class="emergency-dropdown-item-name">' + Utils.escapeHtml(c.name) + '</span>' +
+          '<span class="emergency-dropdown-item-relation">' + Utils.escapeHtml(c.relation || '') + '</span>' +
+        '</div>' +
+        '<span class="emergency-dropdown-item-phone">' + Utils.escapeHtml(c.phone) + '</span>' +
       '</a>';
     }
 
-    return '<div class="emergency-bar" id="emergency-bar">' +
-      '<div class="emergency-bar-toggle" id="emergency-bar-toggle">' +
-        '<span class="emergency-bar-icon">🚨</span>' +
-        '<span class="emergency-bar-label">紧急联系人</span>' +
-        '<span class="emergency-bar-count">' + youth.emergencyContacts.length + '</span>' +
-        '<span class="emergency-bar-chevron">▲</span>' +
+    return '<div class="emergency-dropdown" id="emergency-dropdown">' +
+      '<div class="emergency-dropdown-header">' +
+        '<span>🚨 紧急联系人</span>' +
+        '<button class="emergency-dropdown-close" id="btn-emergency-close">✕</button>' +
       '</div>' +
-      '<div class="emergency-bar-panel" id="emergency-bar-panel">' +
-        itemsHtml +
-      '</div>' +
+      '<div class="emergency-dropdown-body">' + itemsHtml + '</div>' +
     '</div>';
   }
 
@@ -927,13 +932,26 @@ window.Profile = (function () {
       });
     }
 
-    // 紧急联系人栏切换
-    var emergencyToggle = document.getElementById('emergency-bar-toggle');
-    if (emergencyToggle) {
-      emergencyToggle.addEventListener('click', function () {
-        var bar = document.getElementById('emergency-bar');
-        if (bar) {
-          bar.classList.toggle('expanded');
+    // 紧急联系人下拉面板
+    var emergencyBtn = document.getElementById('btn-emergency');
+    var emergencyDropdown = document.getElementById('emergency-dropdown');
+    if (emergencyBtn && emergencyDropdown) {
+      emergencyBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        emergencyDropdown.classList.toggle('show');
+      });
+      var emergencyClose = document.getElementById('btn-emergency-close');
+      if (emergencyClose) {
+        emergencyClose.addEventListener('click', function () {
+          emergencyDropdown.classList.remove('show');
+        });
+      }
+      // 点击外部关闭
+      document.addEventListener('click', function (e) {
+        if (emergencyDropdown.classList.contains('show') &&
+            !emergencyDropdown.contains(e.target) &&
+            e.target !== emergencyBtn) {
+          emergencyDropdown.classList.remove('show');
         }
       });
     }

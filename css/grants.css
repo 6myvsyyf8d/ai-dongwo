@@ -737,6 +737,40 @@
   transform: scale(0.96);
 }
 
+/* — 家庭分组 — */
+.admin-family-group {
+  margin-bottom: var(--spacing-lg);
+}
+
+.admin-family-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  background: rgba(138, 184, 232, 0.06);
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--color-primary);
+}
+
+.admin-family-icon {
+  font-size: 18px;
+  width: 28px;
+  text-align: center;
+}
+
+.admin-family-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+.admin-family-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  margin-left: auto;
+}
+
 /* — 全局授权 Tab — */
 .admin-grants-header {
   font-size: var(--font-size-sm);

@@ -84,11 +84,11 @@ window.Constants = {
    * 底部导航项（导航短名 + 图标）
    */
   NAV_ITEMS: [
-    { page: 'dashboard', icon: '🏠', label: '首页' },
-    { page: 'records', icon: '📋', label: '记录' },
-    { page: 'profile', icon: '📁', label: '档案' },
-    { page: 'management', icon: '⚙️', label: '管理' },
-    { page: 'analytics', icon: '📊', label: '分析' }
+    { page: 'dashboard', icon: 'icon-home', label: '首页' },
+    { page: 'records', icon: 'icon-records', label: '记录' },
+    { page: 'profile', icon: 'icon-profile', label: '档案' },
+    { page: 'management', icon: 'icon-management', label: '管理' },
+    { page: 'analytics', icon: 'icon-records', label: '分析' }
   ],
 
   /**
@@ -127,9 +127,9 @@ window.Constants = {
    */
   DEFAULT_VISIBILITY_CONFIG: {
     pages: {
-      parent:     ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics'],
-      teacher:    ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'teacher-workbench'],
-      caregiver:  ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics'],
+      parent:     ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code'],
+      teacher:    ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'teacher-workbench', 'archive-code'],
+      caregiver:  ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code'],
       youth:      ['dashboard', 'profile', 'youth-chat'],
       government: ['government'],
       admin:      ['admin', 'dashboard']

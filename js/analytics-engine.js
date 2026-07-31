@@ -203,6 +203,9 @@ window.AnalyticsEngine = (function () {
     // 跨模块关联
     var crossLinks = _findCrossModuleLinks(byDay, dayKeys);
 
+    // 照护统计
+    var careStats = _calcCareStats(byDay, dayKeys);
+
     // 月度概览
     var overview = '本月共记录 ' + monthRecords.length + ' 条，日均 ' +
       (monthRecords.length / totalDays).toFixed(1) + ' 条，覆盖 ' +
@@ -225,6 +228,7 @@ window.AnalyticsEngine = (function () {
       emotionTrend: emotionTrend,
       emotionSummary: emotionSummary,
       crossModuleLinks: crossLinks,
+      careStats: careStats,
       shareText: shareText
     };
   }
@@ -541,25 +545,29 @@ window.AnalyticsEngine = (function () {
     var modules = Modules.MODULES;
     var hasContent = false;
 
+    parts.push('📅 ' + date + ' 日记摘要');
+    parts.push('');
+
     for (var i = 0; i < modules.length; i++) {
       var key = modules[i].key;
       var status = moduleStatuses[key];
       if (status && status.hasRecords) {
         hasContent = true;
         var samples = status.samples.join('、');
-        parts.push(modules[i].label + '：' + (samples || '有记录'));
+        parts.push(modules[i].icon + ' ' + modules[i].label + '（' + status.count + '条）');
+        if (samples) parts.push('  ' + samples);
       }
     }
 
     if (!hasContent) return date + ' 暂无记录。';
 
-    var text = date + ' 记录概览：\n' + parts.join('\n');
+    parts.push('');
     if (alerts.length > 0) {
-      text += '\n⚠️ 提醒：' + alerts.map(function (a) { return a.text; }).join('；');
+      parts.push('⚠️ 提醒：' + alerts.map(function (a) { return a.text; }).join('；'));
     } else {
-      text += '\n✅ 今日无异常。';
+      parts.push('✅ 今日无异常。');
     }
-    return text;
+    return parts.join('\n');
   }
 
   function _generateWeeklyShareText(overview, emotionSummary, careStats, moduleTrends, alerts) {
@@ -582,7 +590,8 @@ window.AnalyticsEngine = (function () {
   }
 
   function _generateMonthlyShareText(overview, emotionSummary, crossLinks, records) {
-    var text = overview + '\n\n';
+    var text = '📊 月度总结\n\n';
+    text += overview + '\n\n';
     text += '情绪趋势：' + emotionSummary + '\n\n';
 
     if (crossLinks.length > 0) {
@@ -593,7 +602,7 @@ window.AnalyticsEngine = (function () {
       text += '\n';
     }
 
-    text += '月度总结：\n' + _generateNarrativeSummary(records, emotionSummary, crossLinks);
+    text += '总结：\n' + _generateNarrativeSummary(records, emotionSummary, crossLinks);
     return text;
   }
 
@@ -602,12 +611,9 @@ window.AnalyticsEngine = (function () {
     parts.push(emotionSummary + '。');
 
     var moduleCounts = _countByModule(records);
-    var modules = Modules.MODULES;
-    for (var i = 0; i < modules.length; i++) {
-      var count = moduleCounts[modules[i].key] || 0;
-      if (count > 0) {
-        parts.push(modules[i].label + '共 ' + count + ' 条记录');
-      }
+    var moduleKeys = Object.keys(moduleCounts);
+    if (moduleKeys.length > 0) {
+      parts.push('本月共覆盖 ' + moduleKeys.length + ' 个模块，总计 ' + records.length + ' 条记录');
     }
 
     if (crossLinks.length > 0) {
