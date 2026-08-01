@@ -15,6 +15,7 @@ window.Storage = (function () {
     GUARDIANSHIPS: 'ai_dongwo_guardianships',
     ANONYMIZED: 'ai_dongwo_anonymized',
     HANDOVER_TASKS: 'ai_dongwo_handover_tasks',
+    TASKS: 'ai_dongwo_tasks',
     JOIN_REQUESTS: 'ai_dongwo_join_requests',
     INVITATIONS: 'ai_dongwo_invitations',
     CURRENT_USER: 'ai_dongwo_current_user',
@@ -968,6 +969,7 @@ window.Storage = (function () {
 
     // 初始化交接任务种子数据
     _initHandoverSeedIfNeeded(profiles, accounts);
+    migrateHandoverTasks();
   }
 
 
@@ -1024,6 +1026,99 @@ window.Storage = (function () {
     tasks[youthId] = list.filter(function (t) { return t.id !== taskId; });
     set(KEYS.HANDOVER_TASKS, tasks);
     return true;
+  }
+
+  // ==================== Unified Task (新) ====================
+
+  function getTasks(youthId) {
+    var tasks = get(KEYS.TASKS) || {};
+    return tasks[youthId] || [];
+  }
+
+  function addTask(youthId, task) {
+    var tasks = get(KEYS.TASKS) || {};
+    if (!tasks[youthId]) tasks[youthId] = [];
+    if (!task.id) task.id = Utils.generateUUID();
+    if (!task.status) task.status = 'todo';
+    if (!task.createdAt) task.createdAt = Utils.formatDateTime();
+    if (!task.updatedAt) task.updatedAt = Utils.formatDateTime();
+    tasks[youthId].push(task);
+    set(KEYS.TASKS, tasks);
+    return { success: true, task: task };
+  }
+
+  function updateTask(youthId, taskId, updates) {
+    var tasks = get(KEYS.TASKS) || {};
+    var list = tasks[youthId] || [];
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].id === taskId) {
+        Object.assign(list[i], updates);
+        list[i].updatedAt = Utils.formatDateTime();
+        if (updates.status === 'done' && !list[i].completedAt) {
+          list[i].completedAt = Utils.formatDateTime();
+        }
+        set(KEYS.TASKS, tasks);
+        return true;
+      }
+    }
+    return false;
+  }
+
+  function deleteTask(youthId, taskId) {
+    var tasks = get(KEYS.TASKS) || {};
+    var list = tasks[youthId] || [];
+    tasks[youthId] = list.filter(function (t) { return t.id !== taskId; });
+    set(KEYS.TASKS, tasks);
+    return true;
+  }
+
+  function migrateHandoverTasks() {
+    var oldData = get(KEYS.HANDOVER_TASKS) || {};
+    var newData = get(KEYS.TASKS) || {};
+    var migrated = 0;
+
+    for (var youthId in oldData) {
+      if (!oldData.hasOwnProperty(youthId)) continue;
+      var oldTasks = oldData[youthId];
+      if (!newData[youthId]) newData[youthId] = [];
+
+      var existingIds = {};
+      for (var ei = 0; ei < newData[youthId].length; ei++) {
+        if (newData[youthId][ei]._oldId) {
+          existingIds[newData[youthId][ei]._oldId] = true;
+        }
+      }
+
+      for (var i = 0; i < oldTasks.length; i++) {
+        var ot = oldTasks[i];
+        if (existingIds[ot.id]) continue;
+
+        var newTask = {
+          id: Utils.generateUUID(),
+          _oldId: ot.id,
+          youthId: youthId,
+          taskType: 'handover',
+          assigneeId: ot.toUserId,
+          assigneeRole: ot.toRole,
+          content: ot.content,
+          category: 'handover',
+          status: ot.status === 'done' ? 'done' : 'todo',
+          dueTime: null,
+          handoverFrom: { userId: ot.fromUserId, role: ot.fromRole },
+          handoverTo: { userId: ot.toUserId, role: ot.toRole },
+          targetType: ot.targetType || 'caregiver',
+          createdAt: ot.createdAt,
+          updatedAt: ot.updatedAt,
+          completedAt: ot.status === 'done' ? ot.updatedAt : null
+        };
+        newData[youthId].push(newTask);
+        migrated++;
+      }
+    }
+
+    set(KEYS.TASKS, newData);
+    console.log('交接任务迁移完成：' + migrated + ' 条');
+    return migrated;
   }
 
   // ==================== VisibilityConfig ====================
@@ -1104,11 +1199,17 @@ window.Storage = (function () {
     getCurrentUser: getCurrentUser,
     setCurrentUser: setCurrentUser,
     clearCurrentUser: clearCurrentUser,
-    // HandoverTask
+    // HandoverTask (旧)
     getHandoverTasks: getHandoverTasks,
     addHandoverTask: addHandoverTask,
     updateHandoverTask: updateHandoverTask,
     deleteHandoverTask: deleteHandoverTask,
+    // Unified Task (新)
+    getTasks: getTasks,
+    addTask: addTask,
+    updateTask: updateTask,
+    deleteTask: deleteTask,
+    migrateHandoverTasks: migrateHandoverTasks,
     // VisibilityConfig
     getVisibilityConfig: getVisibilityConfig,
     saveVisibilityConfig: saveVisibilityConfig,
