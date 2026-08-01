@@ -724,3 +724,148 @@
   color: var(--color-text-secondary);
   line-height: 1.4;
 }
+
+.insight-recommendations {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.insight-rec-item {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+  padding: 4px 0;
+}
+
+/* ========== 环比对比卡片 ========== */
+.comparison-card {
+  border-left: 3px solid var(--color-primary);
+}
+.comparison-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.comparison-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.comparison-label {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+}
+.comparison-values {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.comparison-current {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-primary);
+}
+.comparison-arrow {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  padding: 2px 6px;
+  border-radius: var(--radius-full);
+}
+.comparison-up {
+  color: #4ADE80;
+  background: rgba(74, 222, 128, 0.1);
+}
+.comparison-down {
+  color: #F87171;
+  background: rgba(248, 113, 113, 0.1);
+}
+.comparison-stable {
+  color: var(--color-text-tertiary);
+  background: rgba(255,255,255,0.04);
+}
+.comparison-previous {
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  margin-left: auto;
+}
+
+/* ========== 周活动热力图 ========== */
+.heatmap-container {
+  overflow-x: auto;
+  margin-top: 8px;
+}
+
+.heatmap-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.heatmap-corner {
+  width: 28px;
+  flex-shrink: 0;
+}
+
+.heatmap-col-label {
+  flex: 1;
+  text-align: center;
+  font-size: 14px;
+  padding: 4px 0;
+}
+
+.heatmap-row {
+  display: flex;
+  align-items: center;
+  margin-bottom: 3px;
+}
+
+.heatmap-row-label {
+  width: 28px;
+  text-align: center;
+  font-size: var(--font-size-xs);
+  color: var(--color-text-tertiary);
+  flex-shrink: 0;
+}
+
+.heatmap-today {
+  color: var(--color-primary);
+  font-weight: var(--font-weight-bold);
+}
+
+.heatmap-cell {
+  flex: 1;
+  aspect-ratio: 1;
+  max-height: 36px;
+  border-radius: 4px;
+  margin: 0 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+
+.heatmap-cell:hover {
+  opacity: 0.8;
+}
+
+.heatmap-cell-count {
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+}
+
+/* ========== 卡片组（月报 4 大块） ========== */
+.analytics-card-group {
+  margin-bottom: 24px;
+}
+.analytics-card-group-title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 0 0 8px 4px;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 12px;
+}

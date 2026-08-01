@@ -532,11 +532,12 @@ window.AnalyticsUI = (function () {
         '</div>' +
       '</div>';
     } else {
-      // 概览 + AI 解读
+      // Block 1: 概览 + 对比
       var moduleCount = 0;
       var mcMatch = report.overview.match(/覆盖\s*(\d+)\s*个模块/);
       if (mcMatch) moduleCount = parseInt(mcMatch[1], 10);
-      var insightsHtml = _generateMonthlyInsights(report, youth.id, _currentMonthStart, monthEnd);
+      html += '<div class="analytics-card-group">' +
+        '<div class="analytics-card-group-title">📋 概览与对比</div>';
       html += '<div class="analytics-card">' +
         '<div class="analytics-card-title">📋 月度概览</div>' +
         '<div class="monthly-stats-grid">' +
@@ -557,38 +558,27 @@ window.AnalyticsUI = (function () {
             '<div class="monthly-stat-label">覆盖模块</div>' +
           '</div>' +
         '</div>' +
-        '<div class="analytics-insights-section">' +
-          '<div class="analytics-insights-title">🤖 AI 解读</div>' +
-          insightsHtml +
-        '</div>' +
       '</div>';
 
-      // 环比对比
+      // 环比 + 同比紧随概览
       if (report.comparison) {
         html += _renderComparisonCard(report.comparison, 'month');
       }
-
-      // 同比对比（vs 去年同月）
       if (report.yearComparison && report.yearComparison.recordCount.previous > 0) {
         html += _renderComparisonCard(report.yearComparison, 'year', report.yearComparison.yearLabel);
       }
+      html += '</div>'; // end 概览与对比
 
-      // 30 天情绪趋势
+      // Block 2: 图表区
+      html += '<div class="analytics-card-group">' +
+        '<div class="analytics-card-group-title">📊 数据可视化</div>';
+
+      // 情绪趋势
       html += '<div class="analytics-card">' +
         '<div class="analytics-card-title">🌊 ' + report.totalDays + '天情绪趋势</div>' +
         '<div class="analytics-chart-wrapper" style="height:280px;"><canvas id="monthly-emotion-chart"></canvas></div>' +
         '<div class="analytics-chart-summary">' + Utils.escapeHtml(report.emotionSummary) + '</div>' +
       '</div>';
-
-      // 跨模块关联
-      if (report.crossModuleLinks.length > 0) {
-        html += '<div class="analytics-card">' +
-          '<div class="analytics-card-title">🔗 跨模块关联发现</div>' +
-          report.crossModuleLinks.map(function (link) {
-            return '<div class="analytics-link-item">🔗 ' + Utils.escapeHtml(link) + '</div>';
-          }).join('') +
-        '</div>';
-      }
 
       // 模块分布柱状图
       html += '<div class="analytics-card">' +
@@ -601,6 +591,30 @@ window.AnalyticsUI = (function () {
         '<div class="analytics-card-title">🎯 能力评估雷达</div>' +
         '<div class="analytics-chart-wrapper" style="height:280px;"><canvas id="monthly-radar-chart"></canvas></div>' +
       '</div>';
+
+      html += '</div>'; // end 图表区
+
+      // Block 3: AI解读 + 跨模块 + 照护 + 月度总结
+      var insightsHtml = _generateMonthlyInsights(report, youth.id, _currentMonthStart, monthEnd);
+      html += '<div class="analytics-card-group">' +
+        '<div class="analytics-card-group-title">🤖 AI 解读与照护</div>';
+
+      html += '<div class="analytics-card">' +
+        '<div class="analytics-insights-section">' +
+          '<div class="analytics-insights-title">🤖 AI 解读</div>' +
+          insightsHtml +
+        '</div>' +
+      '</div>';
+
+      // 跨模块关联
+      if (report.crossModuleLinks.length > 0) {
+        html += '<div class="analytics-card">' +
+          '<div class="analytics-card-title">🔗 跨模块关联发现</div>' +
+          report.crossModuleLinks.map(function (link) {
+            return '<div class="analytics-link-item">🔗 ' + Utils.escapeHtml(link) + '</div>';
+          }).join('') +
+        '</div>';
+      }
 
       // 照护统计
       var mcs = report.careStats;
@@ -621,6 +635,8 @@ window.AnalyticsUI = (function () {
         '<div class="analytics-share-text">' + Utils.escapeHtml(report.shareText).replace(/\n/g, '<br>') + '</div>' +
         '<button class="analytics-share-btn" id="btn-copy-share">📋 复制分享文本</button>' +
       '</div>';
+
+      html += '</div>'; // end AI解读与照护
     }
 
     // 时间线洞察（本月）
