@@ -152,6 +152,9 @@ window.AnalyticsEngine = (function () {
       });
     }
 
+    // 情绪数据新鲜度信息
+    var emotionDataInfo = _calcEmotionDataInfo(emotionTrend, dayKeys, weekRecords);
+
     // 照护统计
     var careStats = _calcCareStats(byDay, dayKeys);
 
@@ -188,6 +191,7 @@ window.AnalyticsEngine = (function () {
       overview: overview,
       emotionTrend: emotionTrend,
       emotionSummary: emotionSummary,
+      emotionDataInfo: emotionDataInfo,
       careStats: careStats,
       moduleTrends: moduleTrends,
       alerts: alerts,
@@ -228,6 +232,9 @@ window.AnalyticsEngine = (function () {
       });
     }
 
+    // 情绪数据新鲜度信息
+    var emotionDataInfo = _calcEmotionDataInfo(emotionTrend, dayKeys, monthRecords);
+
     // 跨模块关联
     var crossLinks = _findCrossModuleLinks(byDay, dayKeys);
 
@@ -261,6 +268,7 @@ window.AnalyticsEngine = (function () {
       overview: overview,
       emotionTrend: emotionTrend,
       emotionSummary: emotionSummary,
+      emotionDataInfo: emotionDataInfo,
       crossModuleLinks: crossLinks,
       careStats: careStats,
       shareText: shareText,
@@ -366,6 +374,38 @@ window.AnalyticsEngine = (function () {
       }
     }
     return hasData ? score : null;
+  }
+
+  /**
+   * 计算情绪数据新鲜度信息
+   * 返回有效数据天数、总天数、最近一条情绪记录距今天数
+   */
+  function _calcEmotionDataInfo(emotionTrend, dayKeys, records) {
+    var validDays = 0;
+    for (var i = 0; i < emotionTrend.length; i++) {
+      if (emotionTrend[i].score !== null) validDays++;
+    }
+
+    var lastDate = '';
+    for (var j = 0; j < records.length; j++) {
+      if (records[j].module !== 'emotionBehavior') continue;
+      var d = (records[j].recordedAt || '').substring(0, 10);
+      if (d > lastDate) lastDate = d;
+    }
+
+    var daysAgo = null;
+    if (lastDate) {
+      var today = Utils.formatDate(new Date());
+      var diffMs = new Date(today + 'T00:00:00').getTime() - new Date(lastDate + 'T00:00:00').getTime();
+      daysAgo = Math.round(diffMs / 86400000);
+    }
+
+    return {
+      validDays: validDays,
+      totalDays: dayKeys.length,
+      lastDate: lastDate,
+      daysAgo: daysAgo
+    };
   }
 
   function _calcCareStats(byDay, dayKeys) {

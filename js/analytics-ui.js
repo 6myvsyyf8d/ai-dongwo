@@ -459,6 +459,7 @@ window.AnalyticsUI = (function () {
         '<div class="analytics-card-title">🌊 情绪趋势</div>' +
         '<div class="analytics-chart-wrapper"><canvas id="weekly-emotion-chart"></canvas></div>' +
         '<div class="analytics-chart-summary">' + Utils.escapeHtml(report.emotionSummary) + '</div>' +
+        _renderEmotionFreshness(report.emotionDataInfo) +
       '</div>';
 
       // 照护统计
@@ -588,6 +589,7 @@ window.AnalyticsUI = (function () {
         '<div class="analytics-card-title">🌊 ' + report.totalDays + '天情绪趋势</div>' +
         '<div class="analytics-chart-wrapper" style="height:280px;"><canvas id="monthly-emotion-chart"></canvas></div>' +
         '<div class="analytics-chart-summary">' + Utils.escapeHtml(report.emotionSummary) + '</div>' +
+        _renderEmotionFreshness(report.emotionDataInfo) +
       '</div>';
 
       // 模块分布柱状图
@@ -1232,6 +1234,32 @@ window.AnalyticsUI = (function () {
   }
 
   // ========== 时间线洞察 ==========
+
+  /**
+   * 渲染情绪数据新鲜度标记
+   * @param {object} info - { validDays, totalDays, lastDate, daysAgo }
+   */
+  function _renderEmotionFreshness(info) {
+    if (!info) return '';
+    var chips = '';
+    // 覆盖度标记
+    chips += '<span class="freshness-chip">📊 基于 ' + info.validDays + '/' + info.totalDays + ' 天数据</span>';
+
+    // 新鲜度标记
+    if (info.daysAgo === null) {
+      chips += '<span class="freshness-chip freshness-stale">📭 本期无情绪数据</span>';
+    } else if (info.daysAgo === 0) {
+      chips += '<span class="freshness-chip freshness-fresh">🕐 今天有更新</span>';
+    } else if (info.daysAgo === 1) {
+      chips += '<span class="freshness-chip freshness-fresh">🕐 1 天前更新</span>';
+    } else if (info.daysAgo < 7) {
+      chips += '<span class="freshness-chip freshness-warning">🕐 ' + info.daysAgo + ' 天前更新</span>';
+    } else {
+      chips += '<span class="freshness-chip freshness-stale">🕐 ' + info.daysAgo + ' 天前更新</span>';
+    }
+
+    return '<div class="analytics-data-freshness">' + chips + '</div>';
+  }
 
   /**
    * 渲染照护统计卡片（进度条 + 百分比）

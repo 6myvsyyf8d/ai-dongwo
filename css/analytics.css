@@ -431,6 +431,40 @@
   transition: width 0.3s ease;
 }
 
+/* 情绪数据新鲜度标记 */
+.analytics-data-freshness {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.freshness-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-2xs);
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--color-text-secondary);
+}
+.freshness-fresh {
+  background: rgba(52, 199, 89, 0.10);
+  border-color: rgba(52, 199, 89, 0.22);
+  color: #34C759;
+}
+.freshness-warning {
+  background: rgba(253, 203, 110, 0.10);
+  border-color: rgba(253, 203, 110, 0.22);
+  color: #FDCB6E;
+}
+.freshness-stale {
+  background: rgba(212, 135, 123, 0.10);
+  border-color: rgba(212, 135, 123, 0.22);
+  color: #D4877B;
+}
+
 /* 趋势行 */
 .analytics-trend-row {
   display: flex;
