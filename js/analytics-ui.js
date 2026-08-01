@@ -59,20 +59,29 @@ window.AnalyticsUI = (function () {
     // 用药状态卡片
     var medHtml = '';
     if (summary.medicationStatus && summary.medicationStatus.hasMedication) {
+      // 按优先级判断：拒绝 > 已服 > 有记录
+      var hasRefused = false, hasTaken = false, hasRecorded = false;
+      for (var mi = 0; mi < summary.medicationStatus.details.length; mi++) {
+        var s = summary.medicationStatus.details[mi].status;
+        if (s === 'refused') hasRefused = true;
+        else if (s === 'taken') hasTaken = true;
+        else if (s === 'recorded') hasRecorded = true;
+      }
       var medStatusClass = 'health-med-normal';
       var medIcon = '💊';
       var medText = '有用药记录';
-      for (var mi = 0; mi < summary.medicationStatus.details.length; mi++) {
-        var d = summary.medicationStatus.details[mi];
-        if (d.status === 'taken') {
-          medStatusClass = 'health-med-ok';
-          medIcon = '✅';
-          medText = '已按时服药';
-        } else if (d.status === 'refused') {
-          medStatusClass = 'health-med-warn';
-          medIcon = '⚠️';
-          medText = '拒绝服药';
-        }
+      if (hasRefused) {
+        medStatusClass = 'health-med-warn';
+        medIcon = '⚠️';
+        medText = '拒绝服药';
+      } else if (hasTaken) {
+        medStatusClass = 'health-med-ok';
+        medIcon = '✅';
+        medText = '已按时服药';
+      } else if (hasRecorded) {
+        medStatusClass = 'health-med-normal';
+        medIcon = '💊';
+        medText = '有用药记录';
       }
       medHtml = '<div class="health-med-card ' + medStatusClass + '">' +
         '<span class="health-med-icon">' + medIcon + '</span>' +
