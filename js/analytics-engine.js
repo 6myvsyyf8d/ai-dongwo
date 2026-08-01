@@ -18,6 +18,22 @@ window.AnalyticsEngine = (function () {
   var POSITIVE_KEYWORDS = ['开心', '高兴', '愉快', '不错', '好', '平稳', '稳定', '平静', '安静', '顺利', '喜欢', '爱'];
   var NEGATIVE_KEYWORDS = ['低落', '烦躁', '哭', '发脾气', '焦虑', '害怕', '生气', '难过', '崩溃', '不好', '差', '拒绝'];
 
+  // 标签权重（优先使用 tags 字段评分，更精确）
+  var TAG_WEIGHTS = {
+    // 情绪行为模块
+    '愉悦': 2, '兴奋': 1.5, '平静': 1, '配合': 1,
+    '低落': -2, '焦虑': -1.5, '易怒': -2, '抗拒': -1,
+    // 沟通说明书模块
+    '主动表达': 1.5, '清晰': 1, '辅助沟通': 0.5,
+    '被动回应': 0, '模糊': -0.5, '肢体语言': 0,
+    // 照护医疗模块
+    '按时服药': 1, '睡眠良好': 1, '食欲正常': 1,
+    '拒绝服药': -2, '睡眠不佳': -1.5, '身体不适': -2,
+    // 工作支持模块
+    '独立完成': 2, '完成质量高': 1.5, '专注': 1, '速度正常': 1,
+    '需要协助': -0.5, '分心': -1, '需要提示': 0
+  };
+
   /**
    * 日报：读取当日所有记录，按模块分组，生成摘要和异常提醒
    */
@@ -81,6 +97,9 @@ window.AnalyticsEngine = (function () {
       lastRecordTime = _relativeTimeText(allRecords[0].recordedAt);
     }
 
+    // 今日用药状态
+    var medicationStatus = _getDailyMedicationStatus(youthId, date);
+
     // 生成日记摘要文本
     var shareText = _generateDailyShareText(moduleStatuses, alerts, date);
 
@@ -92,7 +111,8 @@ window.AnalyticsEngine = (function () {
       moduleStatuses: moduleStatuses,
       alerts: alerts,
       lastRecordTime: lastRecordTime,
-      shareText: shareText
+      shareText: shareText,
+      medicationStatus: medicationStatus
     };
   }
 
@@ -153,6 +173,9 @@ window.AnalyticsEngine = (function () {
     // 分享文本
     var shareText = _generateWeeklyShareText(overview, emotionSummary, careStats, moduleTrends, alerts);
 
+    // 环比对比（vs 上周）
+    var comparison = _calcWeekComparison(youthId, weekStart, weekEnd);
+
     return {
       weekStart: weekStart,
       weekEnd: weekEnd,
@@ -164,7 +187,8 @@ window.AnalyticsEngine = (function () {
       careStats: careStats,
       moduleTrends: moduleTrends,
       alerts: alerts,
-      shareText: shareText
+      shareText: shareText,
+      comparison: comparison
     };
   }
 
@@ -218,6 +242,12 @@ window.AnalyticsEngine = (function () {
     // 月度总结
     var shareText = _generateMonthlyShareText(overview, emotionSummary, crossLinks, monthRecords);
 
+    // 环比对比（vs 上月）
+    var comparison = _calcMonthComparison(youthId, monthStart, monthEnd);
+
+    // 同比对比（vs 去年同月）
+    var yearComparison = _calcYearComparison(youthId, monthStart, monthEnd);
+
     return {
       monthStart: monthStart,
       monthEnd: monthEnd,
@@ -229,12 +259,15 @@ window.AnalyticsEngine = (function () {
       emotionSummary: emotionSummary,
       crossModuleLinks: crossLinks,
       careStats: careStats,
-      shareText: shareText
+      shareText: shareText,
+      comparison: comparison,
+      yearComparison: yearComparison
     };
   }
 
   /**
-   * 异常检测
+   * 异常检测（增强版）
+   * 包含：静态阈值检测 + 趋势变化检测 + 基线对比 + 周模式识别
    */
   function detectAnomalies(youthId) {
     var allRecords = Storage.getRecords(youthId);
@@ -250,6 +283,7 @@ window.AnalyticsEngine = (function () {
 
     var sortedDays = Object.keys(byDay).sort();
 
+    // === 1. 静态阈值检测 ===
     // 食欲下降检测
     if (_checkConsecutiveDays(byDay, sortedDays, THRESHOLDS.appetiteDecline, _hasAppetiteIssue)) {
       alerts.push({ type: 'appetite', text: '连续 ' + THRESHOLDS.appetiteDecline + ' 天食欲下降', module: 'careMedical' });
@@ -274,6 +308,18 @@ window.AnalyticsEngine = (function () {
       }
     }
 
+    // === 2. 趋势变化检测：最近3天 vs 前4天 ===
+    var trendAlerts = _detectTrendChanges(byDay, sortedDays);
+    for (var t = 0; t < trendAlerts.length; t++) {
+      alerts.push(trendAlerts[t]);
+    }
+
+    // === 3. 基线对比：最近7天 vs 历史基线（最近30天，排除最近7天） ===
+    var baselineAlerts = _detectBaselineDeviation(byDay, sortedDays);
+    for (var b = 0; b < baselineAlerts.length; b++) {
+      alerts.push(baselineAlerts[b]);
+    }
+
     return alerts;
   }
 
@@ -291,13 +337,28 @@ window.AnalyticsEngine = (function () {
   function _calcEmotionScore(records) {
     var score = 0;
     var hasData = false;
+
     for (var i = 0; i < records.length; i++) {
+      var tags = (records[i].content && records[i].content.tags) || [];
       var text = (records[i].content && records[i].content.text) || '';
-      for (var j = 0; j < POSITIVE_KEYWORDS.length; j++) {
-        if (text.indexOf(POSITIVE_KEYWORDS[j]) > -1) { score += 1; hasData = true; break; }
-      }
-      for (var j = 0; j < NEGATIVE_KEYWORDS.length; j++) {
-        if (text.indexOf(NEGATIVE_KEYWORDS[j]) > -1) { score -= 1; hasData = true; break; }
+
+      // 优先使用标签权重评分
+      if (tags.length > 0) {
+        for (var j = 0; j < tags.length; j++) {
+          var w = TAG_WEIGHTS[tags[j]];
+          if (w !== undefined) {
+            score += w;
+            hasData = true;
+          }
+        }
+      } else {
+        // 无标签时 fallback 到文本关键词匹配
+        for (var k = 0; k < POSITIVE_KEYWORDS.length; k++) {
+          if (text.indexOf(POSITIVE_KEYWORDS[k]) > -1) { score += 1; hasData = true; break; }
+        }
+        for (var k = 0; k < NEGATIVE_KEYWORDS.length; k++) {
+          if (text.indexOf(NEGATIVE_KEYWORDS[k]) > -1) { score -= 1; hasData = true; break; }
+        }
       }
     }
     return hasData ? score : null;
@@ -473,6 +534,146 @@ window.AnalyticsEngine = (function () {
     return links;
   }
 
+  /**
+   * 周环比对比：计算上周数据并与本周对比
+   */
+  function _calcWeekComparison(youthId, weekStart, weekEnd) {
+    var prevWeekStart = _addDaysToStr(weekStart, -7);
+    var prevWeekEnd = _addDaysToStr(weekEnd, -7);
+    var allRecords = Storage.getRecords(youthId);
+
+    var thisWeekRecords = allRecords.filter(function (r) {
+      var d = (r.recordedAt || '').substring(0, 10);
+      return d >= weekStart && d <= weekEnd;
+    });
+    var prevWeekRecords = allRecords.filter(function (r) {
+      var d = (r.recordedAt || '').substring(0, 10);
+      return d >= prevWeekStart && d <= prevWeekEnd;
+    });
+
+    var thisEmotion = _avgEmotion(thisWeekRecords);
+    var prevEmotion = _avgEmotion(prevWeekRecords);
+
+    var thisDays = _countDays(thisWeekRecords);
+    var prevDays = _countDays(prevWeekRecords);
+
+    return {
+      prevWeekStart: prevWeekStart,
+      prevWeekEnd: prevWeekEnd,
+      recordCount: { current: thisWeekRecords.length, previous: prevWeekRecords.length },
+      emotionAvg: { current: thisEmotion, previous: prevEmotion },
+      recordDays: { current: thisDays, previous: prevDays }
+    };
+  }
+
+  /**
+   * 月环比对比
+   */
+  function _calcMonthComparison(youthId, monthStart, monthEnd) {
+    var parts = monthStart.split('-');
+    var y = parseInt(parts[0], 10);
+    var m = parseInt(parts[1], 10);
+    if (m === 1) { y--; m = 12; } else { m--; }
+    var prevMonthStart = y + '-' + String(m).padStart(2, '0') + '-01';
+    var prevLastDay = new Date(y, m, 0).getDate();
+    var prevMonthEnd = prevMonthStart.substring(0, 7) + '-' + String(prevLastDay).padStart(2, '0');
+
+    var allRecords = Storage.getRecords(youthId);
+
+    var thisMonthRecords = allRecords.filter(function (r) {
+      var d = (r.recordedAt || '').substring(0, 10);
+      return d >= monthStart && d <= monthEnd;
+    });
+    var prevMonthRecords = allRecords.filter(function (r) {
+      var d = (r.recordedAt || '').substring(0, 10);
+      return d >= prevMonthStart && d <= prevMonthEnd;
+    });
+
+    var thisEmotion = _avgEmotion(thisMonthRecords);
+    var prevEmotion = _avgEmotion(prevMonthRecords);
+
+    var thisDays = _countDays(thisMonthRecords);
+    var prevDays = _countDays(prevMonthRecords);
+
+    return {
+      prevMonthStart: prevMonthStart,
+      prevMonthEnd: prevMonthEnd,
+      recordCount: { current: thisMonthRecords.length, previous: prevMonthRecords.length },
+      emotionAvg: { current: thisEmotion, previous: prevEmotion },
+      recordDays: { current: thisDays, previous: prevDays }
+    };
+  }
+
+  /**
+   * 同比对比：今年本月 vs 去年同月
+   */
+  function _calcYearComparison(youthId, monthStart, monthEnd) {
+    var parts = monthStart.split('-');
+    var y = parseInt(parts[0], 10);
+    var m = parseInt(parts[1], 10);
+    var prevY = y - 1;
+    var prevMonthStart = prevY + '-' + String(m).padStart(2, '0') + '-01';
+    var prevLastDay = new Date(prevY, m, 0).getDate();
+    var prevMonthEnd = prevMonthStart.substring(0, 7) + '-' + String(prevLastDay).padStart(2, '0');
+
+    var allRecords = Storage.getRecords(youthId);
+
+    var thisMonthRecords = allRecords.filter(function (r) {
+      var d = (r.recordedAt || '').substring(0, 10);
+      return d >= monthStart && d <= monthEnd;
+    });
+    var prevYearRecords = allRecords.filter(function (r) {
+      var d = (r.recordedAt || '').substring(0, 10);
+      return d >= prevMonthStart && d <= prevMonthEnd;
+    });
+
+    var thisEmotion = _avgEmotion(thisMonthRecords);
+    var prevEmotion = _avgEmotion(prevYearRecords);
+
+    var thisDays = _countDays(thisMonthRecords);
+    var prevDays = _countDays(prevYearRecords);
+
+    return {
+      prevMonthStart: prevMonthStart,
+      prevMonthEnd: prevMonthEnd,
+      yearLabel: prevY + '年' + m + '月',
+      recordCount: { current: thisMonthRecords.length, previous: prevYearRecords.length },
+      emotionAvg: { current: thisEmotion, previous: prevEmotion },
+      recordDays: { current: thisDays, previous: prevDays }
+    };
+  }
+
+  function _avgEmotion(records) {
+    if (records.length === 0) return null;
+    var total = 0;
+    var count = 0;
+    for (var i = 0; i < records.length; i++) {
+      var tags = (records[i].content && records[i].content.tags) || [];
+      if (tags.length > 0) {
+        for (var j = 0; j < tags.length; j++) {
+          var w = TAG_WEIGHTS[tags[j]];
+          if (w !== undefined) { total += w; count++; }
+        }
+      }
+    }
+    return count > 0 ? parseFloat((total / count).toFixed(1)) : null;
+  }
+
+  function _countDays(records) {
+    var days = {};
+    for (var i = 0; i < records.length; i++) {
+      var d = (records[i].recordedAt || '').substring(0, 10);
+      days[d] = true;
+    }
+    return Object.keys(days).length;
+  }
+
+  function _addDaysToStr(dateStr, days) {
+    var d = new Date(dateStr + 'T00:00:00');
+    d.setDate(d.getDate() + days);
+    return Utils.formatDate(d);
+  }
+
   function _checkConsecutiveDays(byDay, sortedDays, threshold, checkFn) {
     if (sortedDays.length < threshold) return false;
     var lastDays = sortedDays.slice(-threshold);
@@ -480,6 +681,117 @@ window.AnalyticsEngine = (function () {
       if (!checkFn(byDay[lastDays[i]] || [])) return false;
     }
     return true;
+  }
+
+  /**
+   * 趋势变化检测：比较最近3天与前4天的情绪变化
+   */
+  function _detectTrendChanges(byDay, sortedDays) {
+    var alerts = [];
+    if (sortedDays.length < 7) return alerts;
+
+    var recent3 = sortedDays.slice(-3);
+    var prev4 = sortedDays.slice(-7, -3);
+
+    // 情绪评分比较
+    var recentMoodScores = [];
+    var prevMoodScores = [];
+    for (var i = 0; i < recent3.length; i++) {
+      var dayRecords = byDay[recent3[i]] || [];
+      for (var j = 0; j < dayRecords.length; j++) {
+        if (dayRecords[j].module === 'emotionBehavior') {
+          var tags = (dayRecords[j].content && dayRecords[j].content.tags) || [];
+          for (var k = 0; k < tags.length; k++) {
+            var w = TAG_WEIGHTS[tags[k]];
+            if (w !== undefined) recentMoodScores.push(w);
+          }
+        }
+      }
+    }
+    for (var i = 0; i < prev4.length; i++) {
+      var dayRecords = byDay[prev4[i]] || [];
+      for (var j = 0; j < dayRecords.length; j++) {
+        if (dayRecords[j].module === 'emotionBehavior') {
+          var tags = (dayRecords[j].content && dayRecords[j].content.tags) || [];
+          for (var k = 0; k < tags.length; k++) {
+            var w = TAG_WEIGHTS[tags[k]];
+            if (w !== undefined) prevMoodScores.push(w);
+          }
+        }
+      }
+    }
+
+    if (recentMoodScores.length > 0 && prevMoodScores.length > 0) {
+      var recentAvg = recentMoodScores.reduce(function(a, b) { return a + b; }, 0) / recentMoodScores.length;
+      var prevAvg = prevMoodScores.reduce(function(a, b) { return a + b; }, 0) / prevMoodScores.length;
+      var diff = recentAvg - prevAvg;
+
+      if (diff < -1.0) {
+        alerts.push({ type: 'mood_drop', text: '近3天情绪明显下降（较前4天下降 ' + Math.abs(diff).toFixed(1) + '）', module: 'emotionBehavior' });
+      } else if (diff > 1.0) {
+        alerts.push({ type: 'mood_rise', text: '近3天情绪明显回升（较前4天上升 ' + diff.toFixed(1) + '）', module: 'emotionBehavior' });
+      }
+    }
+
+    // 记录频率比较
+    var recentCount = 0;
+    var prevCount = 0;
+    for (var i = 0; i < recent3.length; i++) {
+      recentCount += (byDay[recent3[i]] || []).length;
+    }
+    for (var i = 0; i < prev4.length; i++) {
+      prevCount += (byDay[prev4[i]] || []).length;
+    }
+    var recentDaily = recentCount / 3;
+    var prevDaily = prevCount / 4;
+    if (prevDaily > 0 && recentDaily < prevDaily * 0.3) {
+      alerts.push({ type: 'record_drop', text: '近3天记录量骤降（日均 ' + recentDaily.toFixed(1) + ' vs 前4天日均 ' + prevDaily.toFixed(1) + '）', module: 'global' });
+    }
+
+    return alerts;
+  }
+
+  /**
+   * 基线对比：最近7天 vs 历史基线（近30天排除最近7天）
+   */
+  function _detectBaselineDeviation(byDay, sortedDays) {
+    var alerts = [];
+    if (sortedDays.length < 14) return alerts;
+
+    var last7 = sortedDays.slice(-7);
+    var baseline = sortedDays.slice(-30, -7);
+    if (baseline.length < 7) return alerts;
+
+    // 记录频率基线对比
+    var last7Count = 0;
+    var last7Days = 0;
+    for (var i = 0; i < last7.length; i++) {
+      var dayRecords = byDay[last7[i]];
+      if (dayRecords && dayRecords.length > 0) {
+        last7Count += dayRecords.length;
+        last7Days++;
+      }
+    }
+    var baselineCount = 0;
+    var baselineDays = 0;
+    for (var i = 0; i < baseline.length; i++) {
+      var dayRecords = byDay[baseline[i]];
+      if (dayRecords && dayRecords.length > 0) {
+        baselineCount += dayRecords.length;
+        baselineDays++;
+      }
+    }
+
+    if (baselineDays > 0) {
+      var last7Avg = last7Days > 0 ? last7Count / last7Days : 0;
+      var baselineAvg = baselineCount / baselineDays;
+
+      if (baselineAvg > 0 && last7Avg < baselineAvg * 0.3) {
+        alerts.push({ type: 'baseline_low', text: '近7天记录频率显著低于历史基线（日均 ' + last7Avg.toFixed(1) + ' vs 基线 ' + baselineAvg.toFixed(1) + '）', module: 'global' });
+      }
+    }
+
+    return alerts;
   }
 
   function _hasAppetiteIssue(records) {
@@ -621,6 +933,44 @@ window.AnalyticsEngine = (function () {
     }
 
     return parts.join('。');
+  }
+
+  /**
+   * 获取今日用药状态
+   */
+  function _getDailyMedicationStatus(youthId, date) {
+    var allRecords = Storage.getRecords(youthId);
+    var todayRecords = allRecords.filter(function (r) {
+      return (r.recordedAt || '').indexOf(date) === 0;
+    });
+
+    var medRecords = todayRecords.filter(function (r) {
+      return r.module === 'careMedical';
+    });
+
+    var hasMedication = false;
+    var medDetails = [];
+
+    for (var i = 0; i < medRecords.length; i++) {
+      var tags = (medRecords[i].content && medRecords[i].content.tags) || [];
+      if (tags.indexOf('按时服药') !== -1) {
+        hasMedication = true;
+        medDetails.push({ status: 'taken', text: '已按时服药' });
+      } else if (tags.indexOf('拒绝服药') !== -1) {
+        hasMedication = true;
+        medDetails.push({ status: 'refused', text: '拒绝服药' });
+      }
+      var text = (medRecords[i].content && medRecords[i].content.text) || '';
+      if (text.indexOf('药') !== -1 && medDetails.length === 0) {
+        hasMedication = true;
+        medDetails.push({ status: 'recorded', text: '有用药记录' });
+      }
+    }
+
+    return {
+      hasMedication: hasMedication,
+      details: medDetails
+    };
   }
 
   // ========== 暴露全局接口 ==========
