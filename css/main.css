@@ -3435,4 +3435,31 @@ ul, ol { list-style: none; }
 .medication-card { border-left: 3px solid var(--color-primary); }
 .medication-item { padding: 6px 0; font-size: var(--font-size-sm); color: var(--color-text-primary); }
 
+/* 今日亮点卡片（正向引导） */
+.highlight-card { border-left: 3px solid var(--color-success); }
+.highlight-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.highlight-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-lg);
+  background: rgba(52, 199, 89, 0.08);
+  border: 1px solid rgba(52, 199, 89, 0.18);
+  font-size: var(--font-size-sm);
+}
+.highlight-icon { font-size: 16px; line-height: 1; }
+.highlight-text { color: var(--color-text-primary); font-weight: var(--font-weight-medium); }
+.highlight-encouragement {
+  font-size: var(--font-size-sm);
+  color: var(--color-text-secondary);
+  padding-top: 8px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+}
+
 

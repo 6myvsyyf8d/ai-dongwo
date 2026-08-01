@@ -311,6 +311,23 @@ window.AnalyticsUI = (function () {
       '<button class="analytics-date-btn" id="btn-date-next" ' + (_isToday(_currentDate) ? 'disabled' : '') + '>▶</button>' +
     '</div>';
 
+    // 今日亮点（正向引导，置顶）
+    if (summary.highlights && summary.highlights.count > 0) {
+      var hl = summary.highlights;
+      html += '<div class="analytics-card highlight-card">' +
+        '<div class="analytics-card-title">✨ 今日亮点</div>' +
+        '<div class="highlight-items">';
+      for (var hi = 0; hi < hl.highlights.length; hi++) {
+        html += '<div class="highlight-item">' +
+          '<span class="highlight-icon">' + hl.highlights[hi].icon + '</span>' +
+          '<span class="highlight-text">' + Utils.escapeHtml(hl.highlights[hi].text) + '</span>' +
+        '</div>';
+      }
+      html += '</div>' +
+        '<div class="highlight-encouragement">' + Utils.escapeHtml(hl.encouragement) + '</div>' +
+      '</div>';
+    }
+
     // 概览
     html += '<div class="analytics-card">' +
       '<div class="analytics-card-title">📋 今日摘要</div>';

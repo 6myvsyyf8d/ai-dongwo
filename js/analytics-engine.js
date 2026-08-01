@@ -100,6 +100,9 @@ window.AnalyticsEngine = (function () {
     // 今日用药状态
     var medicationStatus = _getDailyMedicationStatus(youthId, date);
 
+    // 今日亮点（正向引导）
+    var highlights = _getDailyHighlights(todayRecords);
+
     // 生成日记摘要文本
     var shareText = _generateDailyShareText(moduleStatuses, alerts, date);
 
@@ -112,7 +115,8 @@ window.AnalyticsEngine = (function () {
       alerts: alerts,
       lastRecordTime: lastRecordTime,
       shareText: shareText,
-      medicationStatus: medicationStatus
+      medicationStatus: medicationStatus,
+      highlights: highlights
     };
   }
 
@@ -970,6 +974,96 @@ window.AnalyticsEngine = (function () {
     return {
       hasMedication: hasMedication,
       details: medDetails
+    };
+  }
+
+  /**
+   * 获取今日亮点（正向引导）
+   * 扫描当日记录中的正向标签，按模块聚合为亮点条目
+   */
+  var HIGHLIGHT_RULES = {
+    emotionBehavior: {
+      icon: '😊',
+      tags: {
+        '愉悦': '情绪愉悦',
+        '兴奋': '情绪积极兴奋',
+        '平静': '情绪平静稳定',
+        '配合': '配合度高'
+      }
+    },
+    communicationGuide: {
+      icon: '💬',
+      tags: {
+        '主动表达': '主动表达',
+        '清晰': '表达清晰'
+      }
+    },
+    careMedical: {
+      icon: '💊',
+      tags: {
+        '按时服药': '按时服药',
+        '睡眠良好': '睡眠良好',
+        '食欲正常': '食欲正常'
+      }
+    },
+    workSupport: {
+      icon: '💼',
+      tags: {
+        '独立完成': '独立完成任务',
+        '完成质量高': '工作完成质量高',
+        '专注': '工作专注',
+        '速度正常': '工作速度正常'
+      }
+    }
+  };
+
+  function _getDailyHighlights(todayRecords) {
+    var moduleHits = {};
+    var moduleLabels = {
+      emotionBehavior: '情绪行为',
+      communicationGuide: '沟通表达',
+      careMedical: '照护医疗',
+      workSupport: '工作生活'
+    };
+
+    for (var i = 0; i < todayRecords.length; i++) {
+      var r = todayRecords[i];
+      var rule = HIGHLIGHT_RULES[r.module];
+      if (!rule) continue;
+      var tags = (r.content && r.content.tags) || [];
+      for (var j = 0; j < tags.length; j++) {
+        var label = rule.tags[tags[j]];
+        if (!label) continue;
+        if (!moduleHits[r.module]) moduleHits[r.module] = { icon: rule.icon, labels: [] };
+        if (moduleHits[r.module].labels.indexOf(label) === -1) {
+          moduleHits[r.module].labels.push(label);
+        }
+      }
+    }
+
+    var highlights = [];
+    var moduleOrder = ['emotionBehavior', 'communicationGuide', 'careMedical', 'workSupport'];
+    for (var k = 0; k < moduleOrder.length; k++) {
+      var key = moduleOrder[k];
+      if (moduleHits[key]) {
+        highlights.push({
+          icon: moduleHits[key].icon,
+          text: moduleHits[key].labels.join('、'),
+          category: key
+        });
+      }
+    }
+
+    var count = highlights.length;
+    var encouragement = '';
+    if (count === 1) encouragement = '继续保持，每天一点小进步';
+    else if (count === 2) encouragement = '今天有多项亮点，表现稳定';
+    else if (count >= 3) encouragement = '今天亮点满满，值得记录的一天';
+
+    return {
+      highlights: highlights,
+      encouragement: encouragement,
+      count: count
     };
   }
 
