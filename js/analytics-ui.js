@@ -8,6 +8,29 @@ window.AnalyticsUI = (function () {
 
   var _currentTab = 'daily';
   var _chartInstances = {};
+
+  // Chart.js 自定义插件：绘制 y=0 参考线
+  var _zeroLinePlugin = {
+    id: 'zeroLine',
+    afterDraw: function (chart) {
+      var ctx = chart.ctx;
+      var yScale = chart.scales['y'];
+      if (!yScale) return;
+      var zeroY = yScale.getPixelForValue(0);
+      if (zeroY < yScale.top || zeroY > yScale.bottom) return;
+
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(chart.chartArea.left, zeroY);
+      ctx.lineTo(chart.chartArea.right, zeroY);
+      ctx.strokeStyle = 'rgba(255,255,255,0.15)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([6, 4]);
+      ctx.stroke();
+      ctx.restore();
+    }
+  };
+
   var _currentDate = '';       // 日报/周报/月报的当前日期
   var _currentWeekStart = '';  // 周报起始日期
   var _currentMonthStart = ''; // 月报起始日期
@@ -692,7 +715,8 @@ window.AnalyticsUI = (function () {
             }
           }
         }
-      }
+      },
+      plugins: [_zeroLinePlugin]
     });
   }
 
@@ -752,7 +776,8 @@ window.AnalyticsUI = (function () {
             borderWidth: 1
           }
         }
-      }
+      },
+      plugins: [_zeroLinePlugin]
     });
   }
 
