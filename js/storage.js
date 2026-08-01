@@ -1121,6 +1121,136 @@ window.Storage = (function () {
     return migrated;
   }
 
+  // ==================== 规律任务引擎 ====================
+
+  /**
+   * 判断 routine 模板在指定日期是否应该生成实例
+   * @param {object} template - 任务模板
+   * @param {string} date - YYYY-MM-DD
+   * @param {number} dayOfWeek - 0=周日, 1=周一...6=周六
+   */
+  function _shouldGenerateOnDate(template, date, dayOfWeek) {
+    var recurrence = template.recurrence;
+    if (!recurrence || !recurrence.pattern) return false;
+
+    if (recurrence.pattern === 'daily') return true;
+    if (recurrence.pattern === 'weekly') {
+      // weekly: 默认周一生成；若指定 daysOfWeek 则按其判断
+      if (recurrence.daysOfWeek && recurrence.daysOfWeek.length > 0) {
+        return recurrence.daysOfWeek.indexOf(dayOfWeek) > -1;
+      }
+      return dayOfWeek === 1;
+    }
+    if (recurrence.pattern === 'custom') {
+      if (recurrence.daysOfWeek && recurrence.daysOfWeek.length > 0) {
+        return recurrence.daysOfWeek.indexOf(dayOfWeek) > -1;
+      }
+      return false;
+    }
+    return false;
+  }
+
+  /**
+   * 为指定心青年在指定日期生成规律任务实例
+   * @param {string} youthId
+   * @param {string} date - YYYY-MM-DD，默认今天
+   * @returns {number} 生成的实例数
+   */
+  function generateDailyTaskInstances(youthId, date) {
+    date = date || Utils.formatDate(new Date());
+    var tasks = getTasks(youthId);
+    var templates = tasks.filter(function (t) {
+      return t.taskType === 'routine' && !t.parentTaskId && !t.isInstance;
+    });
+
+    if (templates.length === 0) return 0;
+
+    var dayOfWeek = new Date(date + 'T00:00:00').getDay();
+    var generated = 0;
+
+    for (var i = 0; i < templates.length; i++) {
+      var tpl = templates[i];
+      if (!_shouldGenerateOnDate(tpl, date, dayOfWeek)) continue;
+
+      // 检查是否已生成过当天实例
+      var exists = false;
+      for (var j = 0; j < tasks.length; j++) {
+        if (tasks[j].parentTaskId === tpl.id && tasks[j].instanceDate === date) {
+          exists = true;
+          break;
+        }
+      }
+      if (exists) continue;
+
+      var instance = {
+        id: Utils.generateUUID(),
+        parentTaskId: tpl.id,
+        youthId: youthId,
+        taskType: 'routine',
+        assigneeId: tpl.assigneeId,
+        assigneeRole: tpl.assigneeRole || 'youth',
+        content: tpl.content,
+        category: tpl.category || 'other',
+        status: 'todo',
+        dueTime: (tpl.recurrence && tpl.recurrence.timeOfDay) || tpl.dueTime || null,
+        instanceDate: date,
+        isInstance: true,
+        createdAt: Utils.formatDateTime(),
+        updatedAt: Utils.formatDateTime(),
+        completedAt: null
+      };
+      tasks.push(instance);
+      generated++;
+    }
+
+    if (generated > 0) {
+      var allTasks = get(KEYS.TASKS) || {};
+      allTasks[youthId] = tasks;
+      set(KEYS.TASKS, allTasks);
+    }
+    return generated;
+  }
+
+  /**
+   * 获取指定心青年某天的任务列表
+   * 包含：当天生成的 routine 实例 + 当天到期的 adhoc + 未完成的 handover
+   * @param {string} youthId
+   * @param {string} date - YYYY-MM-DD，默认今天
+   */
+  function getTodayTasks(youthId, date) {
+    date = date || Utils.formatDate(new Date());
+    // 懒生成：确保当天实例已生成
+    generateDailyTaskInstances(youthId, date);
+
+    var tasks = getTasks(youthId);
+    return tasks.filter(function (t) {
+      // routine 实例：匹配 instanceDate
+      if (t.isInstance && t.instanceDate === date) return true;
+      // adhoc 任务：到期日为当天（无论是否完成）
+      if (t.taskType === 'adhoc' && !t.parentTaskId) {
+        var dueDate = (t.dueTime || '').substring(0, 10);
+        return dueDate === date;
+      }
+      // handover 任务：当天创建且未完成
+      if (t.taskType === 'handover' && !t.parentTaskId) {
+        if (t.status === 'done') return false;
+        var createdDate = (t.createdAt || '').substring(0, 10);
+        return createdDate <= date; // 创建于当天或之前、且未完成
+      }
+      return false;
+    });
+  }
+
+  /**
+   * 获取指定心青年的规律任务模板（不含实例）
+   */
+  function getRoutineTemplates(youthId) {
+    var tasks = getTasks(youthId);
+    return tasks.filter(function (t) {
+      return t.taskType === 'routine' && !t.parentTaskId && !t.isInstance;
+    });
+  }
+
   // ==================== VisibilityConfig ====================
 
   function getVisibilityConfig() {
@@ -1210,6 +1340,10 @@ window.Storage = (function () {
     updateTask: updateTask,
     deleteTask: deleteTask,
     migrateHandoverTasks: migrateHandoverTasks,
+    // 规律任务引擎
+    generateDailyTaskInstances: generateDailyTaskInstances,
+    getTodayTasks: getTodayTasks,
+    getRoutineTemplates: getRoutineTemplates,
     // VisibilityConfig
     getVisibilityConfig: getVisibilityConfig,
     saveVisibilityConfig: saveVisibilityConfig,
