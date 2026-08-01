@@ -463,14 +463,7 @@ window.AnalyticsUI = (function () {
 
       // 照护统计
       var cs = report.careStats;
-      html += '<div class="analytics-card">' +
-        '<div class="analytics-card-title">💊 照护统计</div>' +
-        '<div class="analytics-care-grid">' +
-          '<div class="analytics-care-item"><span class="analytics-care-icon">🍽️</span><span class="analytics-care-label">饮食正常</span><span class="analytics-care-value">' + cs.dietNormal + '/' + cs.totalDays + ' 天</span></div>' +
-          '<div class="analytics-care-item"><span class="analytics-care-icon">💤</span><span class="analytics-care-label">睡眠充足</span><span class="analytics-care-value">' + cs.sleepGood + '/' + cs.totalDays + ' 天</span></div>' +
-          '<div class="analytics-care-item"><span class="analytics-care-icon">💊</span><span class="analytics-care-label">用药准时</span><span class="analytics-care-value">' + cs.medOnTime + '/' + cs.totalDays + ' 天</span></div>' +
-        '</div>' +
-      '</div>';
+      html += _renderCareStatsGrid(cs);
 
       // 周活动热力图
       html += _renderWeeklyHeatmap(youth.id, _currentWeekStart, weekEnd);
@@ -636,14 +629,7 @@ window.AnalyticsUI = (function () {
       // 照护统计
       var mcs = report.careStats;
       if (mcs) {
-        html += '<div class="analytics-card">' +
-          '<div class="analytics-card-title">💊 照护统计</div>' +
-          '<div class="analytics-care-grid">' +
-            '<div class="analytics-care-item"><span class="analytics-care-icon">🍽️</span><span class="analytics-care-label">饮食正常</span><span class="analytics-care-value">' + mcs.dietNormal + '/' + mcs.totalDays + ' 天</span></div>' +
-            '<div class="analytics-care-item"><span class="analytics-care-icon">💤</span><span class="analytics-care-label">睡眠充足</span><span class="analytics-care-value">' + mcs.sleepGood + '/' + mcs.totalDays + ' 天</span></div>' +
-            '<div class="analytics-care-item"><span class="analytics-care-icon">💊</span><span class="analytics-care-label">用药准时</span><span class="analytics-care-value">' + mcs.medOnTime + '/' + mcs.totalDays + ' 天</span></div>' +
-          '</div>' +
-        '</div>';
+        html += _renderCareStatsGrid(mcs);
       }
 
       // 月度总结
@@ -1246,6 +1232,41 @@ window.AnalyticsUI = (function () {
   }
 
   // ========== 时间线洞察 ==========
+
+  /**
+   * 渲染照护统计卡片（进度条 + 百分比）
+   * @param {object} careStats - { dietNormal, sleepGood, medOnTime, totalDays }
+   */
+  function _renderCareStatsGrid(careStats) {
+    var total = careStats.totalDays || 1;
+    var items = [
+      { icon: '🍽️', label: '饮食正常', value: careStats.dietNormal },
+      { icon: '💤', label: '睡眠充足', value: careStats.sleepGood },
+      { icon: '💊', label: '用药准时', value: careStats.medOnTime }
+    ];
+
+    var html = '<div class="analytics-card">' +
+      '<div class="analytics-card-title">💊 照护统计</div>' +
+      '<div class="analytics-care-grid">';
+
+    for (var i = 0; i < items.length; i++) {
+      var it = items[i];
+      var pct = Math.round(it.value / total * 100);
+      html += '<div class="analytics-care-item">' +
+        '<div class="analytics-care-header">' +
+          '<span class="analytics-care-icon">' + it.icon + '</span>' +
+          '<span class="analytics-care-label">' + it.label + '</span>' +
+          '<span class="analytics-care-value">' + pct + '% <small>(' + it.value + '/' + total + ')</small></span>' +
+        '</div>' +
+        '<div class="analytics-care-progress">' +
+          '<div class="analytics-care-progress-bar" style="width:' + pct + '%;"></div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    html += '</div></div>';
+    return html;
+  }
 
   /**
    * 渲染环比对比卡片
