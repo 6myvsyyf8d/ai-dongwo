@@ -224,7 +224,7 @@ window.TeacherWorkbench = (function () {
     html += '</svg></div>';
 
     // 最近记录
-    html += '<div style="font-size:11px;color:#6a6888;text-align:center;margin-top:4px;">基于 ' + abilityRecords.length + ' 条成就记录</div>';
+    html += '<div style="font-size:11px;color:rgba(255,255,255,0.60);text-align:center;margin-top:4px;">基于 ' + abilityRecords.length + ' 条成就记录</div>';
 
     return html;
   }

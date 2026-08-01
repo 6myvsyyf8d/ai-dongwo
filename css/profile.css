@@ -658,3 +658,9 @@
   .archive-code-print-card .print-name { font-size: 14px; font-weight: bold; margin-top: 2mm; }
   .archive-code-print-card .print-title { font-size: var(--font-size-2xs); color: #666; margin-top: 1mm; }
 }
+
+/* 账号区块（所有角色统一的 logout 入口） */
+.profile-account-section {
+  margin-top: var(--spacing-xl);
+  padding: 0 var(--spacing-md);
+}

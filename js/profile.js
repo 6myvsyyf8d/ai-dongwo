@@ -354,13 +354,20 @@ window.Profile = (function () {
     var portraitHtml = _generatePortrait(youth);
     var panelsHtml = _renderPortraitPanels(youth);
 
+    // 速读卡按钮：仅对有 quickcard 权限的角色显示
+    var currentUser = AppState.currentUser;
+    var canQuickcard = currentUser && Permissions.canAccessPage(currentUser.role, 'quickcard');
+    var quickcardBtnHtml = canQuickcard
+      ? '<button class="top-bar-btn" id="btn-quickcard" title="速读卡">速读卡</button>'
+      : '';
+
     container.innerHTML =
       '<div class="page-header">' +
-        '<span></span>' +
+        '<button class="btn btn-sm btn-secondary" id="btn-back">← 返回</button>' +
         '<span class="page-title">档案详情</span>' +
         '<div class="top-bar-actions">' +
           (youth.emergencyContacts && youth.emergencyContacts.length > 0 ? '<button class="top-bar-btn" id="btn-emergency" title="紧急联系人">🚨 ' + youth.emergencyContacts.length + '</button>' : '') +
-          '<button class="top-bar-btn" id="btn-quickcard" title="速读卡">速读卡</button>' +
+          quickcardBtnHtml +
         '</div>' +
       '</div>' +
       portraitHtml +
@@ -371,7 +378,38 @@ window.Profile = (function () {
       container.innerHTML += _renderEmergencyDropdown(youth);
     }
 
+    // 账号区块（所有角色统一：头像 + 姓名 + 角色 + 退出登录）
+    var currentUser = AppState.currentUser;
+    if (currentUser) {
+      container.innerHTML += _renderAccountSection(currentUser);
+    }
+
     _bindDetailEvents(youthId);
+  }
+
+  /**
+   * 渲染账号区块（头像 + 姓名 + 角色 + 退出登录）
+   */
+  function _renderAccountSection(user) {
+    var roleLabels = {
+      parent: '家长', teacher: '老师', caregiver: '照护者',
+      youth: '心青年', admin: '管理员', government: '政府'
+    };
+    var roleLabel = roleLabels[user.role] || user.role;
+    var html = '<div class="profile-account-section">' +
+      '<div class="ios-card-group">' +
+        '<div class="ios-card-group-header">👤 账号</div>' +
+        '<div class="ios-card-row-static">' +
+          '<div class="ios-card-row-icon">' + (user.avatar || '👤') + '</div>' +
+          '<div class="ios-card-row-body">' +
+            '<div class="ios-card-row-title">' + Utils.escapeHtml(user.name) + '</div>' +
+            '<div class="ios-card-row-subtitle">' + roleLabel + '</div>' +
+          '</div>' +
+        '</div>' +
+        '<button class="ios-create-row" id="btn-logout" style="color: var(--color-danger);">退出登录</button>' +
+      '</div>' +
+    '</div>';
+    return html;
   }
 
   /**
@@ -431,7 +469,7 @@ window.Profile = (function () {
 
     // 节点坐标定义
     var nodeDefs = [
-      { key: 'communication', left: 25, top: 22, has: commMethods.length > 0, lineColor: 'rgba(120,170,230,0.25)', glowColor: 'rgba(120,170,230,0.35)' },
+      { key: 'communication', left: 25, top: 22, has: commMethods.length > 0, lineColor: 'rgba(94,106,210,0.25)', glowColor: 'rgba(94,106,210,0.35)' },
       { key: 'emotion', left: 75, top: 22, has: triggers.length > 0, lineColor: 'rgba(170,140,220,0.25)', glowColor: 'rgba(170,140,220,0.35)' },
       { key: 'caution', left: 25, top: 48, has: highRisks.length > 0, lineColor: 'rgba(245,180,100,0.25)', glowColor: 'rgba(245,180,100,0.35)' },
       { key: 'work', left: 75, top: 48, has: workPrefs.length > 0, lineColor: 'rgba(130,200,150,0.25)', glowColor: 'rgba(130,200,150,0.35)' },
@@ -469,9 +507,9 @@ window.Profile = (function () {
     // 节点光晕 + 可点击节点渲染
     var nodesHtml = '';
     var nodeConfigs = [
-      { key: 'communication', left: 25, top: 22, color: '#78aae6', glowColor: 'rgba(120,170,230,0.35)', label: '沟通方式',
+      { key: 'communication', left: 25, top: 22, color: '#5E6AD2', glowColor: 'rgba(94,106,210,0.35)', label: '沟通方式',
         has: commMethods.length > 0, delay: '0s',
-        tags: commMethods.slice(0, 3).map(function (m) { return nodeTag('120,170,230', m.method); }).join('') },
+        tags: commMethods.slice(0, 3).map(function (m) { return nodeTag('94,106,210', m.method); }).join('') },
       { key: 'emotion', left: 75, top: 22, color: '#aa8cdc', glowColor: 'rgba(170,140,220,0.35)', label: '情绪行为',
         has: triggers.length > 0, delay: '0.5s',
         tags: triggers.slice(0, 3).map(function (t) { return nodeTag('170,140,220', t.trigger); }).join('') },
@@ -547,7 +585,7 @@ window.Profile = (function () {
     if (comm) {
       html += '<div class="detail-panel" id="panel-communication">' +
         '<div class="detail-panel-header">' +
-          '<div class="detail-panel-title"><span class="detail-panel-dot" style="background:#78aae6;"></span>沟通说明书</div>' +
+          '<div class="detail-panel-title"><span class="detail-panel-dot" style="background:#5E6AD2;"></span>沟通说明书</div>' +
           '<button class="detail-panel-close" onclick="Profile._closePanel()">✕</button>' +
         '</div>' +
         '<div class="detail-panel-body">';
@@ -555,7 +593,7 @@ window.Profile = (function () {
       if (comm.preferredMethods && comm.preferredMethods.length > 0) {
         html += '<div class="detail-section"><div class="detail-section-label">推荐沟通方式</div><div class="detail-tags">';
         comm.preferredMethods.forEach(function (m) {
-          html += '<span class="detail-tag" style="background:rgba(120,170,230,0.12);border:1px solid rgba(120,170,230,0.2);color:#8ab8e8;">' + Utils.escapeHtml(m.method) + '</span>';
+          html += '<span class="detail-tag" style="background:rgba(94,106,210,0.12);border:1px solid rgba(94,106,210,0.2);color:#5E6AD2;">' + Utils.escapeHtml(m.method) + '</span>';
         });
         html += '</div></div>';
 
@@ -575,7 +613,7 @@ window.Profile = (function () {
       if (comm.specialHabits && comm.specialHabits.length > 0) {
         html += '<div class="detail-section" style="margin-top:12px;"><div class="detail-section-label">特殊习惯</div><div class="detail-tags">';
         comm.specialHabits.forEach(function (h) {
-          html += '<span class="detail-tag" style="background:rgba(120,170,230,0.12);border:1px solid rgba(120,170,230,0.2);color:#8ab8e8;">' + Utils.escapeHtml(h) + '</span>';
+          html += '<span class="detail-tag" style="background:rgba(94,106,210,0.12);border:1px solid rgba(94,106,210,0.2);color:#5E6AD2;">' + Utils.escapeHtml(h) + '</span>';
         });
         html += '</div></div>';
       }
@@ -925,6 +963,14 @@ window.Profile = (function () {
    * 绑定详情页事件
    */
   function _bindDetailEvents(youthId) {
+    // 返回按钮
+    var backBtn = document.getElementById('btn-back');
+    if (backBtn) {
+      backBtn.addEventListener('click', function () {
+        window.location.hash = 'dashboard';
+      });
+    }
+
     var quickcardBtn = document.getElementById('btn-quickcard');
     if (quickcardBtn) {
       quickcardBtn.addEventListener('click', function () {
@@ -953,6 +999,15 @@ window.Profile = (function () {
             e.target !== emergencyBtn) {
           emergencyDropdown.classList.remove('show');
         }
+      });
+    }
+
+    // 退出登录按钮
+    var logoutBtn = document.getElementById('btn-logout');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function () {
+        AppState.logout();
+        window.location.hash = 'login';
       });
     }
   }

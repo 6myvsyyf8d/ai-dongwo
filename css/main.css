@@ -844,6 +844,229 @@ ul, ol { list-style: none; }
   margin-top: var(--spacing-xs);
 }
 
+/* — 任务类型选择器（统一任务表单 · 分组式 + 色彩编码） — */
+.task-type-group {
+  margin-bottom: 16px;
+}
+
+.task-type-group:last-child {
+  margin-bottom: 0;
+}
+
+.task-type-group-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--font-size-2xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
+
+/* 分组左侧短色条：默认靛蓝，交接组紫罗兰 */
+.task-type-group-bar {
+  display: inline-block;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--color-primary);
+  opacity: 0.7;
+}
+
+.task-type-group-bar-handover {
+  background: var(--color-secondary);
+}
+
+.task-type-selector {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+/* 交接任务单选项：全宽展示 */
+.task-type-selector-single {
+  grid-template-columns: 1fr;
+}
+
+/* — 任务类型卡片：横向布局（徽章 + 信息 + 选中指示） — */
+.task-type-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 12px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid var(--color-border-light);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+  overflow: hidden;
+}
+
+.task-type-option::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, var(--type-color, var(--color-primary)) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity var(--transition-fast);
+  pointer-events: none;
+}
+
+.task-type-option:hover {
+  background: var(--color-surface-hover);
+  border-color: var(--color-border);
+  transform: translateY(-1px);
+}
+
+/* — 色彩编码：每种类型独立主色 — */
+.task-type-routine { --type-color: var(--color-primary); }
+.task-type-adhoc { --type-color: var(--color-accent); }
+.task-type-handover { --type-color: var(--color-secondary); }
+
+/* — 图标徽章：圆形彩色背景 — */
+.task-type-badge {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--color-border-light);
+  transition: all var(--transition-fast);
+  position: relative;
+  z-index: 1;
+}
+
+/* — 信息区：标题 + 描述 — */
+.task-type-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  position: relative;
+  z-index: 1;
+}
+
+.task-type-name {
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-primary);
+  letter-spacing: -0.01em;
+  line-height: 1.3;
+}
+
+.task-type-desc {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  line-height: 1.3;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* — 选中指示：右上角 ✓ 圆圈，默认隐藏 — */
+.task-type-check {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: var(--radius-full);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: var(--font-weight-bold);
+  color: var(--color-text-white);
+  background: var(--type-color, var(--color-primary));
+  opacity: 0;
+  transform: scale(0.6);
+  transition: all var(--transition-fast);
+  position: relative;
+  z-index: 1;
+}
+
+/* — 选中态：整卡激活 — */
+.task-type-option.selected {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--type-color, var(--color-primary));
+  box-shadow:
+    inset 0 0 0 1px var(--type-color, var(--color-primary)),
+    0 0 0 1px rgba(94, 106, 210, 0.10),
+    0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.task-type-option.selected::before {
+  opacity: 0.08;
+}
+
+.task-type-option.selected .task-type-badge {
+  background: var(--type-color, var(--color-primary));
+  border-color: var(--type-color, var(--color-primary));
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.15) inset,
+    0 0 16px rgba(94, 106, 210, 0.30);
+  transform: scale(1.05);
+}
+
+.task-type-option.selected .task-type-name {
+  color: var(--type-color, var(--color-primary-light));
+}
+
+.task-type-option.selected .task-type-check {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* — 选中态徽章里的 emoji 微调（白色背景下保持可读） — */
+.task-type-option.selected .task-type-badge {
+  filter: brightness(1.1);
+}
+
+/* — 周日期选择器 — */
+.weekday-selector {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.weekday-chip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--color-border-light);
+  color: var(--color-text-secondary);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  user-select: none;
+  transition: all var(--transition-fast);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.weekday-chip:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text-primary);
+}
+
+.weekday-chip.selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-text-white);
+  box-shadow: 0 0 0 1px rgba(94, 106, 210, 0.5), 0 2px 8px rgba(94, 106, 210, 0.3);
+}
+
 /* — 区块 — */
 .section-title {
   font-size: var(--font-size-sm);
@@ -1505,40 +1728,6 @@ ul, ol { list-style: none; }
   flex-shrink: 0;
 }
 
-/* — 时效提示 — */
-.expiration-alert {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-  padding: var(--spacing-md) var(--spacing-lg);
-  background: rgba(253, 203, 110, 0.06);
-  border: 1px solid rgba(253, 203, 110, 0.2);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-}
-
-.expiration-alert-icon {
-  font-size: 24px;
-  flex-shrink: 0;
-}
-
-.expiration-alert-content {
-  flex: 1;
-  min-width: 0;
-}
-
-.expiration-alert-title {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-}
-
-.expiration-alert-desc {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-  margin-top: 2px;
-}
-
 /* — 档案卡片标签 — */
 .youth-card-tags {
   display: flex;
@@ -1568,372 +1757,207 @@ ul, ol { list-style: none; }
 }
 
 /* ================================================================
-   安全速查卡 — 照护者用
+   Kanban 任务看板 — 三列（待办 / 进行中 / 已完成）
+   手机端纵向堆叠，PC 端三列并排
    ================================================================ */
 
-.safety-card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  margin-bottom: var(--spacing-sm);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  box-shadow: var(--shadow-md);
+.kanban-group {
+  padding: 8px;
 }
 
-.safety-card:hover {
-  border-color: rgba(255,255,255,0.10);
-  box-shadow: var(--shadow-lg);
-  transform: translateY(-1px);
-}
-
-.safety-card:active {
-  transform: scale(0.99);
-}
-
-.safety-card-header {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-md);
-}
-
-.safety-card-avatar {
-  font-size: 24px;
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: var(--color-bg-tertiary);
-  border-radius: var(--radius-full);
-  flex-shrink: 0;
-}
-
-.safety-card-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.safety-card-name {
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-medium);
-}
-
-.safety-card-meta {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-  margin-top: 2px;
-}
-
-.safety-card-arrow {
-  font-size: var(--font-size-sm);
-  color: var(--color-text-tertiary);
-  flex-shrink: 0;
-}
-
-.safety-card-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: var(--spacing-sm);
-  margin-top: var(--spacing-md);
-  padding-top: var(--spacing-md);
-  border-top: 0.5px solid var(--color-border-light);
-}
-
-.safety-card-item {
-  text-align: center;
-  padding: var(--spacing-sm);
-}
-
-.safety-card-item-icon {
-  font-size: 18px;
-  display: block;
-  margin-bottom: 2px;
-}
-
-.safety-card-item-label {
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-tertiary);
-  display: block;
-  margin-bottom: 2px;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
-}
-
-.safety-card-item-value {
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-  display: block;
-  word-break: break-all;
-}
-
-.safety-card-item-warning .safety-card-item-icon { color: var(--color-warning); }
-.safety-card-item-warning .safety-card-item-value { color: var(--color-warning); }
-
-.safety-card-item-danger .safety-card-item-icon { color: var(--color-danger); }
-.safety-card-item-danger .safety-card-item-value { color: var(--color-danger); }
-
-.safety-card-contacts {
-  margin-top: var(--spacing-md);
-  padding-top: var(--spacing-md);
-  border-top: 0.5px solid var(--color-border-light);
-}
-
-.safety-contact-item {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  padding: 6px 0;
-  text-decoration: none;
-  color: inherit;
-  cursor: pointer;
-}
-
-.safety-contact-item + .safety-contact-item {
-  border-top: 0.5px solid var(--color-border-light);
-}
-
-.safety-contact-icon {
-  font-size: 16px;
-  flex-shrink: 0;
-}
-
-.safety-contact-info {
-  flex: 1;
-  min-width: 0;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-}
-
-.safety-contact-name {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-}
-
-.safety-contact-relation {
-  font-size: var(--font-size-xs);
-  color: var(--color-text-tertiary);
-}
-
-.safety-contact-phone {
-  font-size: var(--font-size-sm);
-  color: var(--color-primary);
-  font-weight: var(--font-weight-medium);
-  flex-shrink: 0;
-}
-
-/* ================================================================
-   每日交接任务 — Monday.com 风格 4 列结构化表格
-   ================================================================ */
-
-/* 表头行 */
-/* 表头行 — 与卡片标题合并，无独立背景/分隔线 */
-.handover-table-header {
-  display: grid;
-  grid-template-columns: 1fr 90px 90px 64px;
-  gap: 8px;
-  padding: 2px 14px 10px;
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--color-text-tertiary);
-  letter-spacing: 0.02em;
-}
-
-.handover-table-header .handover-cell-from,
-.handover-table-header .handover-cell-to {
-  overflow: visible;
-  white-space: nowrap;
-}
-
-/* 表体 */
-.handover-table-body {
+.kanban-board {
   display: flex;
   flex-direction: column;
+  gap: 10px;
+  padding: 4px;
 }
 
-/* 数据行 */
-.handover-table-row {
-  display: grid;
-  grid-template-columns: 1fr 90px 90px 64px;
-  gap: 8px;
+.kanban-column {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  padding: 8px;
+}
+
+.kanban-column-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
+  padding: 4px 6px 8px;
   border-bottom: 0.5px solid var(--color-border-light);
-  transition: background 0.15s ease;
+  margin-bottom: 8px;
 }
 
-.handover-table-row:last-child {
-  border-bottom: none;
+.kanban-column-title {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
 }
 
-.handover-table-row:active {
-  background: rgba(255, 255, 255, 0.03);
-}
-
-/* 待处理行：微红底色 */
-.handover-row-pending {
-  background: rgba(255, 69, 58, 0.08) !important;
-}
-
-.handover-row-pending:active {
-  background: rgba(255, 69, 58, 0.14) !important;
-}
-
-/* 已完成行：删除线 + 灰色文字 */
-.handover-row-done .handover-cell-content {
+.kanban-column-count {
+  font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
-  text-decoration: line-through;
-  text-decoration-color: var(--color-text-tertiary);
-  text-decoration-thickness: 1px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-full);
+  padding: 2px 8px;
+  min-width: 20px;
+  text-align: center;
 }
 
-.handover-row-done .handover-actor-name {
+/* 列标题着色：待办=琥珀，进行中=靛蓝，已完成=绿 */
+.kanban-column-todo .kanban-column-title { color: var(--color-warning); }
+.kanban-column-in_progress .kanban-column-title { color: var(--color-primary-light); }
+.kanban-column-done .kanban-column-title { color: var(--color-success); }
+
+.kanban-column-body {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.kanban-empty {
+  font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
+  text-align: center;
+  padding: 16px 8px;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: var(--radius-sm);
+  border: 1px dashed var(--color-border-light);
 }
 
-/* 单元格通用 */
-.handover-cell {
-  min-width: 0;
-  overflow: hidden;
+/* 任务卡片：玻璃态 + 多层阴影 */
+.kanban-card {
+  background: linear-gradient(180deg, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0.02) 100%);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-md);
+  padding: 10px;
+  box-shadow: var(--shadow-xs);
+  transition: transform var(--transition-fast), border-color var(--transition-fast);
 }
 
-/* 任务内容列 */
-.handover-cell-content {
-  font-size: 14px;
+.kanban-card:active {
+  transform: scale(0.98);
+  border-color: var(--color-border);
+}
+
+.kanban-card-done {
+  opacity: 0.6;
+}
+
+/* 多学生合并时的学生名小标签（内容上方） */
+.kanban-card-youth-tag {
+  font-size: var(--font-size-2xs);
+  color: var(--color-primary-light);
+  background: var(--color-primary-surface);
+  border-radius: var(--radius-full);
+  padding: 2px 8px;
+  align-self: flex-start;
+  margin-bottom: 6px;
+}
+
+.kanban-card-content {
+  font-size: var(--font-size-sm);
   color: var(--color-text-primary);
   line-height: 1.4;
   word-break: break-word;
+  margin-bottom: 8px;
   letter-spacing: -0.01em;
 }
 
-.handover-cell-time {
-  margin-top: 3px;
-  font-size: 11px;
+.kanban-card-content-done {
+  text-decoration: line-through;
+  text-decoration-color: var(--color-text-tertiary);
   color: var(--color-text-tertiary);
-  font-weight: 400;
 }
 
-/* 发起人 / 接收人 / 学生列 */
-.handover-cell-from,
-.handover-cell-to,
-.handover-cell-youth {
+/* 负责人行：发起人 → 接收人（核心信息，突出显示） */
+.kanban-card-assignee {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--font-size-sm);
+  margin-bottom: 6px;
+  flex-wrap: wrap;
 }
 
-.handover-actor-icon {
-  font-size: 16px;
-  line-height: 1;
+.kanban-card-from {
+  color: var(--color-text-tertiary);
 }
 
-.handover-actor-name {
-  font-size: 11px;
-  color: var(--color-text-secondary);
-  max-width: 100%;
-  overflow: hidden;
-  text-overflow: ellipsis;
+.kanban-card-arrow {
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-xs);
+}
+
+/* 接收人（负责人）最突出：主文字色 + medium 字重 */
+.kanban-card-to {
+  color: var(--color-text-primary);
+  font-weight: var(--font-weight-medium);
+}
+
+.kanban-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 8px;
+  font-size: var(--font-size-2xs);
+  color: var(--color-text-tertiary);
+  margin-bottom: 8px;
+}
+
+.kanban-card-time {
   white-space: nowrap;
 }
 
-/* 状态列 */
-.handover-cell-status {
-  display: flex;
-  justify-content: flex-end;
-}
-
-/* 状态药丸（Pill） */
-.handover-pill {
+/* 状态切换按钮：根据当前状态着色，点击流转到下一状态 */
+.kanban-status-btn {
+  width: 100%;
   border: none;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
-  padding: 5px 10px;
-  font-size: 11px;
-  font-weight: 600;
+  padding: 6px 10px;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
   line-height: 1;
   letter-spacing: 0.02em;
-  transition: transform 0.15s cubic-bezier(0.25, 0.1, 0.25, 1),
-              filter 0.15s ease;
-  white-space: nowrap;
+  transition: transform var(--transition-fast), filter var(--transition-fast);
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-text-secondary);
 }
 
-.handover-pill:active {
-  transform: scale(0.92);
+.kanban-status-btn:active {
+  transform: scale(0.96);
 }
 
-.handover-pill-pending {
+.kanban-status-btn[data-status="todo"] {
   background: rgba(253, 203, 110, 0.15);
   color: var(--color-warning);
   border: 0.5px solid rgba(253, 203, 110, 0.30);
 }
 
-.handover-pill-pending:hover {
-  background: rgba(253, 203, 110, 0.25);
+.kanban-status-btn[data-status="in_progress"] {
+  background: rgba(94, 106, 210, 0.15);
+  color: var(--color-primary-light);
+  border: 0.5px solid rgba(94, 106, 210, 0.30);
 }
 
-.handover-pill-done {
+.kanban-status-btn[data-status="done"] {
   background: rgba(52, 199, 89, 0.12);
   color: var(--color-success);
   border: 0.5px solid rgba(52, 199, 89, 0.25);
 }
 
-.handover-pill-done:hover {
-  background: rgba(52, 199, 89, 0.20);
-}
-
-/* 窄屏：手机端 4 列紧凑布局 */
-@media (max-width: 399px) {
-  .handover-table-header,
-  .handover-table-row {
-    grid-template-columns: 1fr 52px 52px 52px;
+/* PC 端：Kanban 三列并排 */
+@media (min-width: 768px) {
+  .kanban-board {
+    flex-direction: row;
+    gap: 12px;
   }
 
-  .handover-table-header {
-    font-size: 10px;
-    padding: 2px 10px 6px;
-  }
-
-  .handover-table-row {
-    padding: 10px 10px;
-  }
-
-  .handover-cell-content {
-    font-size: 13px;
-  }
-
-  .handover-actor-name {
-    font-size: 10px;
-  }
-
-  .handover-pill {
-    padding: 4px 6px;
-    font-size: 10px;
-  }
-}
-
-/* 老师视图：5 列表格（含学生列） */
-.handover-table-teacher .handover-table-header {
-  grid-template-columns: 1fr 52px 80px 80px 56px;
-}
-
-.handover-table-teacher .handover-table-row {
-  grid-template-columns: 1fr 52px 80px 80px 56px;
-}
-
-@media (max-width: 399px) {
-  .handover-table-teacher .handover-table-header {
-    grid-template-columns: 1fr 40px 64px 64px 52px;
-    font-size: 10px;
-    padding: 2px 8px 6px;
-  }
-  .handover-table-teacher .handover-table-row {
-    grid-template-columns: 1fr 40px 64px 64px 52px;
-    padding: 10px 8px;
+  .kanban-column {
+    flex: 1;
+    min-width: 0;
   }
 }
 
@@ -2403,6 +2427,22 @@ ul, ol { list-style: none; }
   background: var(--color-accent, #5E6AD2);
   color: white;
   border-bottom-right-radius: 4px;
+}
+/* AI 正在输入提示 */
+.chat-bubble-typing {
+  opacity: 0.6;
+  font-size: 18px;
+  letter-spacing: 2px;
+  animation: typingPulse 1.2s ease-in-out infinite;
+}
+@keyframes typingPulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.9; }
+}
+/* 发送按钮禁用态 */
+.youth-chat-send:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 .chat-task-card {
   display: flex;
@@ -3434,6 +3474,25 @@ ul, ol { list-style: none; }
 .health-med-text { color: var(--color-text-primary); font-weight: var(--font-weight-medium); }
 .medication-card { border-left: 3px solid var(--color-primary); }
 .medication-item { padding: 6px 0; font-size: var(--font-size-sm); color: var(--color-text-primary); }
+
+/* 关系地图摘要卡片 */
+.health-rel-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 8px;
+  background: rgba(181, 168, 212, 0.06);
+  border: 1px solid rgba(181, 168, 212, 0.15);
+}
+.health-rel-icon { font-size: 18px; flex-shrink: 0; }
+.health-rel-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.health-rel-text { font-size: var(--font-size-sm); font-weight: var(--font-weight-medium); color: var(--color-text-primary); }
+.health-rel-meta { font-size: var(--font-size-xs); color: var(--color-text-tertiary); }
+.health-rel-status { font-size: var(--font-size-xs); padding: 3px 8px; border-radius: var(--radius-full); flex-shrink: 0; }
+.health-rel-active { background: rgba(52, 199, 89, 0.12); color: var(--color-success); }
+.health-rel-empty { background: rgba(255,255,255,0.04); color: var(--color-text-tertiary); }
 
 /* 今日亮点卡片（正向引导） */
 .highlight-card { border-left: 3px solid var(--color-success); }

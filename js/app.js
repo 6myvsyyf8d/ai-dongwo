@@ -10,19 +10,6 @@
   var PUBLIC_PAGES = ['login', 'register'];
   var NO_BOTTOM_NAV_PAGES = ['login', 'register', 'government'];
 
-  // 交接任务状态常量
-  var TASK_STATUS = {
-    pending: '待处理',
-    done: '已完成'
-  };
-  var TASK_STATUS_ORDER = ['pending', 'done'];
-
-  // 交接任务状态流转
-  function _nextTaskStatus(current) {
-    if (current === 'pending') return 'done';
-    return 'pending';
-  }
-
   // 路由 → 渲染函数映射（后续模块加载后注册）
   var routes = {};
 
@@ -82,9 +69,10 @@
     var navItems = Constants.NAV_ITEMS;
     var youth = AppState.currentYouth;
     var user = AppState.getState().currentUser;
-    // 心青年特殊导航：对话 + 我
+    // 心青年导航：首页 + 对话 + 我
     if (user && user.role === 'youth') {
       navItems = [
+        { page: 'dashboard', icon: '🏠', label: '首页' },
         { page: 'youth-chat', icon: '💬', label: '对话' },
         { page: 'profile', icon: '👤', label: '我' }
       ];
@@ -176,6 +164,10 @@
 
     // 政府角色限制：只能访问 government 页面
     if (AppState.currentUser && AppState.currentUser.role === 'government' && page !== 'government') {
+      // 试图访问个体档案：明确告知数据主权保护
+      if (page === 'archive') {
+        AppState.showToast('个体档案受数据主权保护，政府角色仅可查看聚合数据');
+      }
       window.location.hash = 'government';
       return;
     }
@@ -436,12 +428,12 @@
   function _renderDashboardHeader() {
     return '<div class="page-header">' +
       '<span class="page-title">AI懂我</span>' +
-      '<span class="header-version">v1.0_20260731-1</span>' +
+      '<span class="header-version">v1.0_20260801-4</span>' +
     '</div>';
   }
 
   /**
-   * 心青年主页：自己档案 + 心情/愿望 + 最近动态
+   * 心青年主页：自己档案 + 我的任务 + 交接
    */
   function _renderYouthDashboard(user, youths) {
     var html = '';
@@ -452,55 +444,24 @@
       return html;
     }
 
-    var age = Utils.calculateAge(youth.birthDate);
-    var moodLabel = _getRecentMood(youth);
+    // 问候区（与其他角色一致，但心青年不创建任务，无"新建任务"按钮）
+    var hour = new Date().getHours();
+    var greeting = hour < 6 ? '凌晨好' : hour < 12 ? '早上好' : hour < 18 ? '下午好' : '晚上好';
+    var today = Utils.formatDate(new Date());
+    var weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    var weekday = '周' + weekdays[new Date().getDay()];
 
-    // 档案卡片
-    html += '<div class="dashboard-section">' +
-      '<div class="dashboard-section-title">📋 我的档案</div>' +
-      '<div class="youth-card" data-youth-id="' + youth.id + '">' +
-        '<div class="youth-card-top">' +
-          '<div class="youth-card-avatar">' + (youth.avatar || '🧑') + '</div>' +
-          '<div class="youth-card-info">' +
-            '<div class="youth-card-name">' + Utils.escapeHtml(youth.name) + '</div>' +
-            '<div class="youth-card-meta">' + age + '岁 · ' + moodLabel + '</div>' +
-          '</div>' +
-          '<span class="youth-card-arrow">›</span>' +
-        '</div>' +
+    html += '<div class="dashboard-greeting">' +
+      '<div class="dashboard-greeting-left">' +
+        '<div class="dashboard-greeting-date">' + today + ' ' + weekday + '</div>' +
+        '<div class="dashboard-greeting-hello">' + greeting + '，' + Utils.escapeHtml(user.name) + '</div>' +
       '</div>' +
     '</div>';
 
-    // 快捷操作
-    html += '<div class="dashboard-section">' +
-      '<div class="dashboard-section-title">⚡ 快捷操作</div>' +
-      '<div class="quick-actions">' +
-        '<button class="quick-action-btn" id="btn-mood-record">😊 记录心情</button>' +
-        '<button class="quick-action-btn" id="btn-add-wish">🌟 添加愿望</button>' +
-      '</div>' +
-    '</div>';
+    // 任务看板（与其他角色一致的 Kanban 三列视图，只显示分配给心青年的任务）
+    html += _renderTaskKanban(youth, user);
 
-    // 状态摘要
-    var recentRecords = _getRecentRecords(youth.id, 3);
-    if (recentRecords.length > 0) {
-      html += '<div class="dashboard-section">' +
-        '<div class="dashboard-section-title">🕐 最近动态</div>' +
-        '<div class="status-summary">';
-      for (var i = 0; i < recentRecords.length; i++) {
-        var r = recentRecords[i];
-        var mInfo = Modules.MODULES.find(function (m) { return m.key === r.module; });
-        html += '<div class="status-item">' +
-          '<span class="status-item-icon">' + (mInfo ? mInfo.icon : '📝') + '</span>' +
-          '<span class="status-item-text">' + Utils.escapeHtml(_truncate(r.content.text || '', 40)) + '</span>' +
-          '<span class="status-item-time">' + _relativeTime(r.createdAt) + '</span>' +
-        '</div>';
-      }
-      html += '</div></div>';
-    }
-
-    // 每日交接
-    html += _renderDailyHandover(youth);
-
-    // 管理入口（不含速读卡，已移至档案页）
+    // 管理入口
     html += '<div class="dashboard-section">' +
       '<div class="dashboard-section-title">📌 管理</div>' +
       '<div class="management-portal">' +
@@ -511,6 +472,8 @@
         '</button>' +
       '</div>' +
     '</div>';
+
+    html += '<div class="dashboard-footer-space"></div>';
 
     return html;
   }
@@ -609,6 +572,7 @@
         '<div class="dashboard-greeting-date">' + today + ' ' + weekday + '</div>' +
         '<div class="dashboard-greeting-hello">' + greeting + '，' + Utils.escapeHtml(user.name) + '</div>' +
       '</div>' +
+      '<button class="btn btn-sm btn-primary" id="btn-create-task-' + y.id + '" aria-label="新建任务">✚ 新建任务</button>' +
     '</div>';
 
     // AI 发现区块（仅家长可见）
@@ -630,8 +594,8 @@
       html += '</div>';
     }
 
-    // 今日交接（Monday.com 风格）
-    html += _renderDailyHandover(y);
+    // 任务看板（Kanban 三列：待办 / 进行中 / 已完成）
+    html += _renderTaskKanban(y, user);
 
     // 今日健康速报
     html += AnalyticsUI.renderHealthCard(y);
@@ -665,20 +629,13 @@
         '<div class="dashboard-greeting-hello">' + greeting + '，' + Utils.escapeHtml(user.name) + '</div>' +
         '<div class="dashboard-greeting-meta">' + (user.institutionName || '') + '</div>' +
       '</div>' +
+      '<button class="btn btn-sm btn-primary" id="btn-create-task-' + youths[0].id + '" aria-label="新建任务">✚ 新建任务</button>' +
     '</div>';
 
-    // 合并交接任务表（所有学生，仅老师相关的）
-    html += _renderTeacherHandover(youths, user);
+    // 任务看板（Kanban 三列，多学生合并，卡片上显示学生名）
+    html += _renderTaskKanban(youths, user, { showYouthName: true });
 
-    // 快捷操作
-    html += '<div class="dashboard-section">' +
-      '<div class="quick-actions">' +
-        '<button class="quick-action-btn" id="btn-teacher-record">📝 记录观察</button>' +
-        '<button class="quick-action-btn" id="btn-teacher-profile">📋 查看档案</button>' +
-      '</div>' +
-    '</div>';
-
-    // 专业工作台入口
+    // 专业工作台入口（含记录观察、查看档案子入口）
     html += '<div class="dashboard-section">' +
       '<div class="ios-card-group">' +
         '<a href="#teacher-workbench" class="ios-card-row-static" style="text-decoration:none;color:inherit;">' +
@@ -688,6 +645,20 @@
           '</div>' +
           '<div style="font-size:20px;">›</div>' +
         '</a>' +
+        '<button class="ios-card-row-static" id="btn-teacher-record" style="width:100%;text-align:left;background:none;border:none;color:inherit;cursor:pointer;">' +
+          '<div class="ios-card-row-body">' +
+            '<div class="ios-card-row-title">📝 记录观察</div>' +
+            '<div class="ios-card-row-subtitle">记录学生行为、情绪、学习表现</div>' +
+          '</div>' +
+          '<div style="font-size:20px;">›</div>' +
+        '</button>' +
+        '<button class="ios-card-row-static" id="btn-teacher-profile" style="width:100%;text-align:left;background:none;border:none;color:inherit;cursor:pointer;">' +
+          '<div class="ios-card-row-body">' +
+            '<div class="ios-card-row-title">📋 查看档案</div>' +
+            '<div class="ios-card-row-subtitle">学生完整档案、速读卡、护理记录</div>' +
+          '</div>' +
+          '<div style="font-size:20px;">›</div>' +
+        '</button>' +
       '</div>' +
     '</div>';
 
@@ -697,119 +668,35 @@
   }
 
   /**
-   * 合并渲染老师的所有学生交接任务（monday.com 风格，含学生列）
-   */
-  function _renderTeacherHandover(youths, user) {
-    // 收集所有学生的交接任务，过滤出与老师相关的
-    var allTasks = [];
-    for (var i = 0; i < youths.length; i++) {
-      var y = youths[i];
-      var tasks = Storage.getHandoverTasks(y.id);
-      for (var j = 0; j < tasks.length; j++) {
-        var t = tasks[j];
-        if ((t.toUserId === user.id || t.toRole === user.role) && t.targetType !== 'youth') {
-          t._youthName = y.name;
-          t._youthId = y.id;
-          allTasks.push(t);
-        }
-      }
-    }
-
-    var html = '<div class="ios-card-group handover-table-teacher">';
-    html += '<div class="ios-card-group-header" style="display:flex;justify-content:space-between;align-items:center;">' +
-      '<span>📋 今日交接</span>' +
-      '<span style="font-size:11px;color:var(--color-text-tertiary);font-weight:400;">' + allTasks.length + ' 条</span>' +
-    '</div>';
-
-    if (allTasks.length === 0) {
-      html += '<div class="ios-card-row-static">' +
-        '<div class="ios-card-row-body">' +
-          '<div class="ios-card-row-title" style="color: var(--color-text-tertiary);">暂无交接任务</div>' +
-          '<div class="ios-card-row-subtitle">点击下方按钮创建新的交接任务</div>' +
-        '</div>' +
-      '</div>';
-    } else {
-      // 排序：待处理在前，已完成在后；同状态按时间倒序
-      allTasks.sort(function (a, b) {
-        var aPending = a.status !== 'done' ? 0 : 1;
-        var bPending = b.status !== 'done' ? 0 : 1;
-        if (aPending !== bPending) return aPending - bPending;
-        return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
-      });
-
-      // 表头（含学生列）
-      html += '<div class="handover-table-header">' +
-        '<div class="handover-cell handover-cell-content">任务内容</div>' +
-        '<div class="handover-cell handover-cell-youth">学生</div>' +
-        '<div class="handover-cell handover-cell-from">发起人</div>' +
-        '<div class="handover-cell handover-cell-to">接收人</div>' +
-        '<div class="handover-cell handover-cell-status">状态</div>' +
-      '</div>';
-
-      html += '<div class="handover-table-body">';
-      for (var k = 0; k < allTasks.length; k++) {
-        var taskYouth = { id: allTasks[k]._youthId };
-        html += _renderTaskRow(allTasks[k], taskYouth, allTasks[k]._youthName);
-      }
-      html += '</div>';
-    }
-
-    // 新建交接任务按钮（默认第一个学生）
-    if (youths.length > 0) {
-      html += '<div class="ios-card-row-static" style="border-top:0.5px solid var(--color-border-light);">' +
-        '<button class="ios-create-row handover-create-btn" id="btn-add-handover-' + youths[0].id + '" style="width:100%;">✚ 新建交接任务</button>' +
-      '</div>';
-    }
-
-    html += '</div>';
-    return html;
-  }
-
-  /**
-   * 照护者主页：安全速查卡 + 用药提醒 + 今日照护任务 + 护理记录入口 + 雇佣到期
+   * 照护者主页：每日交接 + 护理记录入口
    */
   function _renderCaregiverDashboard(user, youths) {
     var html = '';
-
-    // 每日交接
-    for (var i = 0; i < youths.length; i++) {
-      html += _renderDailyHandover(youths[i]);
-    }
 
     if (youths.length === 0) {
       html += '<div class="empty-state"><div class="empty-state-icon">🤝</div><div class="empty-state-title">暂无照护对象</div><div class="empty-state-desc">请联系家长获取授权</div></div>';
       return html;
     }
 
-    // 安全速查卡
-    html += '<div class="dashboard-section">' +
-      '<div class="dashboard-section-title">🛡️ 安全速查卡</div>';
-    for (var i = 0; i < youths.length; i++) {
-      html += _renderSafetyQuickCard(youths[i]);
-    }
-    html += '</div>';
+    // 问候区（与家长/老师一致，右上角"新建任务"按钮）
+    var hour = new Date().getHours();
+    var greeting = hour < 6 ? '凌晨好' : hour < 12 ? '早上好' : hour < 18 ? '下午好' : '晚上好';
+    var today = Utils.formatDate(new Date());
+    var weekdays = ['日', '一', '二', '三', '四', '五', '六'];
+    var weekday = '周' + weekdays[new Date().getDay()];
 
-    // 快捷操作
-    html += '<div class="dashboard-section">' +
-      '<div class="dashboard-section-title">⚡ 快捷操作</div>' +
-      '<div class="quick-actions">' +
-        '<button class="quick-action-btn" id="btn-med-reminder">💊 用药提醒</button>';
-    for (var i = 0; i < youths.length; i++) {
-      html += '<button class="quick-action-btn" data-youth-id="' + youths[i].id + '" data-action="records">' +
-        '📋 ' + Utils.escapeHtml(youths[i].name) + ' 记录</button>';
-    }
-    html += '</div></div>';
+    html += '<div class="dashboard-greeting">' +
+      '<div class="dashboard-greeting-left">' +
+        '<div class="dashboard-greeting-date">' + today + ' ' + weekday + '</div>' +
+        '<div class="dashboard-greeting-hello">' + greeting + '，' + Utils.escapeHtml(user.name) + '</div>' +
+      '</div>' +
+      '<button class="btn btn-sm btn-primary" id="btn-create-task-' + youths[0].id + '" aria-label="新建任务">✚ 新建任务</button>' +
+    '</div>';
 
-    // 今日照护任务
-    html += '<div class="dashboard-section">' +
-      '<div class="dashboard-section-title">📋 今日照护任务</div>' +
-      '<div class="status-summary">';
-    for (var i = 0; i < youths.length; i++) {
-      html += _renderCareTasks(youths[i]);
-    }
-    html += '</div></div>';
+    // 任务看板（Kanban 三列：待办 / 进行中 / 已完成）
+    html += _renderTaskKanban(youths, user);
 
-    // 管理入口
+    // 管理入口（含护理记录、速读卡等）
     html += '<div class="dashboard-section">' +
       '<div class="dashboard-section-title">📌 管理</div>' +
       '<div class="management-portal">';
@@ -822,9 +709,6 @@
     }
     html += '</div></div>';
 
-    // 时效提示
-    html += _renderExpirationAlert('caregiver', '雇佣到期提醒', '请确认您的雇佣关系是否在有效期内');
-
     return html;
   }
 
@@ -833,139 +717,6 @@
    */
   function _renderDefaultDashboard(user, youths) {
     return '<div class="empty-state"><div class="empty-state-icon">👤</div><div class="empty-state-title">欢迎使用 AI懂我</div><div class="empty-state-desc">请选择您的角色开始使用</div></div>';
-  }
-
-  /**
-   * 渲染安全速查卡（照护者用）
-   */
-  function _renderSafetyQuickCard(youth) {
-    var age = Utils.calculateAge(youth.birthDate);
-    var comm = youth.modules.communicationGuide;
-    var emotion = youth.modules.emotionBehavior;
-    var medical = youth.modules.careMedical;
-
-    // 沟通方式
-    var commText = '';
-    if (comm && comm.preferredMethods && comm.preferredMethods.length > 0) {
-      commText = comm.preferredMethods.map(function (m) { return m.method; }).join('、');
-    }
-
-    // 过敏源
-    var allergyText = '';
-    if (medical && medical.allergies && medical.allergies.length > 0) {
-      allergyText = medical.allergies.join('、');
-    }
-
-    // 行为红线
-    var redLineCount = (emotion && emotion.behaviorRedLines) ? emotion.behaviorRedLines.length : 0;
-
-    // 近期情绪
-    var moodLabel = _getRecentMood(youth);
-
-    // 紧急联系人
-    var contactsHtml = '';
-    if (youth.emergencyContacts && youth.emergencyContacts.length > 0) {
-      contactsHtml = '<div class="safety-card-contacts">';
-      for (var i = 0; i < youth.emergencyContacts.length; i++) {
-        var c = youth.emergencyContacts[i];
-        contactsHtml += '<a class="safety-contact-item" href="tel:' + Utils.escapeHtml(c.phone) + '">' +
-          '<span class="safety-contact-icon">📞</span>' +
-          '<span class="safety-contact-info">' +
-            '<span class="safety-contact-name">' + Utils.escapeHtml(c.name) + '</span>' +
-            '<span class="safety-contact-relation">' + Utils.escapeHtml(c.relation || '') + '</span>' +
-          '</span>' +
-          '<span class="safety-contact-phone">' + Utils.escapeHtml(c.phone) + '</span>' +
-        '</a>';
-      }
-      contactsHtml += '</div>';
-    }
-
-    var html = '<div class="safety-card" data-youth-id="' + youth.id + '">' +
-      '<div class="safety-card-header">' +
-        '<div class="safety-card-avatar">' + (youth.avatar || '🧑') + '</div>' +
-        '<div class="safety-card-info">' +
-          '<div class="safety-card-name">' + Utils.escapeHtml(youth.name) + '</div>' +
-          '<div class="safety-card-meta">' + age + '岁 · ' + moodLabel + '</div>' +
-        '</div>' +
-        '<span class="safety-card-arrow">›</span>' +
-      '</div>';
-
-    if (commText || allergyText || redLineCount > 0) {
-      html += '<div class="safety-card-grid">';
-      if (commText) {
-        html += '<div class="safety-card-item"><span class="safety-card-item-icon">💬</span><span class="safety-card-item-label">沟通</span><span class="safety-card-item-value">' + Utils.escapeHtml(commText) + '</span></div>';
-      }
-      if (allergyText) {
-        html += '<div class="safety-card-item safety-card-item-warning"><span class="safety-card-item-icon">⚠️</span><span class="safety-card-item-label">过敏</span><span class="safety-card-item-value">' + Utils.escapeHtml(allergyText) + '</span></div>';
-      }
-      if (redLineCount > 0) {
-        html += '<div class="safety-card-item safety-card-item-danger"><span class="safety-card-item-icon">🚫</span><span class="safety-card-item-label">红线</span><span class="safety-card-item-value">' + redLineCount + ' 条</span></div>';
-      }
-      html += '</div>';
-    }
-
-    html += contactsHtml + '</div>';
-    return html;
-  }
-
-  /**
-   * 渲染今日照护任务（照护者用）
-   */
-  function _renderCareTasks(youth) {
-    var medical = youth.modules.careMedical;
-    var tasks = [];
-    if (medical && medical.medications && medical.medications.length > 0) {
-      tasks.push('💊 ' + medical.medications.length + ' 种用药');
-    }
-    if (medical && medical.medicalHistory && medical.medicalHistory.length > 0) {
-      tasks.push('🏥 ' + medical.medicalHistory.length + ' 条就医记录');
-    }
-    var records = Storage.getRecords(youth.id);
-    var todayRecords = records ? records.filter(function (r) {
-      return r.createdAt && r.createdAt.indexOf(Utils.formatDate(new Date())) === 0;
-    }) : [];
-    tasks.push('📝 今日已记录 ' + todayRecords.length + ' 条');
-
-    return '<div class="status-item">' +
-      '<span class="status-item-icon">' + (youth.avatar || '🧑') + '</span>' +
-      '<span class="status-item-text">' + Utils.escapeHtml(youth.name) + '</span>' +
-      '<span class="status-item-time">' + tasks.join(' · ') + '</span>' +
-    '</div>';
-  }
-
-  /**
-   * 渲染时效提示
-   */
-  function _renderExpirationAlert(role, title, desc) {
-    return '<div class="dashboard-section">' +
-      '<div class="dashboard-section-title">⏰ 时效提示</div>' +
-      '<div class="expiration-alert">' +
-        '<span class="expiration-alert-icon">⏰</span>' +
-        '<div class="expiration-alert-content">' +
-          '<div class="expiration-alert-title">' + title + '</div>' +
-          '<div class="expiration-alert-desc">' + desc + '</div>' +
-        '</div>' +
-      '</div>' +
-    '</div>';
-  }
-
-  /**
-   * 获取授权过期提示
-   */
-  function _getGrantExpiration(user, youths) {
-    var grants = AppState.currentGrants;
-    if (!grants || grants.length === 0) return '';
-    var now = new Date();
-    for (var i = 0; i < grants.length; i++) {
-      if (grants[i].validUntil) {
-        var exp = new Date(grants[i].validUntil);
-        if (exp > now) {
-          var hours = Math.floor((exp - now) / 3600000);
-          return '您的访问权限将在 ' + hours + ' 小时后过期（' + Utils.escapeHtml(exp.toLocaleString('zh-CN')) + '）';
-        }
-      }
-    }
-    return '您的访问权限已过期，请联系家长重新授权';
   }
 
   /**
@@ -982,25 +733,25 @@
   }
 
   /**
-   * 获取最近 N 条记录（Storage.getRecords 已按 recordedAt 降序返回）
+   * 显示统一任务创建表单（支持 routine/handover/adhoc 三种类型）
+   * @param {object} youth - 心青年档案
+   * @param {string} defaultType - 默认选中的类型: 'routine' | 'handover' | 'adhoc'
    */
-  function _getRecentRecords(youthId, count) {
-    var records = Storage.getRecords(youthId);
-    if (!records || records.length === 0) return [];
-    return records.slice(0, count || 3);
-  }
+  function _showTaskForm(youth, defaultType) {
+    defaultType = defaultType || 'routine';
+    var currentUser = AppState.currentUser;
+    // 心青年不应发起交接任务：强制回退到 routine
+    var isYouth = currentUser && currentUser.role === 'youth';
+    if (isYouth && defaultType === 'handover') {
+      defaultType = 'routine';
+    }
 
-  /**
-   * 显示新建交接任务表单
-   */
-  function _showHandoverForm(youth) {
     var overlay = document.createElement('div');
     overlay.className = 'record-form-overlay';
-    overlay.id = 'handover-form-overlay';
+    overlay.id = 'task-form-overlay';
 
-    // 获取该心青年的授权用户列表（排除自己和 government/youth）
+    // 获取授权用户列表（用于 handover 类型）
     var grants = Storage.getAccessGrants(youth.id);
-    var currentUser = AppState.currentUser;
     var userOptions = '<option value="">请选择接收人</option>';
     var seenIds = {};
     for (var i = 0; i < grants.length; i++) {
@@ -1015,42 +766,129 @@
       userOptions += '<option value="' + g.granteeId + '">' + Utils.escapeHtml(label) + '（' + roleLabel + '）</option>';
     }
 
+    var today = Utils.formatDate(new Date());
+
+    // 类型选择器：分组式 + 色彩编码 + 描述行
+    // routine=靛蓝（主色，日常）、adhoc=琥珀（临时）、handover=紫罗兰（协作）
+    var youthGroupHtml =
+      '<div class="task-type-group">' +
+        '<div class="task-type-group-label"><span class="task-type-group-bar"></span>给心青年</div>' +
+        '<div class="task-type-selector">' +
+          '<div class="task-type-option task-type-routine' + (defaultType === 'routine' ? ' selected' : '') + '" data-type="routine">' +
+            '<div class="task-type-badge">🔁</div>' +
+            '<div class="task-type-info">' +
+              '<div class="task-type-name">规律任务</div>' +
+              '<div class="task-type-desc">每日 / 每周重复</div>' +
+            '</div>' +
+            '<div class="task-type-check" aria-hidden="true">✓</div>' +
+          '</div>' +
+          '<div class="task-type-option task-type-adhoc' + (defaultType === 'adhoc' ? ' selected' : '') + '" data-type="adhoc">' +
+            '<div class="task-type-badge">📝</div>' +
+            '<div class="task-type-info">' +
+              '<div class="task-type-name">临时任务</div>' +
+              '<div class="task-type-desc">一次性 · 到期提醒</div>' +
+            '</div>' +
+            '<div class="task-type-check" aria-hidden="true">✓</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
+    var handoverGroupHtml = isYouth ? '' :
+      '<div class="task-type-group">' +
+        '<div class="task-type-group-label"><span class="task-type-group-bar task-type-group-bar-handover"></span>照护者交接</div>' +
+        '<div class="task-type-selector task-type-selector-single">' +
+          '<div class="task-type-option task-type-handover' + (defaultType === 'handover' ? ' selected' : '') + '" data-type="handover">' +
+            '<div class="task-type-badge">🤝</div>' +
+            '<div class="task-type-info">' +
+              '<div class="task-type-name">交接任务</div>' +
+              '<div class="task-type-desc">指定接收人 · 跨角色协作</div>' +
+            '</div>' +
+            '<div class="task-type-check" aria-hidden="true">✓</div>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+
     overlay.innerHTML =
       '<div class="record-form-sheet">' +
         '<div class="record-form-header">' +
-          '<span class="record-form-title">新建交接任务</span>' +
-          '<button class="record-form-close" id="btn-close-handover-form">×</button>' +
+          '<span class="record-form-title">新建任务</span>' +
+          '<button class="record-form-close" id="btn-close-task-form">×</button>' +
         '</div>' +
         '<div class="record-form-body">' +
+          // 类型选择器（分组式）
           '<div class="form-group">' +
-            '<label class="form-label">提醒对象</label>' +
-            '<div class="task-target-selector">' +
-              '<div class="task-target-option selected" data-target="caregiver">' +
-                '<span style="font-size:20px;">🤝</span>' +
-                '<span>照护者</span>' +
-              '</div>' +
-              '<div class="task-target-option" data-target="youth">' +
-                '<span style="font-size:20px;">🌻</span>' +
-                '<span>心青年</span>' +
-              '</div>' +
-            '</div>' +
+            '<label class="form-label">任务类型</label>' +
+            youthGroupHtml +
+            handoverGroupHtml +
           '</div>' +
-          '<div class="form-group">' +
-            '<label class="form-label">交接给谁</label>' +
-            '<select class="form-input" id="handover-to-user">' + userOptions + '</select>' +
-          '</div>' +
+          // 公共字段：任务内容
           '<div class="form-group">' +
             '<label class="form-label">任务内容</label>' +
-            '<textarea class="form-textarea" id="handover-content" placeholder="例如：明天带小明去公园散步，注意防晒..." maxlength="500"></textarea>' +
+            '<textarea class="form-textarea" id="task-content" placeholder="例如：早上8点吃药..." maxlength="500"></textarea>' +
           '</div>' +
-          '<div class="form-error" id="handover-form-error" style="display:none;"></div>' +
-          '<button class="btn btn-primary btn-block btn-lg" id="btn-save-handover" style="margin-top:16px;">创建任务</button>' +
+          // 公共字段：分类
+          '<div class="form-group">' +
+            '<label class="form-label">分类</label>' +
+            '<select class="form-input" id="task-category">' +
+              '<option value="medication">💊 用药</option>' +
+              '<option value="meal">🍽️ 饮食</option>' +
+              '<option value="hygiene">🚿 卫生</option>' +
+              '<option value="activity">🎯 活动</option>' +
+              '<option value="learning">📚 学习</option>' +
+              '<option value="other">📋 其他</option>' +
+            '</select>' +
+          '</div>' +
+          // routine 字段：重复频率
+          '<div class="form-group task-field task-field-routine" style="display:none;">' +
+            '<label class="form-label">重复频率</label>' +
+            '<select class="form-input" id="task-recurrence-pattern">' +
+              '<option value="daily">每天</option>' +
+              '<option value="weekly">每周</option>' +
+              '<option value="custom">自定义</option>' +
+            '</select>' +
+          '</div>' +
+          // routine 字段：执行时间
+          '<div class="form-group task-field task-field-routine" style="display:none;">' +
+            '<label class="form-label">执行时间</label>' +
+            '<input type="time" class="form-input" id="task-recurrence-time" value="08:00">' +
+          '</div>' +
+          // routine 字段：重复日期（weekly/custom 时显示）
+          '<div class="form-group task-field task-field-routine task-field-weekly" style="display:none;">' +
+            '<label class="form-label">重复日期</label>' +
+            '<div class="weekday-selector">' +
+              '<span class="weekday-chip" data-day="1">一</span>' +
+              '<span class="weekday-chip" data-day="2">二</span>' +
+              '<span class="weekday-chip" data-day="3">三</span>' +
+              '<span class="weekday-chip" data-day="4">四</span>' +
+              '<span class="weekday-chip" data-day="5">五</span>' +
+              '<span class="weekday-chip" data-day="6">六</span>' +
+              '<span class="weekday-chip" data-day="0">日</span>' +
+            '</div>' +
+          '</div>' +
+          // handover 字段：交接人
+          '<div class="form-group task-field task-field-handover" style="display:none;">' +
+            '<label class="form-label">交接给谁</label>' +
+            '<select class="form-input" id="task-handover-to">' + userOptions + '</select>' +
+          '</div>' +
+          // adhoc 字段：到期日期
+          '<div class="form-group task-field task-field-adhoc" style="display:none;">' +
+            '<label class="form-label">到期日期</label>' +
+            '<input type="date" class="form-input" id="task-due-date" value="' + today + '">' +
+          '</div>' +
+          // adhoc 字段：到期时间
+          '<div class="form-group task-field task-field-adhoc" style="display:none;">' +
+            '<label class="form-label">到期时间</label>' +
+            '<input type="time" class="form-input" id="task-due-time" value="12:00">' +
+          '</div>' +
+          '<div class="form-error" id="task-form-error" style="display:none;"></div>' +
+          '<button class="btn btn-primary btn-block btn-lg" id="btn-save-task" style="margin-top:16px;">创建任务</button>' +
         '</div>' +
       '</div>';
 
     document.body.appendChild(overlay);
 
-    overlay.querySelector('#btn-close-handover-form').addEventListener('click', function () {
+    // 关闭事件
+    overlay.querySelector('#btn-close-task-form').addEventListener('click', function () {
       document.body.removeChild(overlay);
     });
     overlay.addEventListener('click', function (e) {
@@ -1059,186 +897,334 @@
       }
     });
 
-    var targetOptions = overlay.querySelectorAll('.task-target-option');
-    for (var ti = 0; ti < targetOptions.length; ti++) {
-      targetOptions[ti].addEventListener('click', function () {
-        for (var tj = 0; tj < targetOptions.length; tj++) {
-          targetOptions[tj].classList.remove('selected');
-        }
-        this.classList.add('selected');
+    // 类型切换
+    function _switchType(type) {
+      var typeOptions = overlay.querySelectorAll('.task-type-option');
+      for (var ti = 0; ti < typeOptions.length; ti++) {
+        typeOptions[ti].classList.toggle('selected', typeOptions[ti].getAttribute('data-type') === type);
+      }
+      var fields = overlay.querySelectorAll('.task-field');
+      for (var fi = 0; fi < fields.length; fi++) {
+        fields[fi].style.display = 'none';
+      }
+      var showFields = overlay.querySelectorAll('.task-field-' + type);
+      for (var sf = 0; sf < showFields.length; sf++) {
+        showFields[sf].style.display = '';
+      }
+      // routine 的 weekly 子字段
+      _toggleWeeklyField(type);
+    }
+
+    function _toggleWeeklyField(type) {
+      var weeklyField = overlay.querySelector('.task-field-weekly');
+      if (!weeklyField) return;
+      if (type !== 'routine') {
+        weeklyField.style.display = 'none';
+        return;
+      }
+      var pattern = overlay.querySelector('#task-recurrence-pattern');
+      var pat = pattern ? pattern.value : 'daily';
+      weeklyField.style.display = (pat === 'weekly' || pat === 'custom') ? '' : 'none';
+    }
+
+    var typeOptions = overlay.querySelectorAll('.task-type-option');
+    for (var ti = 0; ti < typeOptions.length; ti++) {
+      typeOptions[ti].addEventListener('click', function () {
+        _switchType(this.getAttribute('data-type'));
       });
     }
 
-    overlay.querySelector('#btn-save-handover').addEventListener('click', function () {
-      var toUserId = overlay.querySelector('#handover-to-user').value;
-      var contentText = overlay.querySelector('#handover-content').value.trim();
-      var errorEl = overlay.querySelector('#handover-form-error');
+    // 重复频率切换
+    var patternSelect = overlay.querySelector('#task-recurrence-pattern');
+    if (patternSelect) {
+      patternSelect.addEventListener('change', function () {
+        var currentType = overlay.querySelector('.task-type-option.selected');
+        _toggleWeeklyField(currentType ? currentType.getAttribute('data-type') : 'routine');
+      });
+    }
 
-      var targetType = 'caregiver';
-      var selectedTarget = overlay.querySelector('.task-target-option.selected');
-      if (selectedTarget) {
-        targetType = selectedTarget.getAttribute('data-target');
-      }
+    // weekday 选择
+    var weekdayChips = overlay.querySelectorAll('.weekday-chip');
+    for (var wi = 0; wi < weekdayChips.length; wi++) {
+      weekdayChips[wi].addEventListener('click', function () {
+        this.classList.toggle('selected');
+      });
+    }
 
-      if (!toUserId) {
-        errorEl.textContent = '请选择接收人';
-        errorEl.style.display = 'block';
-        return;
-      }
-      if (toUserId === currentUser.id) {
-        errorEl.textContent = '不能给自己分配任务';
-        errorEl.style.display = 'block';
-        return;
-      }
+    // 初始化显示默认类型字段
+    _switchType(defaultType);
+
+    // 提交
+    overlay.querySelector('#btn-save-task').addEventListener('click', function () {
+      var contentText = overlay.querySelector('#task-content').value.trim();
+      var category = overlay.querySelector('#task-category').value;
+      var errorEl = overlay.querySelector('#task-form-error');
+      var selectedTypeEl = overlay.querySelector('.task-type-option.selected');
+      var taskType = selectedTypeEl ? selectedTypeEl.getAttribute('data-type') : 'routine';
+
       if (!contentText) {
         errorEl.textContent = '请输入任务内容';
         errorEl.style.display = 'block';
         return;
       }
 
-      var toAccount = Storage.getAccount(toUserId);
-      Storage.addHandoverTask(youth.id, {
+      var task = {
         youthId: youth.id,
-        fromUserId: currentUser.id,
-        fromRole: currentUser.role,
-        toUserId: toUserId,
-        toRole: toAccount ? toAccount.role : 'parent',
+        taskType: taskType,
+        assigneeId: youth.id,
+        assigneeRole: 'youth',
         content: contentText,
-        status: 'pending',
-        targetType: targetType
-      });
+        category: category,
+        status: 'todo'
+      };
 
+      if (taskType === 'routine') {
+        var pattern = overlay.querySelector('#task-recurrence-pattern').value;
+        var time = overlay.querySelector('#task-recurrence-time').value || '08:00';
+        var daysOfWeek = [];
+        var selectedChips = overlay.querySelectorAll('.weekday-chip.selected');
+        for (var ci = 0; ci < selectedChips.length; ci++) {
+          daysOfWeek.push(parseInt(selectedChips[ci].getAttribute('data-day'), 10));
+        }
+        if ((pattern === 'weekly' || pattern === 'custom') && daysOfWeek.length === 0) {
+          errorEl.textContent = '请选择至少一个重复日期';
+          errorEl.style.display = 'block';
+          return;
+        }
+        task.recurrence = {
+          pattern: pattern,
+          timeOfDay: time,
+          daysOfWeek: daysOfWeek
+        };
+        task.dueTime = null;
+      } else if (taskType === 'handover') {
+        var toUserId = overlay.querySelector('#task-handover-to').value;
+        if (!toUserId) {
+          errorEl.textContent = '请选择接收人';
+          errorEl.style.display = 'block';
+          return;
+        }
+        if (toUserId === currentUser.id) {
+          errorEl.textContent = '不能给自己分配任务';
+          errorEl.style.display = 'block';
+          return;
+        }
+        var toAccount = Storage.getAccount(toUserId);
+        task.assigneeId = toUserId;
+        task.assigneeRole = toAccount ? toAccount.role : 'parent';
+        task.category = 'handover';
+        task.dueTime = null;
+        task.handoverFrom = { userId: currentUser.id, role: currentUser.role };
+        task.handoverTo = { userId: toUserId, role: toAccount ? toAccount.role : 'parent' };
+      } else if (taskType === 'adhoc') {
+        var dueDate = overlay.querySelector('#task-due-date').value;
+        var dueTime = overlay.querySelector('#task-due-time').value || '12:00';
+        if (!dueDate) {
+          errorEl.textContent = '请选择到期日期';
+          errorEl.style.display = 'block';
+          return;
+        }
+        task.dueTime = dueDate + ' ' + dueTime;
+      }
+
+      Storage.addTask(youth.id, task);
       document.body.removeChild(overlay);
       showDashboard({});
     });
   }
 
+  // ==================== Kanban 任务看板 ====================
+
   /**
-   * 渲染交接任务行（复用组件）
-   * Monday.com 风格：清晰展示「谁交给谁」，接收人突出
+   * Kanban 状态流转：todo → in_progress → done → todo（循环）
    */
-  function _renderTaskRow(task, youth, showYouthCol) {
-    var fromAccount = Storage.getAccount(task.fromUserId);
-    var fromName = fromAccount ? fromAccount.name : '未知';
-    var fromRole = Constants.ROLES.find(function (r) { return r.value === task.fromRole; });
-    var fromIcon = fromRole ? fromRole.icon : '👤';
-
-    var toLabel = '';
-    var toIcon = '';
-    if (task.toUserId) {
-      var toAccount = Storage.getAccount(task.toUserId);
-      toLabel = toAccount ? toAccount.name : '未知';
-      var toRole = task.toRole ? (Constants.ROLES.find(function (r) { return r.value === task.toRole; }) || null) : null;
-      toIcon = toRole ? toRole.icon : '👤';
-    } else {
-      var toRoleLabel = Constants.ROLE_LABELS[task.toRole] || task.toRole;
-      toLabel = toRoleLabel;
-      var toRoleInfo = Constants.ROLES.find(function (r) { return r.value === task.toRole; });
-      toIcon = toRoleInfo ? toRoleInfo.icon : '👤';
-    }
-
-    var isDone = task.status === 'done';
-    var isPending = task.status !== 'done';
-    var rowClass = 'handover-table-row' + (isPending ? ' handover-row-pending' : '') + (isDone ? ' handover-row-done' : '');
-    var pillClass = isDone ? 'handover-pill-done' : 'handover-pill-pending';
-    var pillText = isDone ? '已完成' : '待处理';
-
-    return '<div class="' + rowClass + '">' +
-      '<div class="handover-cell handover-cell-content">' +
-        Utils.escapeHtml(_truncate(task.content, 50)) +
-        '<div class="handover-cell-time">' + _relativeTime(task.updatedAt || task.createdAt) + '</div>' +
-      '</div>' +
-      (showYouthCol ? '<div class="handover-cell handover-cell-youth">' +
-        '<span class="handover-actor-name">' + Utils.escapeHtml(showYouthCol) + '</span>' +
-      '</div>' : '') +
-      '<div class="handover-cell handover-cell-from">' +
-        '<span class="handover-actor-icon">' + fromIcon + '</span>' +
-        '<span class="handover-actor-name">' + Utils.escapeHtml(fromName) + '</span>' +
-      '</div>' +
-      '<div class="handover-cell handover-cell-to">' +
-        '<span class="handover-actor-icon">' + toIcon + '</span>' +
-        '<span class="handover-actor-name">' + Utils.escapeHtml(toLabel) + '</span>' +
-      '</div>' +
-      '<div class="handover-cell handover-cell-status">' +
-        '<button class="handover-pill ' + pillClass + '" data-task-id="' + task.id + '" data-youth-id="' + youth.id + '" data-status="' + task.status + '" title="点击切换状态">' +
-          pillText +
-        '</button>' +
-      '</div>' +
-    '</div>';
+  function _nextKanbanStatus(current) {
+    if (current === 'todo') return 'in_progress';
+    if (current === 'in_progress') return 'done';
+    return 'todo';
   }
 
   /**
-   * 渲染每日交接卡片 — Monday.com 风格 4 列结构化表格
-   * 全部任务按时间混合展示，不分组
+   * 渲染单张 Kanban 任务卡片
+   * @param {object} task - 统一任务对象
+   * @param {object} youth - 心青年档案（用于 data-youth-id 和学生名展示）
+   * @param {boolean} showYouthName - 是否在卡片上显示心青年名（多学生合并时）
    */
-  function _renderDailyHandover(youth, currentUser) {
-    var tasks = Storage.getHandoverTasks(youth.id);
-
-    // 过滤掉 targetType=youth 的任务（这些任务出现在心青年 AI 对话中，不在交接看板）
-    tasks = tasks.filter(function (t) { return t.targetType !== 'youth'; });
-
-    // 如果指定了当前用户，只显示与该用户相关的任务
-    if (currentUser) {
-      tasks = tasks.filter(function (t) {
-        return (t.toUserId === currentUser.id || t.toRole === currentUser.role);
-      });
+  function _renderKanbanCard(task, youth, showYouthName) {
+    // 接收人
+    var assigneeName = '';
+    if (task.assigneeId) {
+      var account = Storage.getAccount(task.assigneeId);
+      assigneeName = account ? account.name : '';
+    }
+    if (!assigneeName && task.assigneeRole) {
+      assigneeName = Constants.ROLE_LABELS[task.assigneeRole] || task.assigneeRole;
     }
 
-    var html = '<div class="ios-card-group">';
-    html += '<div class="ios-card-group-header" style="display:flex;justify-content:space-between;align-items:center;">' +
-      '<span>📋 今日交接</span>' +
-      '<span style="font-size:11px;color:var(--color-text-tertiary);font-weight:400;">' + tasks.length + ' 条</span>' +
-    '</div>';
-
-    if (tasks.length === 0) {
-      html += '<div class="ios-card-row-static">' +
-        '<div class="ios-card-row-body">' +
-          '<div class="ios-card-row-title" style="color: var(--color-text-tertiary);">暂无交接任务</div>' +
-          '<div class="ios-card-row-subtitle">点击下方按钮创建新的交接任务</div>' +
-        '</div>' +
-      '</div>';
-    } else {
-      // 排序：待处理在前，已完成在后；同状态按时间倒序
-      tasks.sort(function (a, b) {
-        var aPending = a.status !== 'done' ? 0 : 1;
-        var bPending = b.status !== 'done' ? 0 : 1;
-        if (aPending !== bPending) return aPending - bPending;
-        var aTime = new Date(a.updatedAt || a.createdAt).getTime();
-        var bTime = new Date(b.updatedAt || b.createdAt).getTime();
-        return bTime - aTime;
-      });
-
-      // 表头行
-      html += '<div class="handover-table-header">' +
-        '<div class="handover-cell handover-cell-content">任务内容</div>' +
-        '<div class="handover-cell handover-cell-from">发起人</div>' +
-        '<div class="handover-cell handover-cell-to">接收人</div>' +
-        '<div class="handover-cell handover-cell-status">状态</div>' +
-      '</div>';
-
-      // 数据行
-      html += '<div class="handover-table-body">';
-      for (var k = 0; k < tasks.length; k++) {
-        html += _renderTaskRow(tasks[k], youth);
+    // 发起人（仅 handover 类型）
+    var fromName = '';
+    if (task.taskType === 'handover' && task.handoverFrom) {
+      if (task.handoverFrom.userId) {
+        var fromAccount = Storage.getAccount(task.handoverFrom.userId);
+        fromName = fromAccount ? fromAccount.name : '';
       }
-      html += '</div>';
+      if (!fromName && task.handoverFrom.role) {
+        fromName = Constants.ROLE_LABELS[task.handoverFrom.role] || task.handoverFrom.role;
+      }
     }
 
-    // 新建任务按钮
-    html += '<div class="ios-card-row-static" style="border-top:0.5px solid var(--color-border-light);">' +
-      '<button class="ios-create-row handover-create-btn" id="btn-add-handover-' + youth.id + '" style="width:100%;">✚ 新建交接任务</button>' +
+    // 时间：优先 dueTime，其次相对时间
+    var timeText = '';
+    if (task.dueTime) {
+      timeText = task.dueTime.length > 10 ? task.dueTime.substring(11, 16) : task.dueTime;
+    } else if (task.updatedAt) {
+      timeText = _relativeTime(task.updatedAt);
+    }
+
+    var nextStatus = _nextKanbanStatus(task.status);
+    // 按钮文案描述"点击后发生的动作"，按当前 status 索引
+    var actionLabels = { todo: '开始', in_progress: '完成', done: '重启' };
+    var actionLabel = actionLabels[task.status] || '推进';
+
+    var isDone = task.status === 'done';
+    var cardClass = 'kanban-card' + (isDone ? ' kanban-card-done' : '');
+
+    // 心青年角色：隐藏冗余的"心青年"负责人字样
+    var currentUser = AppState.getState().currentUser;
+    if (currentUser && currentUser.role === 'youth') {
+      if (assigneeName === '心青年') assigneeName = '';
+      if (fromName === '心青年') fromName = '';
+    }
+
+    var html = '<div class="' + cardClass + '" data-task-id="' + task.id + '" data-youth-id="' + youth.id + '">' +
+      // 多学生合并时在内容上方显示学生名小标签
+      (showYouthName ? '<div class="kanban-card-youth-tag">' + Utils.escapeHtml(youth.name) + '</div>' : '') +
+      // 任务内容（主要信息）
+      '<div class="kanban-card-content' + (isDone ? ' kanban-card-content-done' : '') + '">' +
+        Utils.escapeHtml(task.content) +
+      '</div>' +
+      // 负责人行：发起人 → 接收人（突出显示，核心信息）
+      '<div class="kanban-card-assignee">';
+
+    if (fromName && assigneeName) {
+      // handover：发起人 → 接收人（负责人）
+      html += '<span class="kanban-card-from">' + Utils.escapeHtml(fromName) + '</span>' +
+        '<span class="kanban-card-arrow">→</span>' +
+        '<span class="kanban-card-to">' + Utils.escapeHtml(assigneeName) + '</span>';
+    } else if (assigneeName) {
+      // routine/adhoc：只有负责人
+      html += '<span class="kanban-card-to">' + Utils.escapeHtml(assigneeName) + '</span>';
+    }
+
+    html += '</div>' +
+      // 底部 meta：时间
+      '<div class="kanban-card-meta">';
+
+    if (timeText) {
+      html += '<span class="kanban-card-time">' + Utils.escapeHtml(timeText) + '</span>';
+    }
+
+    html += '</div>' +
+      '<button class="kanban-status-btn" data-task-id="' + task.id + '" data-youth-id="' + youth.id + '" data-status="' + task.status + '" title="点击切换状态">' +
+        actionLabel +
+      '</button>' +
     '</div>';
 
-    html += '</div>';
     return html;
   }
 
   /**
-   * 截断文本
+   * 渲染任务看板（Kanban 三列）— 用于照护者/家长/老师首页
+   * @param {object|Array} youthOrYouths - 单个心青年档案或数组（多学生合并）
+   * @param {object} currentUser - 当前用户
+   * @param {object} options - { showYouthName: boolean } 多学生合并时在卡片上显示学生名
    */
-  function _truncate(text, maxLen) {
-    if (!text) return '';
-    return text.length > maxLen ? text.substring(0, maxLen) + '...' : text;
+  function _renderTaskKanban(youthOrYouths, currentUser, options) {
+    options = options || {};
+    var showYouthName = options.showYouthName || false;
+    var youths = Array.isArray(youthOrYouths) ? youthOrYouths : [youthOrYouths];
+
+    // 收集所有学生的今日任务
+    var allTasks = [];
+    var taskYouthMap = {}; // taskId -> youth
+    for (var yi = 0; yi < youths.length; yi++) {
+      var y = youths[yi];
+      var todayTasks = Storage.getTodayTasks(y.id);
+
+      // 过滤：与当前用户相关的任务
+      var filtered;
+      if (currentUser) {
+        filtered = todayTasks.filter(function (t) {
+          if (t.assigneeId && t.assigneeId === currentUser.id) return true;
+          if (t.assigneeRole && t.assigneeRole === currentUser.role) return true;
+          if (t.taskType === 'handover' && t.handoverTo) {
+            if (t.handoverTo.userId === currentUser.id) return true;
+            if (t.handoverTo.role === currentUser.role) return true;
+          }
+          return false;
+        });
+      } else {
+        filtered = todayTasks.slice();
+      }
+
+      for (var ti = 0; ti < filtered.length; ti++) {
+        taskYouthMap[filtered[ti].id] = y;
+        allTasks.push(filtered[ti]);
+      }
+    }
+
+    // 按状态分组
+    var columns = { todo: [], in_progress: [], done: [] };
+    for (var i = 0; i < allTasks.length; i++) {
+      var status = allTasks[i].status || 'todo';
+      if (!columns[status]) columns[status] = [];
+      columns[status].push(allTasks[i]);
+    }
+
+    // 每列内按时间倒序
+    ['todo', 'in_progress', 'done'].forEach(function (s) {
+      columns[s].sort(function (a, b) {
+        var aTime = new Date(a.updatedAt || a.createdAt).getTime();
+        var bTime = new Date(b.updatedAt || b.createdAt).getTime();
+        return bTime - aTime;
+      });
+    });
+
+    var html = '<div class="ios-card-group kanban-group">';
+    html += '<div class="ios-card-group-header" style="display:flex;justify-content:space-between;align-items:center;">' +
+      '<span>📋 任务看板</span>' +
+      '<span style="font-size:11px;color:var(--color-text-tertiary);font-weight:400;">' + allTasks.length + ' 条</span>' +
+    '</div>';
+
+    html += '<div class="kanban-board">';
+
+    // 渲染三列：单学生直接传 youth；多学生合并时需要把每张卡片对应的学生传进去
+    // 由于卡片可能在任意列，我们用 taskYouthMap 查找
+    ['todo', 'in_progress', 'done'].forEach(function (s) {
+      var columnTasks = columns[s];
+      var titleMap = { todo: '待办', in_progress: '进行中', done: '已完成' };
+      html += '<div class="kanban-column kanban-column-' + s + '">' +
+        '<div class="kanban-column-header">' +
+          '<span class="kanban-column-title">' + titleMap[s] + '</span>' +
+          '<span class="kanban-column-count">' + columnTasks.length + '</span>' +
+        '</div>' +
+        '<div class="kanban-column-body">';
+
+      if (columnTasks.length === 0) {
+        html += '<div class="kanban-empty">暂无</div>';
+      } else {
+        for (var ci = 0; ci < columnTasks.length; ci++) {
+          var t = columnTasks[ci];
+          var taskYouth = taskYouthMap[t.id] || youths[0];
+          html += _renderKanbanCard(t, taskYouth, showYouthName);
+        }
+      }
+      html += '</div></div>';
+    });
+
+    html += '</div>'; // end kanban-board
+    html += '</div>'; // end kanban-group
+    return html;
   }
 
   /**
@@ -1495,7 +1481,7 @@
     }
 
     // 档案卡片点击
-    var cards = document.querySelectorAll('.youth-card, .safety-card');
+    var cards = document.querySelectorAll('.youth-card');
     for (var i = 0; i < cards.length; i++) {
       cards[i].addEventListener('click', function () {
         var youthId = this.getAttribute('data-youth-id');
@@ -1532,6 +1518,11 @@
         e.stopPropagation();
         var youthId = this.getAttribute('data-youth-id');
         var action = this.getAttribute('data-action');
+        // permissions 不依赖 youthId，直接跳转
+        if (action === 'permissions') {
+          window.location.hash = 'permissions';
+          return;
+        }
         if (youthId) {
           AppState.selectYouth(youthId);
           if (action === 'profile') {
@@ -1544,24 +1535,6 @@
             window.location.hash = 'records?youthId=' + encodeURIComponent(youthId);
           }
         }
-      });
-    }
-
-    // 心情记录按钮
-    var moodBtn = document.getElementById('btn-mood-record');
-    if (moodBtn && youths.length > 0) {
-      moodBtn.addEventListener('click', function () {
-        AppState.selectYouth(youths[0].id);
-        window.location.hash = 'chat?youthId=' + encodeURIComponent(youths[0].id);
-      });
-    }
-
-    // 添加愿望按钮
-    var wishBtn = document.getElementById('btn-add-wish');
-    if (wishBtn && youths.length > 0) {
-      wishBtn.addEventListener('click', function () {
-        AppState.selectYouth(youths[0].id);
-        window.location.hash = 'chat?youthId=' + encodeURIComponent(youths[0].id);
       });
     }
 
@@ -1585,15 +1558,6 @@
 
     // 档案入口按钮（替代速读卡按钮，速读卡已移至档案页）
 
-    // 用药提醒
-    var medBtn = document.getElementById('btn-med-reminder');
-    if (medBtn && youths.length > 0) {
-      medBtn.addEventListener('click', function () {
-        AppState.selectYouth(youths[0].id);
-        window.location.hash = 'profile?youthId=' + encodeURIComponent(youths[0].id);
-      });
-    }
-
     // 待记录提醒
     var pendingBtn = document.getElementById('btn-pending-records');
     if (pendingBtn && youths.length > 0) {
@@ -1603,33 +1567,39 @@
       });
     }
 
-    // 交接任务：状态切换（Monday.com 风格药丸点击）
-    var statusBtns = document.querySelectorAll('.handover-pill');
-    for (var i = 0; i < statusBtns.length; i++) {
-      statusBtns[i].addEventListener('click', function (e) {
+    // Kanban 任务状态切换（todo → in_progress → done → todo 循环）
+    var kanbanBtns = document.querySelectorAll('.kanban-status-btn');
+    for (var i = 0; i < kanbanBtns.length; i++) {
+      kanbanBtns[i].addEventListener('click', function (e) {
         e.stopPropagation();
         var btn = this;
         var taskId = btn.getAttribute('data-task-id');
         var youthId = btn.getAttribute('data-youth-id');
         var currentStatus = btn.getAttribute('data-status');
-        var nextStatus = _nextTaskStatus(currentStatus);
-        var updated = Storage.updateHandoverTask(youthId, taskId, { status: nextStatus });
+        var nextStatus = _nextKanbanStatus(currentStatus);
+        var updates = { status: nextStatus };
+        if (nextStatus === 'done') {
+          updates.completedAt = Utils.formatDateTime();
+        } else if (nextStatus === 'todo') {
+          updates.completedAt = null;
+        }
+        var updated = Storage.updateTask(youthId, taskId, updates);
         if (updated) {
           showDashboard({});
         }
       });
     }
 
-    // 交接任务：新建任务
-    for (var i = 0; i < youths.length; i++) {
+    // 统一任务表单：新建任务按钮
+    for (var j = 0; j < youths.length; j++) {
       (function (y) {
-        var addBtn = document.getElementById('btn-add-handover-' + y.id);
-        if (addBtn) {
-          addBtn.addEventListener('click', function () {
-            _showHandoverForm(y);
+        var createBtn = document.getElementById('btn-create-task-' + y.id);
+        if (createBtn) {
+          createBtn.addEventListener('click', function () {
+            _showTaskForm(y);
           });
         }
-      })(youths[i]);
+      })(youths[j]);
     }
 
     // AI 发现审核
@@ -1683,9 +1653,9 @@
           return;
         }
 
-        // 政府：不能访问个体档案
+        // 政府：不能访问个体档案（数据主权保护）
         if (role === 'government') {
-          AppState.showToast('政府角色不支持访问个体档案');
+          AppState.showToast('个体档案受数据主权保护，政府角色仅可查看聚合数据');
           window.location.hash = 'government';
           return;
         }

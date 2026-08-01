@@ -117,6 +117,22 @@ window.AnalyticsUI = (function () {
       '</div>';
     }
 
+    // 关系地图摘要卡片
+    var relStatus = summary.moduleStatuses.relationshipMap;
+    var relModule = youth.modules.relationshipMap || {};
+    var relCount = (relModule.relationships && relModule.relationships.length) || 0;
+    var todayRelCount = relStatus ? relStatus.count : 0;
+    var relHtml = '<div class="health-rel-card">' +
+      '<span class="health-rel-icon">🗺️</span>' +
+      '<div class="health-rel-info">' +
+        '<span class="health-rel-text">关系地图</span>' +
+        '<span class="health-rel-meta">' + relCount + ' 个关系' + (todayRelCount > 0 ? ' · 今日 ' + todayRelCount + ' 次互动' : '') + '</span>' +
+      '</div>' +
+      '<span class="health-rel-status ' + (todayRelCount > 0 ? 'health-rel-active' : 'health-rel-empty') + '">' +
+        (todayRelCount > 0 ? '有互动' : '无记录') +
+      '</span>' +
+    '</div>';
+
     // 异常预警行
     var alertHtml = '';
     if (summary.alerts.length > 0) {
@@ -149,6 +165,7 @@ window.AnalyticsUI = (function () {
       '</div>' +
       '<div class="health-module-grid">' + statusRows + '</div>' +
       medHtml +
+      relHtml +
       alertHtml +
       footerHtml +
     '</div>';

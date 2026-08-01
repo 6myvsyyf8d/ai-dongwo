@@ -9,8 +9,13 @@ window.YouthChat = (function () {
   var state = {
     messages: [],
     youthId: null,
-    questionCount: 0
+    questionCount: 0,
+    dailyCallCount: 0,
+    isAiCalling: false
   };
+
+  // 每日免费额度上限（防止成本失控）
+  var DAILY_LIMIT = 30;
 
   /**
    * 渲染心青年对话首页
@@ -89,9 +94,11 @@ window.YouthChat = (function () {
       state.messages = [];
     }
 
-    // 加载心青年任务卡片（targetType=youth）
-    var tasks = Storage.getHandoverTasks(state.youthId);
-    var youthTasks = tasks.filter(function(t) { return t.targetType === 'youth' && t.status !== 'done'; });
+    // 加载心青年任务卡片（统一任务系统）
+    var tasks = Storage.getTodayTasks(state.youthId);
+    var youthTasks = tasks.filter(function(t) {
+      return (t.assigneeRole === 'youth' || t.assigneeId === state.youthId) && t.status !== 'done';
+    });
     // 检查是否已有任务卡片在消息中
     var existingTaskIds = state.messages.filter(function(m) { return m.role === 'task'; }).map(function(m) { return m.taskId; });
     for (var i = 0; i < youthTasks.length; i++) {
@@ -122,9 +129,10 @@ window.YouthChat = (function () {
     var sendBtn = document.getElementById('youth-chat-send');
     var msgContainer = document.getElementById('youth-chat-messages');
 
-    function sendMessage() {
+    async function sendMessage() {
       var text = input.value.trim();
       if (!text) return;
+      if (state.isAiCalling) return; // 防止重复发送
 
       state.messages.push({ role: 'user', text: text, timestamp: Utils.formatDateTime() });
       input.value = '';
@@ -132,11 +140,36 @@ window.YouthChat = (function () {
       msgContainer.innerHTML = _renderMessages();
       msgContainer.scrollTop = msgContainer.scrollHeight;
 
-      // 模拟 AI 回复
-      setTimeout(function() {
-        var aiReply = _generateAIReply(text);
+      // 显示"AI 正在输入"提示
+      var typingBubble = document.createElement('div');
+      typingBubble.className = 'chat-bubble chat-bubble-ai chat-bubble-typing';
+      typingBubble.id = 'ai-typing';
+      typingBubble.textContent = '…';
+      msgContainer.appendChild(typingBubble);
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+
+      state.isAiCalling = true;
+      sendBtn.disabled = true;
+
+      try {
+        // 检查每日额度
+        _loadDailyCount();
+        var aiReply;
+        if (state.dailyCallCount >= DAILY_LIMIT) {
+          // 超额：降级到本地回复
+          aiReply = '今天我们聊了很多啦，明天再继续好吗？😊';
+        } else {
+          // 调用云端 AI
+          aiReply = await _callAI(text);
+          _incrementDailyCount();
+        }
+
+        // 移除 typing 提示
+        var typing = document.getElementById('ai-typing');
+        if (typing) typing.remove();
+
         state.messages.push({ role: 'ai', text: aiReply, timestamp: Utils.formatDateTime() });
-        // 提取 AI 发现并存储
+        // 提取 AI 发现并存储（保留原有发现抽取逻辑）
         var findings = _extractAIFinding(text);
         if (findings.length > 0) {
           _saveAIFindings(findings);
@@ -144,7 +177,20 @@ window.YouthChat = (function () {
         _saveMessages();
         msgContainer.innerHTML = _renderMessages();
         msgContainer.scrollTop = msgContainer.scrollHeight;
-      }, 800);
+      } catch (e) {
+        // 失败时降级到本地回复
+        var typingErr = document.getElementById('ai-typing');
+        if (typingErr) typingErr.remove();
+        var fallback = _generateAIReply(text);
+        state.messages.push({ role: 'ai', text: fallback, timestamp: Utils.formatDateTime() });
+        _saveMessages();
+        msgContainer.innerHTML = _renderMessages();
+        msgContainer.scrollTop = msgContainer.scrollHeight;
+        console.warn('AI 调用失败，降级到本地回复', e);
+      } finally {
+        state.isAiCalling = false;
+        sendBtn.disabled = false;
+      }
     }
 
     sendBtn.addEventListener('click', sendMessage);
@@ -158,7 +204,7 @@ window.YouthChat = (function () {
       doneBtns[i].addEventListener('click', function() {
         var taskId = this.getAttribute('data-task-id');
         if (taskId) {
-          Storage.updateHandoverTask(state.youthId, taskId, { status: 'done' });
+          Storage.updateTask(state.youthId, taskId, { status: 'done' });
           AppState.showToast('✅ 任务已完成！');
           // 移除任务卡片
           state.messages = state.messages.filter(function(m) { return m.taskId !== taskId; });
@@ -206,6 +252,98 @@ window.YouthChat = (function () {
       existing.push(findings[i]);
     }
     localStorage.setItem(key, JSON.stringify(existing));
+  }
+
+  /**
+   * 构建心青年档案摘要（脱敏，用于 System Prompt 注入）
+   * 只包含姓名/年龄/兴趣/沟通特点，不包含身份证/医疗/住址等敏感字段
+   */
+  function _buildYouthProfileSummary() {
+    var youths = Permissions.getAccessibleYouths();
+    if (youths.length === 0) return {};
+    var youth = youths[0];
+    var age = youth.birthDate ? Utils.calculateAge(youth.birthDate) : null;
+
+    // 从 modules 提取兴趣和沟通特点（如有）
+    var interests = [];
+    var communicationStyle = '';
+    if (youth.modules) {
+      if (youth.modules.lifePreferences && Array.isArray(youth.modules.lifePreferences.hobbies)) {
+        interests = youth.modules.lifePreferences.hobbies.slice(0, 5);
+      }
+      if (youth.modules.communicationGuide && youth.modules.communicationGuide.preferredStyle) {
+        communicationStyle = youth.modules.communicationGuide.preferredStyle;
+      }
+    }
+
+    return {
+      name: youth.name || '',
+      age: age !== null ? String(age) + '岁' : '',
+      interests: interests,
+      communicationStyle: communicationStyle
+    };
+  }
+
+  /**
+   * 调用云端 AI（Vercel Serverless Function）
+   * 失败时抛出异常，由调用方降级处理
+   */
+  async function _callAI(userText) {
+    // 取最近 6 条消息作为上下文
+    var recent = state.messages.slice(-6).map(function(m) {
+      return {
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.text || ''
+      };
+    });
+    // 最近一条用户消息已在 state.messages 中，无需重复添加
+
+    var youthProfile = _buildYouthProfileSummary();
+
+    var res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: recent,
+        youthProfile: youthProfile
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error('AI 接口返回 ' + res.status);
+    }
+    var data = await res.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    return data.reply || '我没能理解，可以再说一次吗？😊';
+  }
+
+  /**
+   * 每日调用计数（localStorage，按日期重置）
+   */
+  function _getDailyCountKey() {
+    var d = new Date();
+    var dateStr = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate();
+    return 'ai_dongwo_chat_count_' + state.youthId + '_' + dateStr;
+  }
+
+  function _loadDailyCount() {
+    try {
+      var raw = localStorage.getItem(_getDailyCountKey());
+      state.dailyCallCount = raw ? parseInt(raw, 10) || 0 : 0;
+    } catch (e) {
+      state.dailyCallCount = 0;
+    }
+  }
+
+  function _incrementDailyCount() {
+    state.dailyCallCount++;
+    try {
+      localStorage.setItem(_getDailyCountKey(), String(state.dailyCallCount));
+    } catch (e) {
+      console.warn('保存调用计数失败', e);
+    }
   }
 
   function _generateAIReply(userText) {

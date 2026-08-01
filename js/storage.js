@@ -1231,11 +1231,15 @@ window.Storage = (function () {
         var dueDate = (t.dueTime || '').substring(0, 10);
         return dueDate === date;
       }
-      // handover 任务：当天创建且未完成
+      // handover 任务：未完成的显示（创建于当天或之前）；已完成的仅今天完成/创建的显示
       if (t.taskType === 'handover' && !t.parentTaskId) {
-        if (t.status === 'done') return false;
         var createdDate = (t.createdAt || '').substring(0, 10);
-        return createdDate <= date; // 创建于当天或之前、且未完成
+        if (t.status !== 'done') {
+          return createdDate <= date;
+        }
+        // 已完成：今天完成的 或 今天创建的（用于 Kanban 已完成列展示）
+        var completedDate = t.completedAt ? (t.completedAt || '').substring(0, 10) : null;
+        return completedDate === date || createdDate === date;
       }
       return false;
     });
@@ -1258,7 +1262,7 @@ window.Storage = (function () {
     if (!config) {
       return Constants.DEFAULT_VISIBILITY_CONFIG;
     }
-    // 合并默认配置（防止新增角色后旧配置缺失）
+    // 深度合并默认配置（防止新增页面/模块后旧配置缺失）
     var merged = {
       pages: {},
       modules: {}
@@ -1266,8 +1270,21 @@ window.Storage = (function () {
     var allRoles = Object.keys(Constants.DEFAULT_VISIBILITY_CONFIG.pages);
     for (var i = 0; i < allRoles.length; i++) {
       var role = allRoles[i];
-      merged.pages[role] = (config.pages && config.pages[role]) || Constants.DEFAULT_VISIBILITY_CONFIG.pages[role];
-      merged.modules[role] = (config.modules && config.modules[role]) || Constants.DEFAULT_VISIBILITY_CONFIG.modules[role];
+      // pages: 以默认为基础，追加用户自定义里独有的页面（不删默认）
+      var defaultPages = Constants.DEFAULT_VISIBILITY_CONFIG.pages[role] || [];
+      var customPages = (config.pages && config.pages[role]) || [];
+      var pageSet = {};
+      for (var p = 0; p < defaultPages.length; p++) pageSet[defaultPages[p]] = true;
+      for (var q = 0; q < customPages.length; q++) pageSet[customPages[q]] = true;
+      merged.pages[role] = Object.keys(pageSet);
+
+      // modules: 同上合并
+      var defaultModules = Constants.DEFAULT_VISIBILITY_CONFIG.modules[role] || [];
+      var customModules = (config.modules && config.modules[role]) || [];
+      var moduleSet = {};
+      for (var m = 0; m < defaultModules.length; m++) moduleSet[defaultModules[m]] = true;
+      for (var n = 0; n < customModules.length; n++) moduleSet[customModules[n]] = true;
+      merged.modules[role] = Object.keys(moduleSet);
     }
     return merged;
   }

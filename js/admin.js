@@ -265,7 +265,7 @@ window.Admin = (function () {
     var modules = (window.Modules && window.Modules.MODULES) || [];
 
     var html = '<div class="visibility-config">';
-    html += '<div class="visibility-intro" style="font-size:13px;color:var(--color-text-secondary,#a0a0b8);margin-bottom:12px;">勾选每个角色可访问的页面和档案模块，保存后即时生效。</div>';
+    html += '<div class="visibility-intro" style="font-size:13px;color:var(--color-text-secondary,#8A8F98);margin-bottom:12px;">勾选每个角色可访问的页面和档案模块，保存后即时生效。</div>';
 
     for (var ri = 0; ri < roles.length; ri++) {
       var role = roles[ri];

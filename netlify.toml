@@ -1,0 +1,22 @@
+# netlify.toml - Netlify 部署配置
+# 静态站点 + Serverless Functions
+
+[build]
+  # 纯静态站点，无需 build 命令
+  command = ""
+  publish = "."
+
+# 将 /api/chat 重写到 /.netlify/functions/chat
+# 前端代码保持 /api/chat 路径不变，与 Vercel 版本兼容
+[[redirects]]
+  from = "/api/chat"
+  to = "/.netlify/functions/chat"
+  status = 200
+  force = true
+
+# SPA 回退：所有未匹配的路由返回 index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Path = ["!/api/*", "!/.netlify/*"]}

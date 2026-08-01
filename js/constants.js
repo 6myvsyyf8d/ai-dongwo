@@ -127,10 +127,10 @@ window.Constants = {
    */
   DEFAULT_VISIBILITY_CONFIG: {
     pages: {
-      parent:     ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code'],
-      teacher:    ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'teacher-workbench', 'archive-code'],
-      caregiver:  ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code'],
-      youth:      ['dashboard', 'profile', 'youth-chat'],
+      parent:     ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code', 'permissions'],
+      teacher:    ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'teacher-workbench', 'archive-code', 'permissions'],
+      caregiver:  ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code', 'permissions'],
+      youth:      ['dashboard', 'profile', 'youth-chat', 'permissions'],
       government: ['government'],
       admin:      ['admin', 'dashboard']
     },

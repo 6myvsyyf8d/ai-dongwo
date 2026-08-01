@@ -1,0 +1,148 @@
+/**
+ * icons.css — 星座线条图标系统
+ * 深空主题 SVG 行描图标，统一 24x24 viewBox，1.2px 描边
+ */
+
+/* ================================================================
+   导航图标 (primary #5E6AD2)
+   ================================================================ */
+
+/* home — 房屋轮廓：三角屋顶 + 盒体 + 顶点星点 */
+.icon-home {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12%2C3 L4%2C12 v10 h16 v-10 Z' stroke='%235E6AD2' stroke-width='1.2' fill='none' stroke-linejoin='round'/%3E%3Ccircle cx='12' cy='3' r='1.2' fill='%235E6AD2'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* records — 笔记本：两条竖线 + 三条横线 */
+.icon-records {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6%2C4 v16 M18%2C4 v16 M6%2C8 h12 M6%2C12 h12 M6%2C16 h12' stroke='%235E6AD2' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* profile — 五角星轮廓 */
+.icon-profile {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12%2C2 L14.5%2C9 L22%2C9 L16%2C14 L18%2C21 L12%2C17 L6%2C21 L8%2C14 L2%2C9 L9.5%2C9 Z' stroke='%235E6AD2' stroke-width='1.2' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* management — 齿轮轮廓：圆 + 齿突 */
+.icon-management {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='6' stroke='%235E6AD2' stroke-width='1.2' fill='none'/%3E%3Cpath d='M12%2C4.5 v1.5 M12%2C18 v1.5 M4.5%2C12 h1.5 M18%2C12 h1.5 M7.4%2C7.4 l1%2C1 M15.6%2C15.6 l1%2C1 M7.4%2C16.6 l1%2C-1 M15.6%2C8.4 l1%2C-1' stroke='%235E6AD2' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* ================================================================
+   模块图标 (各自模块色)
+   ================================================================ */
+
+/* communication — 对话气泡 + 星座点连接 (#9B85B8) */
+.icon-communication {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5%2C4 h14 a2%2C2 0 0%2C1 2%2C2 v8 a2%2C2 0 0%2C1 -2%2C2 h-3 l-4%2C3.5 v-3.5 h-5 a2%2C2 0 0%2C1 -2%2C-2 v-8 a2%2C2 0 0%2C1 2%2C-2 Z' stroke='%239B85B8' stroke-width='1.2' fill='none' stroke-linejoin='round'/%3E%3Ccircle cx='18' cy='7' r='1.2' fill='%239B85B8'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* emotion — 波浪线 + 中心点 (#D4877B) */
+.icon-emotion {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M2%2C12 Q8%2C4 12%2C12 T22%2C12' stroke='%23D4877B' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3Ccircle cx='12' cy='12' r='1.2' fill='%23D4877B'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* medical — 十字 + 环绕圆环 (#A8C9A0) */
+.icon-medical {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='9' stroke='%23A8C9A0' stroke-width='0.8' fill='none'/%3E%3Cpath d='M12%2C5 v14 M5%2C12 h14' stroke='%23A8C9A0' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* work — 六边形 + 内点 (#D4A85A) */
+.icon-work {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12%2C2 L21%2C7 L21%2C17 L12%2C22 L3%2C17 L3%2C7 Z' stroke='%23D4A85A' stroke-width='1.2' fill='none' stroke-linejoin='round'/%3E%3Ccircle cx='12' cy='12' r='1.2' fill='%23D4A85A'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* relationship — 三个交叠圆 (#B5A8D4) */
+.icon-relationship {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='7' cy='12' r='5.5' stroke='%23B5A8D4' stroke-width='1.2' fill='none'/%3E%3Ccircle cx='17' cy='12' r='5.5' stroke='%23B5A8D4' stroke-width='1.2' fill='none'/%3E%3Ccircle cx='12' cy='8.5' r='5.5' stroke='%23B5A8D4' stroke-width='1.2' fill='none'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* ================================================================
+   工具图标 (secondary #8A8F98)
+   ================================================================ */
+
+/* lock — 挂锁轮廓 */
+.icon-lock {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M8%2C10 v-2 a4%2C4 0 0%2C1 8%2C0 v2' stroke='%238A8F98' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3Crect x='6' y='10' width='12' height='10' rx='1.5' stroke='%238A8F98' stroke-width='1.2' fill='none'/%3E%3Ccircle cx='12' cy='15' r='1.2' fill='%238A8F98'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* close — X 叉号 */
+.icon-close {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5%2C5 L19%2C19 M19%2C5 L5%2C19' stroke='%238A8F98' stroke-width='1.2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+/* arrow-right — 右箭头 */
+.icon-arrow-right {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M4%2C12 h15 M14%2C7 l5%2C5 l-5%2C5' stroke='%238A8F98' stroke-width='1.2' fill='none' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}

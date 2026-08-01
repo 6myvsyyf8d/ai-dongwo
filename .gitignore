@@ -19,3 +19,25 @@ check_*.js
 push_to_github.js
 use_mcp.js
 test_page.js
+
+# 部署平台本地配置（含 token，不上传）
+.netlify/
+.vercel/
+.netlify-config/
+.vercel-config/
+
+# 临时验证脚本与截图
+_*.py
+ai_chat_*.png
+p3_*.png
+
+# 临时原型与测试
+mockup-management.html
+role-comparison.html
+mockups/
+screenshots/
+test_portrait.py
+
+# TRAE/Superpowers 本地工作目录（含本地配置与状态，不上传）
+.superpowers/
+.trae/

@@ -162,9 +162,19 @@ window.AnalyticsEngine = (function () {
     var moduleTrends = _calcModuleTrends(weekRecords, dayKeys);
 
     // 周报概览
+    var middleGaps = _detectMiddleGaps(byDay, dayKeys, 2);
+    var gapText = '';
+    if (middleGaps.length > 0) {
+      gapText = ' ⚠️（存在中间断档：' + middleGaps.map(function (g) {
+        return g.start.substring(5) + '~' + g.end.substring(5) + ' 连续 ' + g.length + ' 天';
+      }).join('；') + '）';
+    } else if (recordDays < 7) {
+      gapText = ' ⚠️（' + (7 - recordDays) + ' 天断档）';
+    } else {
+      gapText = ' ✅（无断档）';
+    }
     var overview = '本周共记录 ' + weekRecords.length + ' 条，日均 ' + Math.round(weekRecords.length / 7) + ' 条，覆盖 ' +
-      Object.keys(_countByModule(weekRecords)).length + ' 个模块。记录天数：' + recordDays + '/7 天' +
-      (recordDays < 7 ? ' ⚠️（' + (7 - recordDays) + ' 天断档）' : ' ✅（无断档）');
+      Object.keys(_countByModule(weekRecords)).length + ' 个模块。记录天数：' + recordDays + '/7 天' + gapText;
 
     // 情绪趋势总结
     var emotionSummary = _summarizeEmotionTrend(emotionTrend);
@@ -172,6 +182,12 @@ window.AnalyticsEngine = (function () {
     // 提醒
     var alerts = [];
     if (recordDays < 7) alerts.push('本周有 ' + (7 - recordDays) + ' 天没有记录，建议保持每日记录习惯');
+    if (middleGaps.length > 0) {
+      for (var gi = 0; gi < middleGaps.length; gi++) {
+        alerts.push('⚠️ ' + middleGaps[gi].start.substring(5) + ' 至 ' + middleGaps[gi].end.substring(5) +
+          ' 连续 ' + middleGaps[gi].length + ' 天无记录，存在中间断档');
+      }
+    }
     var lowModules = _findLowModules(moduleTrends);
     if (lowModules.length > 0) {
       alerts.push('以下模块本周记录偏少：' + lowModules.map(function (m) { return m.label; }).join('、'));
@@ -242,10 +258,18 @@ window.AnalyticsEngine = (function () {
     var careStats = _calcCareStats(byDay, dayKeys);
 
     // 月度概览
+    var middleGaps = _detectMiddleGaps(byDay, dayKeys, 3);
+    var monthGapText = '';
+    if (middleGaps.length > 0) {
+      monthGapText = ' ⚠️（存在中间断档：最长 ' + Math.max.apply(null, middleGaps.map(function (g) { return g.length; })) + ' 天）';
+    } else if (recordDays < totalDays) {
+      monthGapText = ' ⚠️（' + (totalDays - recordDays) + ' 天断档）';
+    } else {
+      monthGapText = ' ✅（无断档）';
+    }
     var overview = '本月共记录 ' + monthRecords.length + ' 条，日均 ' +
       (monthRecords.length / totalDays).toFixed(1) + ' 条，覆盖 ' +
-      Object.keys(_countByModule(monthRecords)).length + ' 个模块。记录天数：' + recordDays + '/' + totalDays + ' 天' +
-      (recordDays < totalDays ? ' ⚠️（' + (totalDays - recordDays) + ' 天断档）' : ' ✅（无断档）');
+      Object.keys(_countByModule(monthRecords)).length + ' 个模块。记录天数：' + recordDays + '/' + totalDays + ' 天' + monthGapText;
 
     // 情绪趋势总结
     var emotionSummary = _summarizeEmotionTrendMonthly(emotionTrend);
@@ -725,6 +749,42 @@ window.AnalyticsEngine = (function () {
       if (!checkFn(byDay[lastDays[i]] || [])) return false;
     }
     return true;
+  }
+
+  /**
+   * 检测中间断档（滑动窗口）
+   * 找出日期范围内连续无记录的天数段（排除末尾断档，末尾断档由 recordGap 检测处理）
+   * @param {object} byDay - 按天分组的记录
+   * @param {string[]} dayKeys - 完整日期范围数组
+   * @param {number} minGapLen - 最小断档长度（默认 2 天）
+   * @returns {Array} 中间断档列表 [{ start, length, end }]
+   */
+  function _detectMiddleGaps(byDay, dayKeys, minGapLen) {
+    minGapLen = minGapLen || 2;
+    var gaps = [];
+    var gapStart = null;
+    var gapLen = 0;
+
+    for (var i = 0; i < dayKeys.length; i++) {
+      var hasRecord = byDay[dayKeys[i]] && byDay[dayKeys[i]].length > 0;
+      if (!hasRecord) {
+        if (gapStart === null) gapStart = i;
+        gapLen++;
+      } else {
+        // 遇到有记录的天，结束当前断档判断
+        if (gapLen >= minGapLen) {
+          gaps.push({
+            start: dayKeys[gapStart],
+            length: gapLen,
+            end: dayKeys[gapStart + gapLen - 1]
+          });
+        }
+        gapStart = null;
+        gapLen = 0;
+      }
+    }
+    // 末尾断档不纳入"中间断档"（由末尾断档检测处理）
+    return gaps;
   }
 
   /**
