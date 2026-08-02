@@ -429,7 +429,7 @@
     return '<div class="page-header">' +
       '<span class="page-title">AI懂我</span>' +
       '<div class="top-bar-actions">' +
-        '<span class="header-version">v1.0_20260802-2</span>' +
+        '<span class="header-version">v1.0_20260802-3</span>' +
         '<button class="top-bar-btn" id="btn-logout" style="color: var(--color-danger);">退出</button>' +
       '</div>' +
     '</div>';

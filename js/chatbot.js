@@ -222,7 +222,6 @@
         '<span class="page-title">' + escapeHtml(youth.name) + ' · 对话采集</span>' +
         '<span></span>' +
       '</div>' +
-      renderTabBar() +
       '<div id="chat-mode-panel">' +
       '<div class="chat-layout">' +
         '<div class="chat-panel-col">' +
@@ -253,7 +252,6 @@
       renderFormPanel();
 
     bindEnhancedEvents();
-    bindTabEvents();
     renderQuickButtons();
 
     // 发送开场白
