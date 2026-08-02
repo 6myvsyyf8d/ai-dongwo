@@ -857,6 +857,7 @@
   var voiceMode = false; // false=文字模式, true=语音模式
 
   function bindInputModeEvents() {
+    voiceMode = false; // DOM 重建后默认文字模式，重置状态
     var switchBtn = document.getElementById('chat-mode-switch');
     var textMode = document.getElementById('chat-input-text-mode');
     var voiceModeEl = document.getElementById('chat-input-voice-mode');
@@ -902,23 +903,26 @@
       recognition.lang = 'zh-CN';
       recognition.interimResults = false;
       recognition.maxAlternatives = 1;
+      var hasResult = false;
+      var hasError = false;
       recognition.onresult = function (event) {
         if (cancelled) return;
         var text = event.results[0][0].transcript;
         if (text) {
+          hasResult = true;
           handleUserInput(text);
-        } else {
-          if (window.AppState && window.AppState.showToast) {
-            window.AppState.showToast('未识别到语音，请重试');
-          }
         }
       };
       recognition.onerror = function () {
+        hasError = true;
         if (!cancelled && window.AppState && window.AppState.showToast) {
           window.AppState.showToast('语音识别失败');
         }
       };
       recognition.onend = function () {
+        if (!cancelled && !hasResult && !hasError && window.AppState && window.AppState.showToast) {
+          window.AppState.showToast('未识别到语音，请重试');
+        }
         recognition = null;
       };
       recognition.start();
