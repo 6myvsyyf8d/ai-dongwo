@@ -178,7 +178,6 @@ window.Government = (function () {
     container.innerHTML =
       '<div class="page-header">' +
         '<span class="page-title">政府趋势看板</span>' +
-        '<button class="btn btn-sm btn-secondary" id="btn-logout">退出</button>' +
       '</div>' +
       '<div class="gov-page">' +
         '<div class="gov-header">' +
@@ -223,11 +222,6 @@ window.Government = (function () {
     _renderLifecycleChart(stats.lifecycleCounts);
     _renderRoleChart(stats.roleCounts);
     _renderGenderChart(stats.genderCounts);
-
-    document.getElementById('btn-logout').addEventListener('click', function () {
-      AppState.logout();
-      window.location.hash = 'login';
-    });
   }
 
   /**

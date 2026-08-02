@@ -129,7 +129,7 @@
 }
 
 .health-alert-dot.active {
-  background: #FF3B30;
+  background: var(--color-danger);
 }
 
 /* 底部统计 */
@@ -452,17 +452,17 @@
 .freshness-fresh {
   background: rgba(52, 199, 89, 0.10);
   border-color: rgba(52, 199, 89, 0.22);
-  color: #34C759;
+  color: var(--color-success);
 }
 .freshness-warning {
   background: rgba(253, 203, 110, 0.10);
   border-color: rgba(253, 203, 110, 0.22);
-  color: #FDCB6E;
+  color: var(--color-warning);
 }
 .freshness-stale {
   background: rgba(212, 135, 123, 0.10);
   border-color: rgba(212, 135, 123, 0.22);
-  color: #D4877B;
+  color: var(--color-text-tertiary);
 }
 
 /* 趋势行 */
@@ -571,7 +571,7 @@
   padding: var(--spacing-md);
   background: var(--color-bg-tertiary);
   border-radius: var(--radius-md);
-  border-left: 3px solid #8E8E93;
+  border-left: 3px solid var(--color-text-secondary);
 }
 
 .daily-module-icon {
@@ -834,11 +834,11 @@
   border-radius: var(--radius-full);
 }
 .comparison-up {
-  color: #4ADE80;
+  color: var(--color-success);
   background: rgba(74, 222, 128, 0.1);
 }
 .comparison-down {
-  color: #F87171;
+  color: var(--color-danger);
   background: rgba(248, 113, 113, 0.1);
 }
 .comparison-stable {

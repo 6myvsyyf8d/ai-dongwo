@@ -428,7 +428,10 @@
   function _renderDashboardHeader() {
     return '<div class="page-header">' +
       '<span class="page-title">AI懂我</span>' +
-      '<span class="header-version">v1.0_20260801-4</span>' +
+      '<div class="top-bar-actions">' +
+        '<span class="header-version">v1.0_20260801-4</span>' +
+        '<button class="top-bar-btn" id="btn-logout" style="color: var(--color-danger);">退出</button>' +
+      '</div>' +
     '</div>';
   }
 
@@ -1256,7 +1259,10 @@
     var container = getContainer();
     var youths = Permissions.getAccessibleYouths();
 
-    var html = '<div class="page-content">';
+    var html = '<div class="page-header">' +
+      '<span class="page-title">⚙️ 管理</span>' +
+    '</div>' +
+    '<div class="page-content">';
 
     // 我的权限 — 入口卡片
     var userHasRead = AppState.canRead;
@@ -1316,31 +1322,9 @@
       html += '</div>';
     }
 
-    // === 账号 ===
-    html += '<div class="ios-card-group">';
-    html += '<div class="ios-card-group-header">👤 账号</div>';
-    html += '<div class="ios-card-row-static">' +
-      '<div class="ios-card-row-icon">' + (user.avatar || '👤') + '</div>' +
-      '<div class="ios-card-row-body">' +
-        '<div class="ios-card-row-title">' + Utils.escapeHtml(user.name) + '</div>' +
-        '<div class="ios-card-row-subtitle">' + _roleLabel(user.role) + '</div>' +
-      '</div>' +
-    '</div>';
-    html += '<button class="ios-create-row" id="btn-logout" style="color: var(--color-danger);">退出登录</button>';
-    html += '</div>';
-
     html += '</div>';
 
     container.innerHTML = html;
-
-    // 绑定退出按钮
-    var logoutBtn = document.getElementById('btn-logout');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', function () {
-        AppState.logout();
-        window.location.hash = 'login';
-      });
-    }
 
     // 绑定权限入口卡片点击
     var permRow = document.querySelector('[data-action="permissions"]');
@@ -1615,6 +1599,15 @@
       rejectBtns[ri].addEventListener('click', function() {
         var findingId = this.getAttribute('data-finding-id');
         _reviewAIFinding(findingId, 'reject');
+      });
+    }
+
+    // 退出登录按钮
+    var logoutBtn = document.getElementById('btn-logout');
+    if (logoutBtn) {
+      logoutBtn.addEventListener('click', function () {
+        AppState.logout();
+        window.location.hash = 'login';
       });
     }
   }

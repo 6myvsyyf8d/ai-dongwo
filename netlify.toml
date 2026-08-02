@@ -7,10 +7,16 @@
   publish = "."
 
 # 将 /api/chat 重写到 /.netlify/functions/chat
-# 前端代码保持 /api/chat 路径不变，与 Vercel 版本兼容
 [[redirects]]
   from = "/api/chat"
   to = "/.netlify/functions/chat"
+  status = 200
+  force = true
+
+# 将 /api/chatbot 重写到 /.netlify/functions/chatbot
+[[redirects]]
+  from = "/api/chatbot"
+  to = "/.netlify/functions/chatbot"
   status = 200
   force = true
 

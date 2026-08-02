@@ -378,38 +378,7 @@ window.Profile = (function () {
       container.innerHTML += _renderEmergencyDropdown(youth);
     }
 
-    // 账号区块（所有角色统一：头像 + 姓名 + 角色 + 退出登录）
-    var currentUser = AppState.currentUser;
-    if (currentUser) {
-      container.innerHTML += _renderAccountSection(currentUser);
-    }
-
     _bindDetailEvents(youthId);
-  }
-
-  /**
-   * 渲染账号区块（头像 + 姓名 + 角色 + 退出登录）
-   */
-  function _renderAccountSection(user) {
-    var roleLabels = {
-      parent: '家长', teacher: '老师', caregiver: '照护者',
-      youth: '心青年', admin: '管理员', government: '政府'
-    };
-    var roleLabel = roleLabels[user.role] || user.role;
-    var html = '<div class="profile-account-section">' +
-      '<div class="ios-card-group">' +
-        '<div class="ios-card-group-header">👤 账号</div>' +
-        '<div class="ios-card-row-static">' +
-          '<div class="ios-card-row-icon">' + (user.avatar || '👤') + '</div>' +
-          '<div class="ios-card-row-body">' +
-            '<div class="ios-card-row-title">' + Utils.escapeHtml(user.name) + '</div>' +
-            '<div class="ios-card-row-subtitle">' + roleLabel + '</div>' +
-          '</div>' +
-        '</div>' +
-        '<button class="ios-create-row" id="btn-logout" style="color: var(--color-danger);">退出登录</button>' +
-      '</div>' +
-    '</div>';
-    return html;
   }
 
   /**
@@ -999,15 +968,6 @@ window.Profile = (function () {
             e.target !== emergencyBtn) {
           emergencyDropdown.classList.remove('show');
         }
-      });
-    }
-
-    // 退出登录按钮
-    var logoutBtn = document.getElementById('btn-logout');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', function () {
-        AppState.logout();
-        window.location.hash = 'login';
       });
     }
   }

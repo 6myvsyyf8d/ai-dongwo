@@ -21,7 +21,6 @@ window.Admin = (function () {
     container.innerHTML =
       '<div class="page-header">' +
         '<span class="page-title">🛡️ 系统管理</span>' +
-        '<button class="top-bar-btn" id="btn-admin-logout" title="退出登录">退出</button>' +
       '</div>' +
       '<div class="page-content">' +
         '<div class="admin-tabs">' +
@@ -34,16 +33,6 @@ window.Admin = (function () {
 
     _renderUsersTab();
     _bindTabs();
-
-    // 绑定退出按钮
-    var logoutBtn = document.getElementById('btn-admin-logout');
-    if (logoutBtn) {
-      logoutBtn.addEventListener('click', function () {
-        if (confirm('确定要退出登录吗？')) {
-          AppState.logout();
-        }
-      });
-    }
   }
 
   /**

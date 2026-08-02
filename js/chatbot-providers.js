@@ -95,4 +95,99 @@
     getAnalysisProvider: getAnalysisProvider,
     listProviders: listProviders
   };
+
+  // ========== 智谱 AI 提供者注册 ==========
+  // 延迟注册，等待 ZhipuClient 和 ChatbotTemplates 就绪
+  function _registerZhipuProvider() {
+    if (!window.ZhipuClient || !window.ChatbotTemplates) {
+      setTimeout(_registerZhipuProvider, 200);
+      return;
+    }
+
+    // 初始化 API Key（优先级：localStorage > Electron 环境变量）
+    var apiKey = '';
+    try {
+      // 1. 尝试从 localStorage 读取
+      apiKey = localStorage.getItem('zhipu_api_key') || '';
+      // 2. 尝试从 Electron 环境变量读取
+      if (!apiKey && window.electronAPI && window.electronAPI.getEnv) {
+        apiKey = window.electronAPI.getEnv('ZHIPU_API_KEY') || '';
+      }
+    } catch (e) {
+      console.warn('ChatbotProviders: 无法读取 API Key 配置', e);
+    }
+
+    if (apiKey) {
+      window.ZhipuClient.init({ apiKey: apiKey });
+      console.log('ChatbotProviders: 智谱 API Key 已配置');
+    } else {
+      console.log('ChatbotProviders: 未配置 API Key，对话将使用本地关键词引擎');
+    }
+
+    var keywordClassifier = window.ChatbotClassifier;
+    var keywordTemplates = window.ChatbotTemplates;
+
+    var zhipuProvider = {
+      name: 'zhipu',
+
+      // Classifier: 优先用 AI 分类，降级到关键词
+      classify: function (text) {
+        if (window.ZhipuClient.isAvailable()) {
+          return window.ZhipuClient.classify(text);
+        }
+        // 降级到关键词分类
+        if (keywordClassifier) {
+          return keywordClassifier.classify(text);
+        }
+        return [];
+      },
+
+      getModuleName: function (moduleKey) {
+        if (keywordClassifier) return keywordClassifier.getModuleName(moduleKey);
+        return moduleKey;
+      },
+
+      getModuleIcon: function (moduleKey) {
+        if (keywordClassifier) return keywordClassifier.getModuleIcon(moduleKey);
+        return '📝';
+      },
+
+      // QuestionProvider: 优先用 AI 生成对话，降级到模板
+      getTemplate: function (hoursSinceLastRecord) {
+        if (keywordTemplates) {
+          return keywordTemplates.getTemplate(hoursSinceLastRecord);
+        }
+        return { greeting: '你好！今天想记录什么？', questions: [], maxRounds: 20 };
+      },
+
+      getQuickButtons: function () {
+        if (keywordTemplates) return keywordTemplates.getQuickButtons();
+        return [];
+      }
+    };
+
+    register('zhipu', zhipuProvider);
+
+    // 检测代理可用性，然后决定是否切换到智谱
+    window.ZhipuClient.checkProxy().then(function (proxyOk) {
+      if (proxyOk) {
+        switchProvider('classifier', 'zhipu');
+        switchProvider('questionProvider', 'zhipu');
+        console.log('ChatbotProviders: 已切换到智谱 AI 提供者（服务端代理）');
+      } else if (window.ZhipuClient.isAvailable()) {
+        switchProvider('classifier', 'zhipu');
+        switchProvider('questionProvider', 'zhipu');
+        console.log('ChatbotProviders: 已切换到智谱 AI 提供者（客户端直连）');
+      } else {
+        console.log('ChatbotProviders: 未配置 API Key，使用本地关键词引擎');
+      }
+    });
+  }
+
+  // 等待 DOM 和脚本就绪后注册
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', _registerZhipuProvider);
+  } else {
+    _registerZhipuProvider();
+  }
 })();

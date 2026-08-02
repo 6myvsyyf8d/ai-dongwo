@@ -497,28 +497,79 @@
     if (!text.trim()) return;
     if (state.confirmed) return;
 
-    addUserMessage(text.trim());
+    var userText = text.trim();
+    addUserMessage(userText);
 
-    if (window.ChatbotClassifier) {
-      var classifier = (window.ChatbotProviders && window.ChatbotProviders.getClassifier()) || window.ChatbotClassifier;
-      var results = classifier.classify(text.trim());
-      var validResults = results.filter(function (r) { return r.module !== null; });
-
-      for (var i = 0; i < validResults.length; i++) {
-        var r = validResults[i];
-        var tempId = 'item_' + Date.now() + '_' + i;
-        state.classifiedItems.push({
-          sentence: r.sentence,
-          module: r.module,
-          confidence: r.confidence,
-          tempId: tempId
+    // 异步分类（兼容同步和异步返回）
+    var classifier = (window.ChatbotProviders && window.ChatbotProviders.getClassifier()) || window.ChatbotClassifier;
+    if (classifier) {
+      var classifyResult = classifier.classify(userText);
+      if (classifyResult && typeof classifyResult.then === 'function') {
+        classifyResult.then(function (results) {
+          processClassificationResults(results);
+        }).catch(function (err) {
+          console.error('ChatBot: AI 分类失败', err);
         });
-        renderClassifiedItem(r.sentence, r.module, r.confidence, tempId);
+      } else {
+        // 同步分类（关键词引擎）
+        processClassificationResults(classifyResult);
       }
-      updateConfirmButton();
     }
 
-    // 继续下一个问题
+    // AI 生成自然对话回复
+    var useAI = window.ZhipuClient && window.ZhipuClient.isAvailable();
+    if (useAI) {
+      showTyping();
+      // 转换 state.messages 为智谱 API 要求的格式：{ role: 'assistant'|'user', content }
+      var apiMessages = state.messages.map(function (msg) {
+        return {
+          role: msg.role === 'ai' ? 'assistant' : msg.role,
+          content: msg.text
+        };
+      });
+      window.ZhipuClient.generateReply(apiMessages, state.youthName)
+        .then(function (reply) {
+          hideTyping();
+          addAIMessage(reply);
+          state.totalRounds++;
+          if (state.totalRounds >= state.maxRounds) {
+            setTimeout(function () { endConversation(); }, 600);
+          }
+        })
+        .catch(function (err) {
+          hideTyping();
+          console.error('ChatBot: AI 回复生成失败', err);
+          fallbackToTemplate();
+        });
+    } else {
+      fallbackToTemplate();
+    }
+  }
+
+  /**
+   * 处理分类结果（同步和异步共用）
+   */
+  function processClassificationResults(results) {
+    if (!results || !results.length) return;
+    var validResults = results.filter(function (r) { return r.module !== null; });
+    for (var i = 0; i < validResults.length; i++) {
+      var r = validResults[i];
+      var tempId = 'item_' + Date.now() + '_' + i;
+      state.classifiedItems.push({
+        sentence: r.sentence,
+        module: r.module,
+        confidence: r.confidence,
+        tempId: tempId
+      });
+      renderClassifiedItem(r.sentence, r.module, r.confidence, tempId);
+    }
+    updateConfirmButton();
+  }
+
+  /**
+   * 降级到模板提问（无 AI 时）
+   */
+  function fallbackToTemplate() {
     if (state.template && state.template.questions && state.template.questions.length > 0) {
       setTimeout(function () { askNextQuestion(); }, 500);
     }
@@ -536,8 +587,26 @@
     });
     renderClassifiedItem(btnData.text, btnData.module, 1.0, tempId);
     updateConfirmButton();
-    if (state.template && state.template.questions && state.template.questions.length > 0) {
-      setTimeout(function () { askNextQuestion(); }, 400);
+
+    // AI 生成自然对话回复
+    if (window.ZhipuClient && window.ZhipuClient.isAvailable()) {
+      showTyping();
+      window.ZhipuClient.generateReply(state.messages, state.youthName)
+        .then(function (reply) {
+          hideTyping();
+          addAIMessage(reply);
+          state.totalRounds++;
+          if (state.totalRounds >= state.maxRounds) {
+            setTimeout(function () { endConversation(); }, 600);
+          }
+        })
+        .catch(function (err) {
+          hideTyping();
+          console.error('ChatBot: AI 回复生成失败', err);
+          fallbackToTemplate();
+        });
+    } else {
+      fallbackToTemplate();
     }
   }
 
@@ -569,6 +638,37 @@
       return;
     }
 
+    // 优先使用异步 AI 分类
+    var classifier = (window.ChatbotProviders && window.ChatbotProviders.getClassifier()) || window.ChatbotClassifier;
+    if (classifier) {
+      var classifyResult = classifier.classify(text);
+      var handleResult = function (results) {
+        var validResults = results ? results.filter(function (r) { return r.module !== null; }) : [];
+        if (validResults.length > 0) {
+          _pendingClassification = { text: text, module: validResults[0].module, tags: [] };
+          var modName = classifier.getModuleName ? classifier.getModuleName(validResults[0].module) : validResults[0].module;
+          addAIMessage('我理解这段信息属于「' + modName + '」模块。\n\n是否要将其保存为一条记录？', 0);
+        } else {
+          _pendingClassification = { text: text, module: null, tags: [] };
+          addAIMessage('我不太确定这段信息属于哪个模块，请帮我选择一个：', 0);
+        }
+      };
+
+      if (classifyResult && typeof classifyResult.then === 'function') {
+        classifyResult.then(handleResult).catch(function () {
+          // 降级到关键词分类
+          handleLegacyKeywordFallback(text);
+        });
+      } else {
+        handleResult(classifyResult);
+      }
+      return;
+    }
+
+    handleLegacyKeywordFallback(text);
+  }
+
+  function handleLegacyKeywordFallback(text) {
     var classification = classifyText(text);
     if (classification.module) {
       _pendingClassification = { text: text, module: classification.module, tags: classification.tags };

@@ -250,11 +250,12 @@
   background-color: var(--color-primary);
   color: var(--color-text-white);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-weight-medium);
   font-size: var(--font-size-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
+  box-shadow: var(--shadow-primary);
 }
 
 .grants-add-btn:hover:not(:disabled) {
@@ -573,12 +574,13 @@
   background-color: var(--color-primary);
   color: var(--color-text-white);
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   font-weight: var(--font-weight-medium);
   font-size: var(--font-size-sm);
   cursor: pointer;
   transition: all var(--transition-fast);
   margin-top: var(--spacing-sm);
+  box-shadow: var(--shadow-primary);
 }
 
 .grants-sheet-confirm:hover:not(:disabled) {
