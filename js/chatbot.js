@@ -26,16 +26,6 @@
   // ========== Tab 模式状态（组件内部，不持久化） ==========
   var currentMode = 'chat';
 
-  // ========== 建议问题（兼容旧版） ==========
-  var SUGGESTIONS = [
-    '今天心情怎么样？',
-    '有什么喜欢做的事？',
-    '最近有什么变化吗？',
-    '有没有什么触发情绪的情况？',
-    '今天用药情况如何？',
-    '有什么新学会的技能吗？'
-  ];
-
   // ========== 工具函数 ==========
   function formatTime() {
     var now = new Date();
@@ -220,11 +210,7 @@
     state.maxRounds = state.template.maxRounds || 20;
 
     // 渲染双栏布局
-    if (hasClassifier) {
-      renderEnhancedLayout(youth);
-    } else {
-      renderLegacyLayout(youth);
-    }
+    renderEnhancedLayout(youth);
   }
 
   // ========== 增强版双栏布局 ==========
@@ -274,39 +260,6 @@
     }
   }
 
-  // ========== 旧版兼容布局（无 classifier 时） ==========
-  function renderLegacyLayout(youth) {
-    var container = window.App ? window.App.getContainer() : document.getElementById('page-container');
-    if (!container) return;
-
-    container.innerHTML =
-      '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-back">← 返回</button>' +
-        '<span class="page-title">' + escapeHtml(youth.name) + ' · 对话采集</span>' +
-        '<span></span>' +
-      '</div>' +
-      renderTabBar() +
-      '<div id="chat-mode-panel">' +
-      '<div class="chat-page">' +
-        '<div class="chat-messages" id="chat-messages"></div>' +
-        '<div class="chat-suggestions" id="chat-suggestions">' +
-          SUGGESTIONS.map(function (s) {
-            return '<div class="chat-suggestion-chip" data-suggestion="' + escapeHtml(s) + '">' + s + '</div>';
-          }).join('') +
-        '</div>' +
-        '<div class="chat-input-area">' +
-          '<textarea class="chat-input" id="chat-input" placeholder="输入消息..." rows="1"></textarea>' +
-          '<button class="chat-send-btn" id="btn-send" aria-label="发送消息">➤</button>' +
-        '</div>' +
-      '</div>' +
-      '</div>' +
-      renderFormPanel();
-
-    bindLegacyEvents();
-    bindTabEvents();
-    addAIMessage('你好！我是 AI 助手，可以帮你通过对话记录 ' + state.youthName + ' 的日常信息。你可以告诉我今天发生了什么，或者从下方建议问题开始。', 0);
-  }
-
   // ========== 增强版事件绑定 ==========
   function bindEnhancedEvents() {
     var backBtn = document.getElementById('btn-back');
@@ -353,48 +306,6 @@
     }
 
     bindVoiceEvents();
-  }
-
-  // ========== 旧版事件绑定 ==========
-  function bindLegacyEvents() {
-    var backBtn = document.getElementById('btn-back');
-    if (backBtn) {
-      backBtn.addEventListener('click', function () {
-        window.location.hash = 'profile?youthId=' + encodeURIComponent(state.youthId);
-      });
-    }
-
-    var input = document.getElementById('chat-input');
-    var sendBtn = document.getElementById('btn-send');
-
-    if (input) {
-      input.addEventListener('input', function () {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 100) + 'px';
-        if (sendBtn) sendBtn.disabled = !this.value.trim();
-      });
-      input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          handleLegacySend();
-        }
-      });
-    }
-
-    if (sendBtn) {
-      sendBtn.disabled = true;
-      sendBtn.addEventListener('click', handleLegacySend);
-    }
-
-    var chips = document.querySelectorAll('.chat-suggestion-chip');
-    for (var i = 0; i < chips.length; i++) {
-      chips[i].addEventListener('click', function () {
-        if (!input) return;
-        input.value = this.getAttribute('data-suggestion');
-        input.dispatchEvent(new Event('input'));
-        handleLegacySend();
-      });
-    }
   }
 
   // ========== 消息渲染 ==========
@@ -615,156 +526,6 @@
     } else {
       fallbackToTemplate();
     }
-  }
-
-  // ========== 旧版发送处理 ==========
-  function handleLegacySend() {
-    var input = document.getElementById('chat-input');
-    if (!input) return;
-    var text = input.value.trim();
-    if (!text) return;
-
-    addUserMessage(text);
-    input.value = '';
-    input.style.height = 'auto';
-    var sendBtn = document.getElementById('btn-send');
-    if (sendBtn) sendBtn.disabled = true;
-
-    showTyping();
-    setTimeout(function () {
-      hideTyping();
-      processLegacyMessage(text);
-    }, 600 + Math.random() * 400);
-  }
-
-  var _pendingClassification = null;
-
-  function processLegacyMessage(text) {
-    if (_pendingClassification) {
-      handleLegacyConfirm(text);
-      return;
-    }
-
-    // 优先使用异步 AI 分类
-    var classifier = (window.ChatbotProviders && window.ChatbotProviders.getClassifier()) || window.ChatbotClassifier;
-    if (classifier) {
-      var classifyResult = classifier.classify(text);
-      var handleResult = function (results) {
-        var validResults = results ? results.filter(function (r) { return r.module !== null; }) : [];
-        if (validResults.length > 0) {
-          _pendingClassification = { text: text, module: validResults[0].module, tags: [] };
-          var modName = classifier.getModuleName ? classifier.getModuleName(validResults[0].module) : validResults[0].module;
-          addAIMessage('我理解这段信息属于「' + modName + '」模块。\n\n是否要将其保存为一条记录？', 0);
-        } else {
-          _pendingClassification = { text: text, module: null, tags: [] };
-          addAIMessage('我不太确定这段信息属于哪个模块，请帮我选择一个：', 0);
-        }
-      };
-
-      if (classifyResult && typeof classifyResult.then === 'function') {
-        classifyResult.then(handleResult).catch(function () {
-          // 降级到关键词分类
-          handleLegacyKeywordFallback(text);
-        });
-      } else {
-        handleResult(classifyResult);
-      }
-      return;
-    }
-
-    handleLegacyKeywordFallback(text);
-  }
-
-  function handleLegacyKeywordFallback(text) {
-    var classification = classifyText(text);
-    if (classification.module) {
-      _pendingClassification = { text: text, module: classification.module, tags: classification.tags };
-      addAIMessage('我理解这段信息属于「' + (window.Modules ? window.Modules.MODULE_LABELS[classification.module] : classification.module) + '」模块。\n\n是否要将其保存为一条记录？', 0);
-    } else {
-      _pendingClassification = { text: text, module: null, tags: [] };
-      addAIMessage('我不太确定这段信息属于哪个模块，请帮我选择一个：', 0);
-    }
-  }
-
-  function classifyText(text) {
-    var scores = {};
-    var tags = [];
-    var keywords = window.Modules ? window.Modules.MODULE_KEYWORDS : {};
-
-    for (var mod in keywords) {
-      if (!keywords.hasOwnProperty(mod)) continue;
-      scores[mod] = 0;
-      var kws = keywords[mod];
-      for (var i = 0; i < kws.length; i++) {
-        if (text.indexOf(kws[i]) > -1) {
-          scores[mod]++;
-          tags.push(kws[i]);
-        }
-      }
-    }
-
-    var bestModule = null;
-    var bestScore = 0;
-    for (var m in scores) {
-      if (scores[m] > bestScore) {
-        bestScore = scores[m];
-        bestModule = m;
-      }
-    }
-
-    var uniqueTags = [];
-    for (var j = 0; j < tags.length; j++) {
-      if (uniqueTags.indexOf(tags[j]) === -1) uniqueTags.push(tags[j]);
-    }
-
-    return { module: bestScore > 0 ? bestModule : null, tags: uniqueTags.slice(0, 5) };
-  }
-
-  function handleLegacyConfirm(userResponse) {
-    if (_pendingClassification.module && (userResponse.indexOf('是') > -1 || userResponse.indexOf('好') > -1 || userResponse.indexOf('保存') > -1)) {
-      saveLegacyRecord();
-      return;
-    }
-    if (userResponse.indexOf('不') > -1 || userResponse.indexOf('取消') > -1) {
-      _pendingClassification = null;
-      addAIMessage('好的，已取消保存。你可以继续告诉我更多信息。', 0);
-      return;
-    }
-    _pendingClassification = null;
-    addAIMessage('好的，我们继续。你可以告诉我更多关于今天的情况。', 0);
-  }
-
-  function saveLegacyRecord() {
-    if (!_pendingClassification || !_pendingClassification.module) return;
-
-    if (window.Permissions && !window.Permissions.canWrite(_pendingClassification.module)) {
-      addAIMessage('抱歉，你没有写入该模块的权限。', 0);
-      _pendingClassification = null;
-      return;
-    }
-
-    var user = window.AppState ? window.AppState.currentUser : null;
-    var now = window.Utils ? window.Utils.formatDateTime() : new Date().toISOString();
-
-    var record = {
-      id: window.Utils ? window.Utils.generateUUID() : 'rec_' + Date.now(),
-      youthId: state.youthId,
-      recorderId: user ? user.id : 'unknown',
-      recorderRole: user ? user.role : 'unknown',
-      module: _pendingClassification.module,
-      recordType: 'chatbot_captured',
-      content: { text: _pendingClassification.text, tags: _pendingClassification.tags },
-      visibilityLevel: 'full',
-      recordedAt: now,
-      isOffline: !navigator.onLine,
-      syncedAt: navigator.onLine ? now : null
-    };
-
-    if (window.Storage && window.Storage.addRecord) {
-      window.Storage.addRecord(state.youthId, record);
-    }
-    addAIMessage('✅ 已保存到「' + (window.Modules ? window.Modules.MODULE_LABELS[_pendingClassification.module] : _pendingClassification.module) + '」模块。', 0);
-    _pendingClassification = null;
   }
 
   // ========== 归类面板渲染 ==========
