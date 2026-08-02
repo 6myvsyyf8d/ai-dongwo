@@ -480,6 +480,8 @@
       renderFormPanel();
 
     bindEnhancedEvents();
+    bindTabEvents();
+    bindDrawerEvents();
     renderQuickButtons();
 
     if (state._resumed) {
