@@ -267,6 +267,40 @@
   }
 
   /**
+   * 流式生成对话回复（前端模拟流式）
+   * 服务端返回完整回复后，前端按字符分块回调 onToken，实现打字机效果
+   * @param {Array} history - [{ role, content }]
+   * @param {string} youthName - 心青年名字
+   * @param {function} onToken - (token, fullText) 回调
+   * @returns {Promise<string>} 完整回复文本
+   */
+  function generateReplyStream(history, youthName, onToken) {
+    return generateReply(history, youthName).then(function (reply) {
+      if (!reply || !onToken) return reply;
+      // 按 Unicode code point 逐字符分块
+      var chars = Array.from(reply);
+      var i = 0;
+      var fullText = '';
+      var chunkSize = 1; // 每次输出 1 个字符
+      var interval = 30; // 每 30ms 输出一个字符
+
+      return new Promise(function (resolve) {
+        var timer = setInterval(function () {
+          if (i >= chars.length) {
+            clearInterval(timer);
+            resolve(reply);
+            return;
+          }
+          var chunk = chars.slice(i, i + chunkSize).join('');
+          fullText += chunk;
+          i += chunkSize;
+          try { onToken(chunk, fullText); } catch (e) { console.warn('onToken error', e); }
+        }, interval);
+      });
+    });
+  }
+
+  /**
    * 直连生成回复（客户端直接调用智谱 API）
    */
   function _generateReplyDirect(history, youthName) {
@@ -292,6 +326,7 @@
     chat: chat,
     classify: classify,
     generateReply: generateReply,
+    generateReplyStream: generateReplyStream,
     isAvailable: isAvailable,
     checkProxy: checkProxy
   };

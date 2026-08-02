@@ -18,23 +18,11 @@
     template: null,
     totalRounds: 0,
     maxRounds: 10,
-    isRecording: false,
-    recognition: null,
     confirmed: false
   };
 
   // ========== Tab 模式状态（组件内部，不持久化） ==========
   var currentMode = 'chat';
-
-  // ========== 建议问题（兼容旧版） ==========
-  var SUGGESTIONS = [
-    '今天心情怎么样？',
-    '有什么喜欢做的事？',
-    '最近有什么变化吗？',
-    '有没有什么触发情绪的情况？',
-    '今天用药情况如何？',
-    '有什么新学会的技能吗？'
-  ];
 
   // ========== 工具函数 ==========
   function formatTime() {
@@ -48,6 +36,20 @@
     var div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
+  }
+
+  /**
+   * 将内部 state.messages 转为智谱 API 要求的格式
+   * 内部格式: { role: 'ai'/'user', text, time }
+   * API 格式:  { role: 'assistant'/'user', content }
+   */
+  function _toApiMessages(messages) {
+    return messages.map(function (msg) {
+      return {
+        role: msg.role === 'ai' ? 'assistant' : msg.role,
+        content: msg.text
+      };
+    });
   }
 
   // ========== Tab 切换栏（iOS 风格分段控件，样式见 chatbot.css） ==========
@@ -206,11 +208,7 @@
     state.maxRounds = state.template.maxRounds || 20;
 
     // 渲染双栏布局
-    if (hasClassifier) {
-      renderEnhancedLayout(youth);
-    } else {
-      renderLegacyLayout(youth);
-    }
+    renderEnhancedLayout(youth);
   }
 
   // ========== 增强版双栏布局 ==========
@@ -230,11 +228,16 @@
         '<div class="chat-panel-col">' +
           '<div class="chat-messages" id="chat-messages"></div>' +
           '<div class="chat-quick-buttons" id="chat-quick-buttons"></div>' +
-          '<div class="chat-input-area">' +
-            '<button class="chat-voice-btn" id="chat-voice-btn" title="按住说话">🎤</button>' +
-            '<textarea class="chat-input" id="chat-input" placeholder="打字或按住说话..." rows="1"></textarea>' +
+          '<div class="chat-input-area" id="chat-input-area">' +
+          '<button class="chat-mode-switch" id="chat-mode-switch" type="button" title="切换语音/文字" aria-label="切换语音/文字">🎤</button>' +
+          '<div class="chat-input-text-mode" id="chat-input-text-mode">' +
+            '<textarea class="chat-input" id="chat-input" placeholder="输入消息..." rows="1"></textarea>' +
             '<button class="chat-send-btn" id="chat-send-btn" aria-label="发送">➤</button>' +
           '</div>' +
+          '<div class="chat-input-voice-mode" id="chat-input-voice-mode" style="display:none;">' +
+            '<button class="chat-voice-hold-btn" id="chat-voice-hold-btn" type="button">按住 说话</button>' +
+          '</div>' +
+        '</div>' +
         '</div>' +
         '<div class="categorize-panel">' +
           '<div class="categorize-panel-header">📋 实时归类</div>' +
@@ -258,39 +261,6 @@
     if (state.template.questions && state.template.questions.length > 0) {
       setTimeout(function () { askNextQuestion(); }, 800);
     }
-  }
-
-  // ========== 旧版兼容布局（无 classifier 时） ==========
-  function renderLegacyLayout(youth) {
-    var container = window.App ? window.App.getContainer() : document.getElementById('page-container');
-    if (!container) return;
-
-    container.innerHTML =
-      '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-back">← 返回</button>' +
-        '<span class="page-title">' + escapeHtml(youth.name) + ' · 对话采集</span>' +
-        '<span></span>' +
-      '</div>' +
-      renderTabBar() +
-      '<div id="chat-mode-panel">' +
-      '<div class="chat-page">' +
-        '<div class="chat-messages" id="chat-messages"></div>' +
-        '<div class="chat-suggestions" id="chat-suggestions">' +
-          SUGGESTIONS.map(function (s) {
-            return '<div class="chat-suggestion-chip" data-suggestion="' + escapeHtml(s) + '">' + s + '</div>';
-          }).join('') +
-        '</div>' +
-        '<div class="chat-input-area">' +
-          '<textarea class="chat-input" id="chat-input" placeholder="输入消息..." rows="1"></textarea>' +
-          '<button class="chat-send-btn" id="btn-send" aria-label="发送消息">➤</button>' +
-        '</div>' +
-      '</div>' +
-      '</div>' +
-      renderFormPanel();
-
-    bindLegacyEvents();
-    bindTabEvents();
-    addAIMessage('你好！我是 AI 助手，可以帮你通过对话记录 ' + state.youthName + ' 的日常信息。你可以告诉我今天发生了什么，或者从下方建议问题开始。', 0);
   }
 
   // ========== 增强版事件绑定 ==========
@@ -338,49 +308,76 @@
       confirmBtn.addEventListener('click', confirmAndSave);
     }
 
-    bindVoiceEvents();
-  }
-
-  // ========== 旧版事件绑定 ==========
-  function bindLegacyEvents() {
-    var backBtn = document.getElementById('btn-back');
-    if (backBtn) {
-      backBtn.addEventListener('click', function () {
-        window.location.hash = 'profile?youthId=' + encodeURIComponent(state.youthId);
-      });
-    }
-
-    var input = document.getElementById('chat-input');
-    var sendBtn = document.getElementById('btn-send');
-
-    if (input) {
-      input.addEventListener('input', function () {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 100) + 'px';
-        if (sendBtn) sendBtn.disabled = !this.value.trim();
-      });
-      input.addEventListener('keydown', function (e) {
-        if (e.key === 'Enter' && !e.shiftKey) {
-          e.preventDefault();
-          handleLegacySend();
+    // 重试按钮事件委托（错误气泡 / 流式中断气泡）
+    var chatMessagesEl = document.getElementById('chat-messages');
+    if (chatMessagesEl) {
+      chatMessagesEl.addEventListener('click', function (e) {
+        if (!e.target || !e.target.classList.contains('chat-retry-btn')) return;
+        // 找到错误气泡，移除它
+        var errBubble = e.target.closest('.chat-bubble-error');
+        if (errBubble) errBubble.remove();
+        // 重试上一次用户消息
+        var lastUserMsg = null;
+        for (var i = state.messages.length - 1; i >= 0; i--) {
+          if (state.messages[i].role === 'user') {
+            lastUserMsg = state.messages[i];
+            break;
+          }
         }
+        if (!lastUserMsg) return;
+        // 重新调用 AI（不重复 addUserMessage）
+        showTyping();
+        var retryStreaming = null;
+        window.ZhipuClient.generateReplyStream(
+          _toApiMessages(state.messages),
+          state.youthName,
+          function (token, fullText) {
+            if (!retryStreaming) {
+              hideTyping();
+              retryStreaming = addStreamingAIMessage();
+            }
+            retryStreaming.append(token);
+          }
+        ).then(function () {
+          if (retryStreaming) {
+            retryStreaming.finalize();
+            state.totalRounds++;
+            if (state.totalRounds >= state.maxRounds) {
+              setTimeout(function () { endConversation(); }, 600);
+            }
+          } else {
+            // AI 返回空字符串：移除 typing，显示错误气泡
+            hideTyping();
+            var chatMsgs = document.getElementById('chat-messages');
+            var emptyBubble = document.createElement('div');
+            emptyBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+            emptyBubble.innerHTML = '<div>AI 返回为空，请重试</div>' +
+              '<button class="chat-retry-btn" type="button">重试</button>';
+            if (chatMsgs) chatMsgs.appendChild(emptyBubble);
+            scrollToBottom();
+          }
+        }).catch(function (err) {
+          hideTyping();
+          console.error('ChatBot: 重试失败', err);
+          if (retryStreaming) {
+            retryStreaming.bubbleEl.classList.remove('chat-bubble-streaming');
+            retryStreaming.bubbleEl.classList.add('chat-bubble-error');
+            retryStreaming.bubbleEl.innerHTML += '<div class="stream-interrupted">回复中断</div>' +
+              '<button class="chat-retry-btn" type="button">重试</button>';
+          } else {
+            var chatMsgs = document.getElementById('chat-messages');
+            var newErrBubble = document.createElement('div');
+            newErrBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+            newErrBubble.innerHTML = '<div>AI 回复失败</div>' +
+              '<button class="chat-retry-btn" type="button">重试</button>';
+            if (chatMsgs) chatMsgs.appendChild(newErrBubble);
+          }
+          scrollToBottom();
+        });
       });
     }
 
-    if (sendBtn) {
-      sendBtn.disabled = true;
-      sendBtn.addEventListener('click', handleLegacySend);
-    }
-
-    var chips = document.querySelectorAll('.chat-suggestion-chip');
-    for (var i = 0; i < chips.length; i++) {
-      chips[i].addEventListener('click', function () {
-        if (!input) return;
-        input.value = this.getAttribute('data-suggestion');
-        input.dispatchEvent(new Event('input'));
-        handleLegacySend();
-      });
-    }
+    bindInputModeEvents();
   }
 
   // ========== 消息渲染 ==========
@@ -391,11 +388,48 @@
       if (!chatMessages) return;
       var bubble = document.createElement('div');
       bubble.className = 'chat-bubble chat-bubble-bot';
-      bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>') + '<div style="font-size:0.68rem;opacity:0.5;margin-top:4px;text-align:right;">' + formatTime() + '</div>';
+      bubble.innerHTML = window.ChatMarkdown.render(text) + '<div style="font-size:0.68rem;opacity:0.5;margin-top:4px;text-align:right;">' + formatTime() + '</div>';
       chatMessages.appendChild(bubble);
       scrollToBottom();
       state.messages.push({ role: 'ai', text: text, time: new Date().toISOString() });
     }, delay);
+  }
+
+  /**
+   * 创建流式 AI 消息气泡
+   * 返回 { bubbleEl, append(text), finalize(), fail(msg) }
+   */
+  function addStreamingAIMessage() {
+    var chatMessages = document.getElementById('chat-messages');
+    if (!chatMessages) return null;
+    var bubble = document.createElement('div');
+    bubble.className = 'chat-bubble chat-bubble-bot chat-bubble-streaming';
+    chatMessages.appendChild(bubble);
+    scrollToBottom();
+    return {
+      bubbleEl: bubble,
+      append: function (text) {
+        bubble._rawText = (bubble._rawText || '') + text;
+        // 流式过程显示纯文本（转义 + 换行），避免未闭合 markdown 渲染错乱
+        bubble.innerHTML = escapeHtml(bubble._rawText).replace(/\n/g, '<br>');
+        scrollToBottom();
+      },
+      finalize: function () {
+        var text = bubble._rawText || '';
+        bubble.classList.remove('chat-bubble-streaming');
+        bubble.innerHTML = window.ChatMarkdown.render(text) +
+          '<div style="font-size:0.68rem;opacity:0.5;margin-top:4px;text-align:right;">' + formatTime() + '</div>';
+        scrollToBottom();
+        state.messages.push({ role: 'ai', text: text, time: new Date().toISOString() });
+      },
+      fail: function (errMsg) {
+        bubble.classList.remove('chat-bubble-streaming');
+        bubble.classList.add('chat-bubble-error');
+        bubble.innerHTML = '<div>' + escapeHtml(errMsg) + '</div>' +
+          '<button class="chat-retry-btn" type="button">重试</button>';
+        scrollToBottom();
+      }
+    };
   }
 
   function addUserMessage(text) {
@@ -520,29 +554,63 @@
     var useAI = window.ZhipuClient && window.ZhipuClient.isAvailable();
     if (useAI) {
       showTyping();
-      // 转换 state.messages 为智谱 API 要求的格式：{ role: 'assistant'|'user', content }
-      var apiMessages = state.messages.map(function (msg) {
-        return {
-          role: msg.role === 'ai' ? 'assistant' : msg.role,
-          content: msg.text
-        };
-      });
-      window.ZhipuClient.generateReply(apiMessages, state.youthName)
-        .then(function (reply) {
-          hideTyping();
-          addAIMessage(reply);
+      var streaming = null;
+      window.ZhipuClient.generateReplyStream(
+        _toApiMessages(state.messages),
+        state.youthName,
+        function (token, fullText) {
+          if (!streaming) {
+            hideTyping();
+            streaming = addStreamingAIMessage();
+          }
+          streaming.append(token);
+        }
+      ).then(function () {
+        if (streaming) {
+          streaming.finalize();
           state.totalRounds++;
           if (state.totalRounds >= state.maxRounds) {
             setTimeout(function () { endConversation(); }, 600);
           }
-        })
-        .catch(function (err) {
+        } else {
+          // AI 返回空字符串：移除 typing，显示错误气泡
           hideTyping();
-          console.error('ChatBot: AI 回复生成失败', err);
-          fallbackToTemplate();
-        });
+          var chatMsgs = document.getElementById('chat-messages');
+          var emptyBubble = document.createElement('div');
+          emptyBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+          emptyBubble.innerHTML = '<div>AI 返回为空，请重试</div>' +
+            '<button class="chat-retry-btn" type="button">重试</button>';
+          if (chatMsgs) chatMsgs.appendChild(emptyBubble);
+          scrollToBottom();
+        }
+      }).catch(function (err) {
+        hideTyping();
+        console.error('ChatBot: AI 回复生成失败', err);
+        if (streaming) {
+          // 流式中断：保留部分文本，标记中断
+          streaming.bubbleEl.classList.remove('chat-bubble-streaming');
+          streaming.bubbleEl.classList.add('chat-bubble-error');
+          streaming.bubbleEl.innerHTML += '<div class="stream-interrupted">回复中断</div>' +
+            '<button class="chat-retry-btn" type="button">重试</button>';
+        } else {
+          // 未开始流式：显示错误气泡
+          var chatMessages = document.getElementById('chat-messages');
+          var errBubble = document.createElement('div');
+          errBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+          errBubble.innerHTML = '<div>AI 回复失败</div>' +
+            '<button class="chat-retry-btn" type="button">重试</button>';
+          if (chatMessages) chatMessages.appendChild(errBubble);
+        }
+        scrollToBottom();
+      });
     } else {
-      fallbackToTemplate();
+      // 无 AI：显示错误气泡（不再降级到模板提问）
+      var chatMessages = document.getElementById('chat-messages');
+      var errBubble = document.createElement('div');
+      errBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+      errBubble.innerHTML = '<div>AI 服务未配置，请联系管理员</div>';
+      if (chatMessages) chatMessages.appendChild(errBubble);
+      scrollToBottom();
     }
   }
 
@@ -566,15 +634,6 @@
     updateConfirmButton();
   }
 
-  /**
-   * 降级到模板提问（无 AI 时）
-   */
-  function fallbackToTemplate() {
-    if (state.template && state.template.questions && state.template.questions.length > 0) {
-      setTimeout(function () { askNextQuestion(); }, 500);
-    }
-  }
-
   function handleQuickButton(btnData) {
     if (state.confirmed) return;
     addUserMessage(btnData.text);
@@ -591,173 +650,64 @@
     // AI 生成自然对话回复
     if (window.ZhipuClient && window.ZhipuClient.isAvailable()) {
       showTyping();
-      window.ZhipuClient.generateReply(state.messages, state.youthName)
-        .then(function (reply) {
-          hideTyping();
-          addAIMessage(reply);
+      var streaming = null;
+      window.ZhipuClient.generateReplyStream(
+        _toApiMessages(state.messages),
+        state.youthName,
+        function (token, fullText) {
+          if (!streaming) {
+            hideTyping();
+            streaming = addStreamingAIMessage();
+          }
+          streaming.append(token);
+        }
+      ).then(function () {
+        if (streaming) {
+          streaming.finalize();
           state.totalRounds++;
           if (state.totalRounds >= state.maxRounds) {
             setTimeout(function () { endConversation(); }, 600);
           }
-        })
-        .catch(function (err) {
-          hideTyping();
-          console.error('ChatBot: AI 回复生成失败', err);
-          fallbackToTemplate();
-        });
-    } else {
-      fallbackToTemplate();
-    }
-  }
-
-  // ========== 旧版发送处理 ==========
-  function handleLegacySend() {
-    var input = document.getElementById('chat-input');
-    if (!input) return;
-    var text = input.value.trim();
-    if (!text) return;
-
-    addUserMessage(text);
-    input.value = '';
-    input.style.height = 'auto';
-    var sendBtn = document.getElementById('btn-send');
-    if (sendBtn) sendBtn.disabled = true;
-
-    showTyping();
-    setTimeout(function () {
-      hideTyping();
-      processLegacyMessage(text);
-    }, 600 + Math.random() * 400);
-  }
-
-  var _pendingClassification = null;
-
-  function processLegacyMessage(text) {
-    if (_pendingClassification) {
-      handleLegacyConfirm(text);
-      return;
-    }
-
-    // 优先使用异步 AI 分类
-    var classifier = (window.ChatbotProviders && window.ChatbotProviders.getClassifier()) || window.ChatbotClassifier;
-    if (classifier) {
-      var classifyResult = classifier.classify(text);
-      var handleResult = function (results) {
-        var validResults = results ? results.filter(function (r) { return r.module !== null; }) : [];
-        if (validResults.length > 0) {
-          _pendingClassification = { text: text, module: validResults[0].module, tags: [] };
-          var modName = classifier.getModuleName ? classifier.getModuleName(validResults[0].module) : validResults[0].module;
-          addAIMessage('我理解这段信息属于「' + modName + '」模块。\n\n是否要将其保存为一条记录？', 0);
         } else {
-          _pendingClassification = { text: text, module: null, tags: [] };
-          addAIMessage('我不太确定这段信息属于哪个模块，请帮我选择一个：', 0);
+          // AI 返回空字符串：移除 typing，显示错误气泡
+          hideTyping();
+          var chatMsgs = document.getElementById('chat-messages');
+          var emptyBubble = document.createElement('div');
+          emptyBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+          emptyBubble.innerHTML = '<div>AI 返回为空，请重试</div>' +
+            '<button class="chat-retry-btn" type="button">重试</button>';
+          if (chatMsgs) chatMsgs.appendChild(emptyBubble);
+          scrollToBottom();
         }
-      };
-
-      if (classifyResult && typeof classifyResult.then === 'function') {
-        classifyResult.then(handleResult).catch(function () {
-          // 降级到关键词分类
-          handleLegacyKeywordFallback(text);
-        });
-      } else {
-        handleResult(classifyResult);
-      }
-      return;
-    }
-
-    handleLegacyKeywordFallback(text);
-  }
-
-  function handleLegacyKeywordFallback(text) {
-    var classification = classifyText(text);
-    if (classification.module) {
-      _pendingClassification = { text: text, module: classification.module, tags: classification.tags };
-      addAIMessage('我理解这段信息属于「' + (window.Modules ? window.Modules.MODULE_LABELS[classification.module] : classification.module) + '」模块。\n\n是否要将其保存为一条记录？', 0);
+      }).catch(function (err) {
+        hideTyping();
+        console.error('ChatBot: AI 回复生成失败', err);
+        if (streaming) {
+          // 流式中断：保留部分文本，标记中断
+          streaming.bubbleEl.classList.remove('chat-bubble-streaming');
+          streaming.bubbleEl.classList.add('chat-bubble-error');
+          streaming.bubbleEl.innerHTML += '<div class="stream-interrupted">回复中断</div>' +
+            '<button class="chat-retry-btn" type="button">重试</button>';
+        } else {
+          // 未开始流式：显示错误气泡
+          var chatMessages = document.getElementById('chat-messages');
+          var errBubble = document.createElement('div');
+          errBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+          errBubble.innerHTML = '<div>AI 回复失败</div>' +
+            '<button class="chat-retry-btn" type="button">重试</button>';
+          if (chatMessages) chatMessages.appendChild(errBubble);
+        }
+        scrollToBottom();
+      });
     } else {
-      _pendingClassification = { text: text, module: null, tags: [] };
-      addAIMessage('我不太确定这段信息属于哪个模块，请帮我选择一个：', 0);
+      // 无 AI：显示错误气泡（不再降级到模板提问）
+      var chatMessages = document.getElementById('chat-messages');
+      var errBubble = document.createElement('div');
+      errBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+      errBubble.innerHTML = '<div>AI 服务未配置，请联系管理员</div>';
+      if (chatMessages) chatMessages.appendChild(errBubble);
+      scrollToBottom();
     }
-  }
-
-  function classifyText(text) {
-    var scores = {};
-    var tags = [];
-    var keywords = window.Modules ? window.Modules.MODULE_KEYWORDS : {};
-
-    for (var mod in keywords) {
-      if (!keywords.hasOwnProperty(mod)) continue;
-      scores[mod] = 0;
-      var kws = keywords[mod];
-      for (var i = 0; i < kws.length; i++) {
-        if (text.indexOf(kws[i]) > -1) {
-          scores[mod]++;
-          tags.push(kws[i]);
-        }
-      }
-    }
-
-    var bestModule = null;
-    var bestScore = 0;
-    for (var m in scores) {
-      if (scores[m] > bestScore) {
-        bestScore = scores[m];
-        bestModule = m;
-      }
-    }
-
-    var uniqueTags = [];
-    for (var j = 0; j < tags.length; j++) {
-      if (uniqueTags.indexOf(tags[j]) === -1) uniqueTags.push(tags[j]);
-    }
-
-    return { module: bestScore > 0 ? bestModule : null, tags: uniqueTags.slice(0, 5) };
-  }
-
-  function handleLegacyConfirm(userResponse) {
-    if (_pendingClassification.module && (userResponse.indexOf('是') > -1 || userResponse.indexOf('好') > -1 || userResponse.indexOf('保存') > -1)) {
-      saveLegacyRecord();
-      return;
-    }
-    if (userResponse.indexOf('不') > -1 || userResponse.indexOf('取消') > -1) {
-      _pendingClassification = null;
-      addAIMessage('好的，已取消保存。你可以继续告诉我更多信息。', 0);
-      return;
-    }
-    _pendingClassification = null;
-    addAIMessage('好的，我们继续。你可以告诉我更多关于今天的情况。', 0);
-  }
-
-  function saveLegacyRecord() {
-    if (!_pendingClassification || !_pendingClassification.module) return;
-
-    if (window.Permissions && !window.Permissions.canWrite(_pendingClassification.module)) {
-      addAIMessage('抱歉，你没有写入该模块的权限。', 0);
-      _pendingClassification = null;
-      return;
-    }
-
-    var user = window.AppState ? window.AppState.currentUser : null;
-    var now = window.Utils ? window.Utils.formatDateTime() : new Date().toISOString();
-
-    var record = {
-      id: window.Utils ? window.Utils.generateUUID() : 'rec_' + Date.now(),
-      youthId: state.youthId,
-      recorderId: user ? user.id : 'unknown',
-      recorderRole: user ? user.role : 'unknown',
-      module: _pendingClassification.module,
-      recordType: 'chatbot_captured',
-      content: { text: _pendingClassification.text, tags: _pendingClassification.tags },
-      visibilityLevel: 'full',
-      recordedAt: now,
-      isOffline: !navigator.onLine,
-      syncedAt: navigator.onLine ? now : null
-    };
-
-    if (window.Storage && window.Storage.addRecord) {
-      window.Storage.addRecord(state.youthId, record);
-    }
-    addAIMessage('✅ 已保存到「' + (window.Modules ? window.Modules.MODULE_LABELS[_pendingClassification.module] : _pendingClassification.module) + '」模块。', 0);
-    _pendingClassification = null;
   }
 
   // ========== 归类面板渲染 ==========
@@ -903,63 +853,117 @@
     });
   }
 
-  // ========== 语音输入 ==========
-  function bindVoiceEvents() {
-    var voiceBtn = document.getElementById('chat-voice-btn');
-    if (!voiceBtn) return;
+  // ========== 微信式语音/文字切换 ==========
+  var voiceMode = false; // false=文字模式, true=语音模式
+
+  function bindInputModeEvents() {
+    voiceMode = false; // DOM 重建后默认文字模式，重置状态
+    var switchBtn = document.getElementById('chat-mode-switch');
+    var textMode = document.getElementById('chat-input-text-mode');
+    var voiceModeEl = document.getElementById('chat-input-voice-mode');
+    var holdBtn = document.getElementById('chat-voice-hold-btn');
+    if (!switchBtn || !textMode || !voiceModeEl || !holdBtn) return;
 
     var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      voiceBtn.style.display = 'none';
+      // 不支持语音：隐藏切换钮
+      switchBtn.style.display = 'none';
       return;
     }
 
-    voiceBtn.addEventListener('mousedown', function () { startRecording(voiceBtn, SpeechRecognition); });
-    voiceBtn.addEventListener('mouseup', function () { stopRecording(voiceBtn); });
-    voiceBtn.addEventListener('mouseleave', function () { if (state.isRecording) stopRecording(voiceBtn); });
-
-    voiceBtn.addEventListener('touchstart', function (e) {
-      e.preventDefault();
-      startRecording(voiceBtn, SpeechRecognition);
+    // 切换按钮
+    switchBtn.addEventListener('click', function () {
+      voiceMode = !voiceMode;
+      if (voiceMode) {
+        switchBtn.textContent = '⌨️';
+        textMode.style.display = 'none';
+        voiceModeEl.style.display = 'flex';
+      } else {
+        switchBtn.textContent = '🎤';
+        voiceModeEl.style.display = 'none';
+        textMode.style.display = 'flex';
+      }
     });
-    voiceBtn.addEventListener('touchend', function (e) {
+
+    // 按住说话
+    var recognition = null;
+    var isHolding = false;
+    var cancelled = false;
+    var startY = 0;
+
+    function startHold(e) {
       e.preventDefault();
-      stopRecording(voiceBtn);
-    });
-  }
+      isHolding = true;
+      cancelled = false;
+      startY = (e.touches && e.touches[0].clientY) || e.clientY;
+      holdBtn.classList.add('holding');
+      holdBtn.textContent = '松开 发送';
 
-  function startRecording(voiceBtn, SpeechRecognition) {
-    if (state.isRecording) return;
-    state.isRecording = true;
-    voiceBtn.classList.add('recording');
-    voiceBtn.textContent = '🔴';
-
-    var recognition = new SpeechRecognition();
-    recognition.lang = 'zh-CN';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = function (event) {
-      var text = event.results[0][0].transcript;
-      handleUserInput(text);
-    };
-
-    recognition.onerror = function () { stopRecording(voiceBtn); };
-    recognition.onend = function () { stopRecording(voiceBtn); };
-
-    state.recognition = recognition;
-    recognition.start();
-  }
-
-  function stopRecording(voiceBtn) {
-    if (!state.isRecording) return;
-    state.isRecording = false;
-    voiceBtn.classList.remove('recording');
-    voiceBtn.textContent = '🎤';
-    if (state.recognition) {
-      state.recognition.stop();
-      state.recognition = null;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'zh-CN';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      var hasResult = false;
+      var hasError = false;
+      recognition.onresult = function (event) {
+        if (cancelled) return;
+        var text = event.results[0][0].transcript;
+        if (text) {
+          hasResult = true;
+          handleUserInput(text);
+        }
+      };
+      recognition.onerror = function () {
+        hasError = true;
+        if (!cancelled && window.AppState && window.AppState.showToast) {
+          window.AppState.showToast('语音识别失败');
+        }
+      };
+      recognition.onend = function () {
+        if (!cancelled && !hasResult && !hasError && window.AppState && window.AppState.showToast) {
+          window.AppState.showToast('未识别到语音，请重试');
+        }
+        recognition = null;
+      };
+      recognition.start();
     }
+
+    function endHold(e) {
+      if (!isHolding) return;
+      e.preventDefault();
+      isHolding = false;
+      holdBtn.classList.remove('holding');
+      holdBtn.classList.remove('cancel');
+      holdBtn.textContent = '按住 说话';
+      if (cancelled) {
+        // 取消：停止识别，不发送
+        if (recognition) { try { recognition.stop(); } catch (err) {} }
+        return;
+      }
+      // 正常结束：识别 onresult 会处理发送
+      if (recognition) { try { recognition.stop(); } catch (err) {} }
+    }
+
+    function cancelHold(e) {
+      if (!isHolding) return;
+      var curY = (e.touches && e.touches[0].clientY) || e.clientY;
+      if (startY - curY > 40) {
+        cancelled = true;
+        holdBtn.classList.add('cancel');
+        holdBtn.textContent = '松开手指，取消发送';
+      } else {
+        cancelled = false;
+        holdBtn.classList.remove('cancel');
+        holdBtn.textContent = '松开 发送';
+      }
+    }
+
+    holdBtn.addEventListener('mousedown', startHold);
+    holdBtn.addEventListener('mouseup', endHold);
+    holdBtn.addEventListener('mouseleave', function(e) { if (isHolding) endHold(e); });
+    holdBtn.addEventListener('touchstart', startHold, { passive: false });
+    holdBtn.addEventListener('touchend', endHold, { passive: false });
+    holdBtn.addEventListener('touchmove', cancelHold, { passive: false });
   }
 
   // ========== 暴露全局接口 ==========

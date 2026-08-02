@@ -51,9 +51,15 @@ window.YouthChat = (function () {
         '<div class="youth-chat-messages" id="youth-chat-messages">' +
           _renderMessages() +
         '</div>' +
-        '<div class="youth-chat-input-bar">' +
-          '<input type="text" id="youth-chat-input" class="youth-chat-input" placeholder="输入想说的话…" maxlength="200">' +
-          '<button class="youth-chat-send" id="youth-chat-send">发送</button>' +
+        '<div class="youth-chat-input-bar" id="youth-chat-input-bar">' +
+          '<button class="chat-mode-switch" id="youth-mode-switch" type="button" title="切换语音/文字" aria-label="切换语音/文字">🎤</button>' +
+          '<div class="chat-input-text-mode" id="youth-input-text-mode">' +
+            '<input type="text" id="youth-chat-input" class="youth-chat-input" placeholder="输入想说的话…" maxlength="200">' +
+            '<button class="youth-chat-send" id="youth-chat-send">发送</button>' +
+          '</div>' +
+          '<div class="chat-input-voice-mode" id="youth-input-voice-mode" style="display:none;">' +
+            '<button class="chat-voice-hold-btn youth-voice-hold" id="youth-voice-hold-btn" type="button">按住 说话</button>' +
+          '</div>' +
         '</div>' +
       '</div>';
 
@@ -65,7 +71,7 @@ window.YouthChat = (function () {
     for (var i = 0; i < state.messages.length; i++) {
       var msg = state.messages[i];
       if (msg.role === 'ai') {
-        html += '<div class="chat-bubble chat-bubble-ai">' + Utils.escapeHtml(msg.text) + '</div>';
+        html += '<div class="chat-bubble chat-bubble-ai">' + window.ChatMarkdown.render(msg.text) + '</div>';
       } else if (msg.role === 'user') {
         html += '<div class="chat-bubble chat-bubble-user">' + Utils.escapeHtml(msg.text) + '</div>';
       } else if (msg.role === 'task') {
@@ -152,21 +158,35 @@ window.YouthChat = (function () {
       sendBtn.disabled = true;
 
       try {
-        // 检查每日额度
         _loadDailyCount();
         var aiReply;
         if (state.dailyCallCount >= DAILY_LIMIT) {
           // 超额：降级到本地回复
           aiReply = '今天我们聊了很多啦，明天再继续好吗？😊';
+          // 移除 typing，直接显示
+          var typingEl = document.getElementById('ai-typing');
+          if (typingEl) typingEl.remove();
         } else {
-          // 调用云端 AI
-          aiReply = await _callAI(text);
+          // 流式渲染
+          var typingEl2 = document.getElementById('ai-typing');
+          if (typingEl2) typingEl2.remove();
+
+          // 创建 streaming bubble
+          var streamBubble = document.createElement('div');
+          streamBubble.className = 'chat-bubble chat-bubble-ai chat-bubble-streaming';
+          streamBubble.textContent = '…';  // 初始占位，首次 onToken 时被覆盖
+          msgContainer.appendChild(streamBubble);
+
+          aiReply = await _callAIStream(text, function(token, fullText) {
+            streamBubble.innerHTML = Utils.escapeHtml(fullText).replace(/\n/g, '<br>');
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+          });
+
+          // finalize：markdown 渲染
+          streamBubble.classList.remove('chat-bubble-streaming');
+          streamBubble.innerHTML = window.ChatMarkdown.render(aiReply);
           _incrementDailyCount();
         }
-
-        // 移除 typing 提示
-        var typing = document.getElementById('ai-typing');
-        if (typing) typing.remove();
 
         state.messages.push({ role: 'ai', text: aiReply, timestamp: Utils.formatDateTime() });
         // 提取 AI 发现并存储（保留原有发现抽取逻辑）
@@ -178,9 +198,11 @@ window.YouthChat = (function () {
         msgContainer.innerHTML = _renderMessages();
         msgContainer.scrollTop = msgContainer.scrollHeight;
       } catch (e) {
-        // 失败时降级到本地回复
+        // 流式中断/失败：移除 typing/streamBubble，降级到本地回复
         var typingErr = document.getElementById('ai-typing');
         if (typingErr) typingErr.remove();
+        var streamBubbleErr = msgContainer.querySelector('.chat-bubble-streaming');
+        if (streamBubbleErr) streamBubbleErr.remove();
         var fallback = _generateAIReply(text);
         state.messages.push({ role: 'ai', text: fallback, timestamp: Utils.formatDateTime() });
         _saveMessages();
@@ -216,6 +238,109 @@ window.YouthChat = (function () {
 
     // 滚动到底部
     msgContainer.scrollTop = msgContainer.scrollHeight;
+
+    // 微信式语音/文字切换
+    var modeSwitch = document.getElementById('youth-mode-switch');
+    var textModeEl = document.getElementById('youth-input-text-mode');
+    var voiceModeEl = document.getElementById('youth-input-voice-mode');
+    var holdBtn = document.getElementById('youth-voice-hold-btn');
+
+    if (modeSwitch && textModeEl && voiceModeEl && holdBtn) {
+      var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        modeSwitch.style.display = 'none';
+      } else {
+        var voiceModeOn = false;
+        modeSwitch.addEventListener('click', function () {
+          voiceModeOn = !voiceModeOn;
+          if (voiceModeOn) {
+            modeSwitch.textContent = '⌨️';
+            textModeEl.style.display = 'none';
+            voiceModeEl.style.display = 'flex';
+          } else {
+            modeSwitch.textContent = '🎤';
+            voiceModeEl.style.display = 'none';
+            textModeEl.style.display = 'flex';
+          }
+        });
+
+        // 按住说话
+        var recognition = null;
+        var isHolding = false;
+        var cancelled = false;
+        var startY = 0;
+
+        function startHold(e) {
+          e.preventDefault();
+          isHolding = true;
+          cancelled = false;
+          startY = (e.touches && e.touches[0].clientY) || e.clientY;
+          holdBtn.classList.add('holding');
+          holdBtn.textContent = '松开 发送';
+
+          recognition = new SpeechRecognition();
+          recognition.lang = 'zh-CN';
+          recognition.interimResults = false;
+          recognition.maxAlternatives = 1;
+          var hasResult = false;
+          var hasError = false;
+          recognition.onresult = function (event) {
+            if (cancelled) return;
+            var text = event.results[0][0].transcript;
+            if (text) {
+              hasResult = true;
+              // 填入输入框并触发发送
+              input.value = text;
+              sendMessage();
+            }
+          };
+          recognition.onerror = function () {
+            hasError = true;
+            if (!cancelled && window.AppState && window.AppState.showToast) {
+              window.AppState.showToast('语音识别失败');
+            }
+          };
+          recognition.onend = function () {
+            if (!cancelled && !hasResult && !hasError && window.AppState && window.AppState.showToast) {
+              window.AppState.showToast('未识别到语音，请重试');
+            }
+            recognition = null;
+          };
+          recognition.start();
+        }
+
+        function endHold(e) {
+          if (!isHolding) return;
+          e.preventDefault();
+          isHolding = false;
+          holdBtn.classList.remove('holding');
+          holdBtn.classList.remove('cancel');
+          holdBtn.textContent = '按住 说话';
+          if (recognition) { try { recognition.stop(); } catch (err) {} }
+        }
+
+        function cancelHold(e) {
+          if (!isHolding) return;
+          var curY = (e.touches && e.touches[0].clientY) || e.clientY;
+          if (startY - curY > 40) {
+            cancelled = true;
+            holdBtn.classList.add('cancel');
+            holdBtn.textContent = '松开手指，取消发送';
+          } else {
+            cancelled = false;
+            holdBtn.classList.remove('cancel');
+            holdBtn.textContent = '松开 发送';
+          }
+        }
+
+        holdBtn.addEventListener('mousedown', startHold);
+        holdBtn.addEventListener('mouseup', endHold);
+        holdBtn.addEventListener('mouseleave', function(e) { if (isHolding) endHold(e); });
+        holdBtn.addEventListener('touchstart', startHold, { passive: false });
+        holdBtn.addEventListener('touchend', endHold, { passive: false });
+        holdBtn.addEventListener('touchmove', cancelHold, { passive: false });
+      }
+    }
   }
 
   function _extractAIFinding(userText) {
@@ -285,18 +410,18 @@ window.YouthChat = (function () {
   }
 
   /**
-   * 调用云端 AI（Vercel Serverless Function）
-   * 失败时抛出异常，由调用方降级处理
+   * 流式调用云端 AI（前端模拟流式）
+   * @param {string} userText
+   * @param {function} onToken - (token, fullText) 回调
+   * @returns {Promise<string>} 完整回复
    */
-  async function _callAI(userText) {
-    // 取最近 6 条消息作为上下文
+  async function _callAIStream(userText, onToken) {
     var recent = state.messages.slice(-6).map(function(m) {
       return {
         role: m.role === 'user' ? 'user' : 'assistant',
         content: m.text || ''
       };
     });
-    // 最近一条用户消息已在 state.messages 中，无需重复添加
 
     var youthProfile = _buildYouthProfileSummary();
 
@@ -316,7 +441,19 @@ window.YouthChat = (function () {
     if (data.error) {
       throw new Error(data.error);
     }
-    return data.reply || '我没能理解，可以再说一次吗？😊';
+    var reply = data.reply || '我没能理解，可以再说一次吗？😊';
+
+    // 前端模拟流式：逐字符回调
+    if (onToken) {
+      var chars = Array.from(reply);
+      var fullText = '';
+      for (var i = 0; i < chars.length; i++) {
+        fullText += chars[i];
+        onToken(chars[i], fullText);
+        await new Promise(function(r) { setTimeout(r, 30); });
+      }
+    }
+    return reply;
   }
 
   /**
