@@ -84,7 +84,7 @@ export default async function handler(req, res) {
       ? data.choices[0].message.content
       : '我没能理解，可以再说一次吗？😊';
 
-    return res.status(200).json({ reply });
+    return res.status(200).json({ reply, stream: true });
   } catch (err) {
     console.error('chat handler error:', err);
     return res.status(500).json({ error: 'AI 服务暂时不可用', fallback: true });
