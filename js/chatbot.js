@@ -342,12 +342,23 @@
             if (state.totalRounds >= state.maxRounds) {
               setTimeout(function () { endConversation(); }, 600);
             }
+          } else {
+            // AI 返回空字符串：移除 typing，显示错误气泡
+            hideTyping();
+            var chatMsgs = document.getElementById('chat-messages');
+            var emptyBubble = document.createElement('div');
+            emptyBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+            emptyBubble.innerHTML = '<div>AI 返回为空，请重试</div>' +
+              '<button class="chat-retry-btn" type="button">重试</button>';
+            if (chatMsgs) chatMsgs.appendChild(emptyBubble);
+            scrollToBottom();
           }
         }).catch(function (err) {
           hideTyping();
           console.error('ChatBot: 重试失败', err);
           if (retryStreaming) {
             retryStreaming.bubbleEl.classList.remove('chat-bubble-streaming');
+            retryStreaming.bubbleEl.classList.add('chat-bubble-error');
             retryStreaming.bubbleEl.innerHTML += '<div class="stream-interrupted">回复中断</div>' +
               '<button class="chat-retry-btn" type="button">重试</button>';
           } else {
@@ -558,6 +569,16 @@
           if (state.totalRounds >= state.maxRounds) {
             setTimeout(function () { endConversation(); }, 600);
           }
+        } else {
+          // AI 返回空字符串：移除 typing，显示错误气泡
+          hideTyping();
+          var chatMsgs = document.getElementById('chat-messages');
+          var emptyBubble = document.createElement('div');
+          emptyBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+          emptyBubble.innerHTML = '<div>AI 返回为空，请重试</div>' +
+            '<button class="chat-retry-btn" type="button">重试</button>';
+          if (chatMsgs) chatMsgs.appendChild(emptyBubble);
+          scrollToBottom();
         }
       }).catch(function (err) {
         hideTyping();
@@ -565,6 +586,7 @@
         if (streaming) {
           // 流式中断：保留部分文本，标记中断
           streaming.bubbleEl.classList.remove('chat-bubble-streaming');
+          streaming.bubbleEl.classList.add('chat-bubble-error');
           streaming.bubbleEl.innerHTML += '<div class="stream-interrupted">回复中断</div>' +
             '<button class="chat-retry-btn" type="button">重试</button>';
         } else {
@@ -643,6 +665,16 @@
           if (state.totalRounds >= state.maxRounds) {
             setTimeout(function () { endConversation(); }, 600);
           }
+        } else {
+          // AI 返回空字符串：移除 typing，显示错误气泡
+          hideTyping();
+          var chatMsgs = document.getElementById('chat-messages');
+          var emptyBubble = document.createElement('div');
+          emptyBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+          emptyBubble.innerHTML = '<div>AI 返回为空，请重试</div>' +
+            '<button class="chat-retry-btn" type="button">重试</button>';
+          if (chatMsgs) chatMsgs.appendChild(emptyBubble);
+          scrollToBottom();
         }
       }).catch(function (err) {
         hideTyping();
@@ -650,6 +682,7 @@
         if (streaming) {
           // 流式中断：保留部分文本，标记中断
           streaming.bubbleEl.classList.remove('chat-bubble-streaming');
+          streaming.bubbleEl.classList.add('chat-bubble-error');
           streaming.bubbleEl.innerHTML += '<div class="stream-interrupted">回复中断</div>' +
             '<button class="chat-retry-btn" type="button">重试</button>';
         } else {
