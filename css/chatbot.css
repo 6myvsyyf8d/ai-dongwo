@@ -949,3 +949,11 @@
   height: 56px;
   font-size: var(--font-size-base);
 }
+
+#chat-messages {
+  position: relative;
+}
+
+#chat-mode-panel {
+  position: relative;
+}
