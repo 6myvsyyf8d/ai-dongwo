@@ -305,6 +305,64 @@
       confirmBtn.addEventListener('click', confirmAndSave);
     }
 
+    // 重试按钮事件委托（错误气泡 / 流式中断气泡）
+    var chatMessagesEl = document.getElementById('chat-messages');
+    if (chatMessagesEl) {
+      chatMessagesEl.addEventListener('click', function (e) {
+        if (!e.target || !e.target.classList.contains('chat-retry-btn')) return;
+        // 找到错误气泡，移除它
+        var errBubble = e.target.closest('.chat-bubble-error');
+        if (errBubble) errBubble.remove();
+        // 重试上一次用户消息
+        var lastUserMsg = null;
+        for (var i = state.messages.length - 1; i >= 0; i--) {
+          if (state.messages[i].role === 'user') {
+            lastUserMsg = state.messages[i];
+            break;
+          }
+        }
+        if (!lastUserMsg) return;
+        // 重新调用 AI（不重复 addUserMessage）
+        showTyping();
+        var retryStreaming = null;
+        window.ZhipuClient.generateReplyStream(
+          _toApiMessages(state.messages),
+          state.youthName,
+          function (token, fullText) {
+            if (!retryStreaming) {
+              hideTyping();
+              retryStreaming = addStreamingAIMessage();
+            }
+            retryStreaming.append(token);
+          }
+        ).then(function () {
+          if (retryStreaming) {
+            retryStreaming.finalize();
+            state.totalRounds++;
+            if (state.totalRounds >= state.maxRounds) {
+              setTimeout(function () { endConversation(); }, 600);
+            }
+          }
+        }).catch(function (err) {
+          hideTyping();
+          console.error('ChatBot: 重试失败', err);
+          if (retryStreaming) {
+            retryStreaming.bubbleEl.classList.remove('chat-bubble-streaming');
+            retryStreaming.bubbleEl.innerHTML += '<div class="stream-interrupted">回复中断</div>' +
+              '<button class="chat-retry-btn" type="button">重试</button>';
+          } else {
+            var chatMsgs = document.getElementById('chat-messages');
+            var newErrBubble = document.createElement('div');
+            newErrBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+            newErrBubble.innerHTML = '<div>AI 回复失败</div>' +
+              '<button class="chat-retry-btn" type="button">重试</button>';
+            if (chatMsgs) chatMsgs.appendChild(newErrBubble);
+          }
+          scrollToBottom();
+        });
+      });
+    }
+
     bindVoiceEvents();
   }
 
@@ -549,15 +607,6 @@
       renderClassifiedItem(r.sentence, r.module, r.confidence, tempId);
     }
     updateConfirmButton();
-  }
-
-  /**
-   * 降级到模板提问（无 AI 时）
-   */
-  function fallbackToTemplate() {
-    if (state.template && state.template.questions && state.template.questions.length > 0) {
-      setTimeout(function () { askNextQuestion(); }, 500);
-    }
   }
 
   function handleQuickButton(btnData) {
