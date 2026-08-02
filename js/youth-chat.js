@@ -51,9 +51,15 @@ window.YouthChat = (function () {
         '<div class="youth-chat-messages" id="youth-chat-messages">' +
           _renderMessages() +
         '</div>' +
-        '<div class="youth-chat-input-bar">' +
-          '<input type="text" id="youth-chat-input" class="youth-chat-input" placeholder="输入想说的话…" maxlength="200">' +
-          '<button class="youth-chat-send" id="youth-chat-send">发送</button>' +
+        '<div class="youth-chat-input-bar" id="youth-chat-input-bar">' +
+          '<button class="chat-mode-switch" id="youth-mode-switch" type="button" title="切换语音/文字" aria-label="切换语音/文字">🎤</button>' +
+          '<div class="chat-input-text-mode" id="youth-input-text-mode">' +
+            '<input type="text" id="youth-chat-input" class="youth-chat-input" placeholder="输入想说的话…" maxlength="200">' +
+            '<button class="youth-chat-send" id="youth-chat-send">发送</button>' +
+          '</div>' +
+          '<div class="chat-input-voice-mode" id="youth-input-voice-mode" style="display:none;">' +
+            '<button class="chat-voice-hold-btn youth-voice-hold" id="youth-voice-hold-btn" type="button">按住 说话</button>' +
+          '</div>' +
         '</div>' +
       '</div>';
 
@@ -232,6 +238,109 @@ window.YouthChat = (function () {
 
     // 滚动到底部
     msgContainer.scrollTop = msgContainer.scrollHeight;
+
+    // 微信式语音/文字切换
+    var modeSwitch = document.getElementById('youth-mode-switch');
+    var textModeEl = document.getElementById('youth-input-text-mode');
+    var voiceModeEl = document.getElementById('youth-input-voice-mode');
+    var holdBtn = document.getElementById('youth-voice-hold-btn');
+
+    if (modeSwitch && textModeEl && voiceModeEl && holdBtn) {
+      var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        modeSwitch.style.display = 'none';
+      } else {
+        var voiceModeOn = false;
+        modeSwitch.addEventListener('click', function () {
+          voiceModeOn = !voiceModeOn;
+          if (voiceModeOn) {
+            modeSwitch.textContent = '⌨️';
+            textModeEl.style.display = 'none';
+            voiceModeEl.style.display = 'flex';
+          } else {
+            modeSwitch.textContent = '🎤';
+            voiceModeEl.style.display = 'none';
+            textModeEl.style.display = 'flex';
+          }
+        });
+
+        // 按住说话
+        var recognition = null;
+        var isHolding = false;
+        var cancelled = false;
+        var startY = 0;
+
+        function startHold(e) {
+          e.preventDefault();
+          isHolding = true;
+          cancelled = false;
+          startY = (e.touches && e.touches[0].clientY) || e.clientY;
+          holdBtn.classList.add('holding');
+          holdBtn.textContent = '松开 发送';
+
+          recognition = new SpeechRecognition();
+          recognition.lang = 'zh-CN';
+          recognition.interimResults = false;
+          recognition.maxAlternatives = 1;
+          var hasResult = false;
+          var hasError = false;
+          recognition.onresult = function (event) {
+            if (cancelled) return;
+            var text = event.results[0][0].transcript;
+            if (text) {
+              hasResult = true;
+              // 填入输入框并触发发送
+              input.value = text;
+              sendMessage();
+            }
+          };
+          recognition.onerror = function () {
+            hasError = true;
+            if (!cancelled && window.AppState && window.AppState.showToast) {
+              window.AppState.showToast('语音识别失败');
+            }
+          };
+          recognition.onend = function () {
+            if (!cancelled && !hasResult && !hasError && window.AppState && window.AppState.showToast) {
+              window.AppState.showToast('未识别到语音，请重试');
+            }
+            recognition = null;
+          };
+          recognition.start();
+        }
+
+        function endHold(e) {
+          if (!isHolding) return;
+          e.preventDefault();
+          isHolding = false;
+          holdBtn.classList.remove('holding');
+          holdBtn.classList.remove('cancel');
+          holdBtn.textContent = '按住 说话';
+          if (recognition) { try { recognition.stop(); } catch (err) {} }
+        }
+
+        function cancelHold(e) {
+          if (!isHolding) return;
+          var curY = (e.touches && e.touches[0].clientY) || e.clientY;
+          if (startY - curY > 40) {
+            cancelled = true;
+            holdBtn.classList.add('cancel');
+            holdBtn.textContent = '松开手指，取消发送';
+          } else {
+            cancelled = false;
+            holdBtn.classList.remove('cancel');
+            holdBtn.textContent = '松开 发送';
+          }
+        }
+
+        holdBtn.addEventListener('mousedown', startHold);
+        holdBtn.addEventListener('mouseup', endHold);
+        holdBtn.addEventListener('mouseleave', function(e) { if (isHolding) endHold(e); });
+        holdBtn.addEventListener('touchstart', startHold, { passive: false });
+        holdBtn.addEventListener('touchend', endHold, { passive: false });
+        holdBtn.addEventListener('touchmove', cancelHold, { passive: false });
+      }
+    }
   }
 
   function _extractAIFinding(userText) {

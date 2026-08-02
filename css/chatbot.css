@@ -713,3 +713,9 @@
   color: #ff6b6b;
   border-color: rgba(255, 60, 60, 0.3);
 }
+
+/* ========== 心青年语音按钮（更大，便于操作） ========== */
+.youth-voice-hold {
+  height: 56px;
+  font-size: var(--font-size-base);
+}
