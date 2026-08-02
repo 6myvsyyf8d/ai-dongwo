@@ -379,128 +379,383 @@
   color: var(--color-text-secondary);
 }
 
-/* ========== 归类面板（右侧） ========== */
-.categorize-panel {
-  width: 260px;
+/* ========== 采集进度浮标 ========== */
+.chat-progress-float {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 10;
+  pointer-events: none;
+}
+
+.chat-progress-mini {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  background: rgba(20, 20, 30, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  border-radius: 20px;
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  white-space: nowrap;
+}
+
+.chat-progress-mini span {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+/* ========== 抽屉触发按钮 ========== */
+.chat-drawer-triggers {
+  position: absolute;
+  top: 8px;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-between;
+  padding: 0 12px;
+  z-index: 11;
+  pointer-events: none;
+}
+
+.chat-drawer-trigger {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 0.5px solid rgba(255, 255, 255, 0.1);
+  background: rgba(20, 20, 30, 0.75);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  font-size: 16px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  pointer-events: auto;
+  transition: all var(--transition-fast);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.chat-drawer-trigger:hover {
+  background: rgba(40, 40, 55, 0.8);
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.drawer-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 4px;
+  line-height: 1;
+}
+
+/* ========== 抽屉遮罩 ========== */
+.chat-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.chat-drawer-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* ========== 抽屉通用 ========== */
+.chat-drawer {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  width: 280px;
+  max-width: 80vw;
+  z-index: 101;
   display: flex;
   flex-direction: column;
-  background: var(--color-bg-primary);
+  background: rgba(20, 20, 30, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 0.5px solid rgba(255, 255, 255, 0.08);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.chat-drawer-left {
+  left: 0;
+  transform: translateX(-100%);
+  border-radius: 0 16px 16px 0;
+}
+
+.chat-drawer-left.active {
+  transform: translateX(0);
+}
+
+.chat-drawer-right {
+  right: 0;
+  transform: translateX(100%);
+  border-radius: 16px 0 0 16px;
+}
+
+.chat-drawer-right.active {
+  transform: translateX(0);
+}
+
+.chat-drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-primary);
   flex-shrink: 0;
 }
 
-.categorize-panel-header {
-  padding: var(--spacing-sm) var(--spacing-md);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-tertiary);
-  border-bottom: 0.5px solid var(--color-border-light);
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.categorize-list {
-  padding: var(--spacing-sm);
-  overflow-y: auto;
-  flex: 1;
-}
-
-.categorize-item {
-  padding: 10px 12px;
-  margin-bottom: 8px;
-  border-radius: var(--radius-md);
-  background: var(--color-bg-secondary);
-  border: 0.5px solid var(--color-border-light);
+.chat-drawer-close {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 14px;
   cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all var(--transition-fast);
 }
 
-.categorize-item:active {
-  background: var(--color-bg-tertiary);
+.chat-drawer-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
 }
 
-.categorize-item .ci-module {
-  font-size: var(--font-size-xs);
+.chat-drawer-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.chat-drawer-footer {
+  padding: 12px;
+  border-top: 0.5px solid rgba(255, 255, 255, 0.06);
+  flex-shrink: 0;
+}
+
+/* ========== 归类项（抽屉内） ========== */
+.classify-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px;
+  margin-bottom: 8px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid rgba(255, 255, 255, 0.06);
+  transition: all var(--transition-fast);
+}
+
+.classify-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.classify-item.selected {
+  border-color: rgba(94, 106, 210, 0.3);
+  background: rgba(94, 106, 210, 0.08);
+}
+
+.classify-item-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  margin-top: 2px;
+  transition: all var(--transition-fast);
+  background: transparent;
+  color: transparent;
+}
+
+.classify-item.selected .classify-item-check {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+
+.classify-item-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.classify-item-module {
+  font-size: 11px;
   color: var(--color-primary);
-  font-weight: var(--font-weight-semibold);
-  margin-bottom: 4px;
+  font-weight: 600;
+  margin-bottom: 3px;
 }
 
-.categorize-item .ci-text {
-  font-size: var(--font-size-sm);
+.classify-item-text {
+  font-size: 13px;
   color: var(--color-text-primary);
   line-height: 1.4;
+  word-break: break-word;
 }
 
-.categorize-item .ci-confidence {
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-tertiary);
-  margin-top: 4px;
-}
-
-.categorize-item.uncertain {
-  border-color: rgba(255, 159, 10, 0.3);
-  background: rgba(255, 159, 10, 0.04);
-}
-
-.categorize-item.uncertain .ci-module {
-  color: var(--color-warning);
-}
-
-/* 模块选择器（归类面板内） */
-.module-picker {
+.classify-item-actions {
   display: flex;
-  flex-wrap: wrap;
   gap: 4px;
-  margin-top: 6px;
-}
-
-.module-picker-btn {
-  padding: 3px 8px;
-  font-size: var(--font-size-2xs);
-  border: 0.5px solid var(--color-border-light);
-  border-radius: var(--radius-full);
-  background: var(--color-bg-secondary);
-  cursor: pointer;
-  font-family: inherit;
-  transition: all var(--transition-fast);
-}
-
-.module-picker-btn:active {
-  background: var(--color-primary);
-  color: var(--color-text-white);
-  border-color: var(--color-primary);
-}
-
-/* 确认按钮区 */
-.categorize-confirm {
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-top: 0.5px solid var(--color-border-light);
   flex-shrink: 0;
+  margin-top: 2px;
 }
 
-.categorize-confirm button {
+.classify-item-action {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.classify-item-action:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.classify-item-action.delete:hover {
+  background: rgba(255, 60, 60, 0.15);
+  color: #ff6b6b;
+}
+
+/* 批量归档按钮 */
+.btn-batch-archive {
   width: 100%;
   padding: 10px;
   border: none;
-  border-radius: var(--radius-md);
+  border-radius: 10px;
   background: var(--color-primary);
-  color: var(--color-text-white);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
   transition: all var(--transition-fast);
   font-family: inherit;
 }
 
-.categorize-confirm button:active {
+.btn-batch-archive:disabled {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.3);
+  cursor: not-allowed;
+}
+
+.btn-batch-archive:not(:disabled):active {
   transform: scale(0.98);
   opacity: 0.9;
 }
 
-.categorize-confirm button:disabled {
-  background: var(--color-bg-tertiary);
-  color: var(--color-text-tertiary);
-  cursor: not-allowed;
+/* ========== 进度抽屉项 ========== */
+.progress-module-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  margin-bottom: 6px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 0.5px solid rgba(255, 255, 255, 0.06);
+}
+
+.progress-module-icon {
+  font-size: 22px;
+  width: 36px;
+  text-align: center;
+}
+
+.progress-module-info {
+  flex: 1;
+}
+
+.progress-module-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.progress-module-status {
+  font-size: 11px;
+  margin-top: 2px;
+}
+
+.progress-module-status.done {
+  color: #4ade80;
+}
+
+.progress-module-status.pending {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.progress-module-check {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+}
+
+.progress-module-check.done {
+  background: rgba(74, 222, 128, 0.15);
+  color: #4ade80;
+}
+
+.progress-module-check.pending {
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.3);
+}
+
+/* 进度统计 */
+.progress-summary {
+  text-align: center;
+  padding: 16px 0 8px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.progress-summary strong {
+  color: var(--color-primary);
+  font-size: 18px;
 }
 
 /* 打字指示器 */

@@ -247,12 +247,12 @@
    * @param {string} youthName - 心青年名字
    * @returns {Promise<string>}
    */
-  function generateReply(history, youthName) {
+  function generateReply(history, youthName, youthProfile) {
     // 优先走服务端代理
     return fetch(_config.proxyUrl, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'generateReply', messages: history, youthName: youthName })
+      body: JSON.stringify({ action: 'generateReply', messages: history, youthName: youthName, youthProfile: youthProfile || '' })
     }).then(function (res) {
       if (!res.ok) throw new Error('proxy_unavailable');
       return res.json();
@@ -262,7 +262,7 @@
       return '';
     }).catch(function () {
       // 代理不可用，降级到直连
-      return _generateReplyDirect(history, youthName);
+      return _generateReplyDirect(history, youthName, youthProfile);
     });
   }
 
@@ -274,8 +274,8 @@
    * @param {function} onToken - (token, fullText) 回调
    * @returns {Promise<string>} 完整回复文本
    */
-  function generateReplyStream(history, youthName, onToken) {
-    return generateReply(history, youthName).then(function (reply) {
+  function generateReplyStream(history, youthName, onToken, youthProfile) {
+    return generateReply(history, youthName, youthProfile).then(function (reply) {
       if (!reply || !onToken) return reply;
       // 按 Unicode code point 逐字符分块
       var chars = Array.from(reply);
@@ -303,7 +303,7 @@
   /**
    * 直连生成回复（客户端直接调用智谱 API）
    */
-  function _generateReplyDirect(history, youthName) {
+  function _generateReplyDirect(history, youthName, youthProfile) {
     if (!_config.apiKey) {
       return Promise.reject(new Error('ZhipuClient: API Key 未配置且代理不可用'));
     }
@@ -315,6 +315,10 @@
       '3. 追问细节以完善记录（如时间、频率、强度、触发因素等）\n' +
       '4. 回复控制在 2-3 句话，保持对话自然流畅\n' +
       '5. 不要使用"根据我的分析"等机械用语，像真人一样聊天';
+
+    if (youthProfile) {
+      systemPrompt += '\n\n关于' + youthName + '的已有信息：\n' + youthProfile;
+    }
 
     var messages = [{ role: 'system', content: systemPrompt }].concat(history);
     return chat(messages, { temperature: 0.7, maxTokens: 300 });

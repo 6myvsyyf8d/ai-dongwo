@@ -79,14 +79,18 @@ async function classify(text, youthName) {
 }
 
 // 生成对话回复 + 追问
-async function generateReply(history, youthName) {
-  const systemPrompt = `你是一位专业的特殊教育/照护工作者，正在与${youthName || '心青年'}的照护者对话。\n` +
+async function generateReply(history, youthName, youthProfile) {
+  var systemPrompt = `你是一位专业的特殊教育/照护工作者，正在与${youthName || '心青年'}的照护者对话。\n` +
     '你的任务是：\n' +
     '1. 以温暖、专业、不评判的口吻回应\n' +
     '2. 从对话中提取有价值的照护信息\n' +
     '3. 追问细节以完善记录（如时间、频率、强度、触发因素等）\n' +
     '4. 回复控制在 2-3 句话，保持对话自然流畅\n' +
     '5. 不要使用"根据我的分析"等机械用语，像真人一样聊天';
+
+  if (youthProfile) {
+    systemPrompt += '\n\n关于' + (youthName || '心青年') + '的已有信息：\n' + youthProfile;
+  }
 
   const messages = [{ role: 'system', content: systemPrompt }].concat(history);
   const reply = await callZhipu(messages, { temperature: 0.7, maxTokens: 300 });
@@ -164,7 +168,7 @@ exports.handler = async function (event, context) {
           body: JSON.stringify({ error: 'messages 不能为空' })
         };
       }
-      const reply = await generateReply(body.messages, body.youthName);
+      const reply = await generateReply(body.messages, body.youthName, body.youthProfile);
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
@@ -181,7 +185,7 @@ exports.handler = async function (event, context) {
           body: JSON.stringify({ error: 'messages 不能为空' })
         };
       }
-      const reply = await generateReply(body.messages, body.youthName);
+      const reply = await generateReply(body.messages, body.youthName, body.youthProfile);
       return {
         statusCode: 200,
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
