@@ -1,5 +1,5 @@
 // netlify/functions/chatbot.js - Netlify Serverless Function
-// 对话采集 AI 代理：支持 ping / classify / generateReply 三个 action
+// 对话采集 AI 代理：支持 ping / classify / generateReply / generateReplyStream 四个 action
 // API Key 存服务端环境变量 ZHIPU_API_KEY，前端不暴露
 // 与 api/chatbot.js（Vercel 版本）功能等价
 
@@ -170,6 +170,31 @@ exports.handler = async function (event, context) {
         headers: { 'Content-Type': 'application/json', ...corsHeaders },
         body: JSON.stringify({ reply: reply })
       };
+    }
+
+    // generateReplyStream：返回完整回复，前端模拟流式显示
+    if (action === 'generateReplyStream') {
+      if (!Array.isArray(body.messages) || body.messages.length === 0) {
+        return {
+          statusCode: 400,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          body: JSON.stringify({ error: 'messages 不能为空' })
+        };
+      }
+      try {
+        const reply = await generateReply(body.messages, body.youthName);
+        return {
+          statusCode: 200,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          body: JSON.stringify({ reply: reply, stream: true })
+        };
+      } catch (err) {
+        return {
+          statusCode: 502,
+          headers: { 'Content-Type': 'application/json', ...corsHeaders },
+          body: JSON.stringify({ error: 'AI 服务暂时不可用', message: err.message })
+        };
+      }
     }
 
     return {
