@@ -910,18 +910,30 @@
         var text = event.results[0][0].transcript;
         if (text) {
           hasResult = true;
+          // 重置按钮状态
+          holdBtn.classList.remove('holding', 'cancel');
+          holdBtn.textContent = '按住 说话';
           handleUserInput(text);
         }
       };
-      recognition.onerror = function () {
+      recognition.onerror = function (event) {
         hasError = true;
+        console.error('ChatBot: 语音识别错误', event.error, event.message);
         if (!cancelled && window.AppState && window.AppState.showToast) {
           window.AppState.showToast('语音识别失败');
         }
+        // 重置按钮状态
+        holdBtn.classList.remove('holding', 'cancel');
+        holdBtn.textContent = '按住 说话';
       };
       recognition.onend = function () {
         if (!cancelled && !hasResult && !hasError && window.AppState && window.AppState.showToast) {
           window.AppState.showToast('未识别到语音，请重试');
+        }
+        // 重置按钮状态
+        if (!hasResult) {
+          holdBtn.classList.remove('holding', 'cancel');
+          holdBtn.textContent = '按住 说话';
         }
         recognition = null;
       };
@@ -932,16 +944,17 @@
       if (!isHolding) return;
       e.preventDefault();
       isHolding = false;
-      holdBtn.classList.remove('holding');
-      holdBtn.classList.remove('cancel');
-      holdBtn.textContent = '按住 说话';
       if (cancelled) {
-        // 取消：停止识别，不发送
-        if (recognition) { try { recognition.stop(); } catch (err) {} }
+        // 取消：中止识别，不发送
+        holdBtn.classList.remove('holding', 'cancel');
+        holdBtn.textContent = '按住 说话';
+        if (recognition) { try { recognition.abort(); } catch (err) {} }
         return;
       }
-      // 正常结束：识别 onresult 会处理发送
-      if (recognition) { try { recognition.stop(); } catch (err) {} }
+      // 正常松手：不立即 stop()，让识别自然结束（Chrome stop() 可能导致 onresult 丢失）
+      // 显示"识别中"状态，onresult/onend 中重置按钮
+      holdBtn.classList.remove('cancel');
+      holdBtn.textContent = '识别中…';
     }
 
     function cancelHold(e) {
