@@ -5,7 +5,7 @@
  */
 window.Modules = {
   MODULES: [
-    { key: 'communicationGuide', label: '沟通说明书', shortLabel: '沟通', icon: '💬', color: '#9B85B8' },
+    { key: 'communicationGuide', label: '沟通与表达', shortLabel: '沟通', icon: '💬', color: '#9B85B8' },
     { key: 'emotionBehavior', label: '情绪与行为', shortLabel: '情绪', icon: '🌊', color: '#D4877B' },
     { key: 'careMedical', label: '照护与医疗', shortLabel: '医疗', icon: '💊', color: '#A8C9A0' },
     { key: 'workSupport', label: '工作与生活', shortLabel: '工作', icon: '💼', color: '#D4A85A' },
@@ -19,7 +19,7 @@ window.Modules = {
     relationshipMap: ['朋友', '老师', '同学', '同事', '关系', '社交', '互动', '家人', '邻居', '认识', '交往', '陪伴']
   },
   MODULE_LABELS: {
-    communicationGuide: '💬 沟通说明书',
+    communicationGuide: '💬 沟通与表达',
     emotionBehavior: '🌊 情绪与行为',
     careMedical: '💊 照护与医疗',
     workSupport: '💼 工作与生活',

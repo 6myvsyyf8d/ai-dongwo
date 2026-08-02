@@ -95,7 +95,7 @@ window.Timeline = (function () {
 
     container.innerHTML =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-back">← 返回</button>' +
+        '<button class="btn-back" id="btn-back">‹</button>' +
         '<span class="page-title">' + Utils.escapeHtml(youth.name) + ' · 时间轴</span>' +
         '<span></span>' +
       '</div>' +

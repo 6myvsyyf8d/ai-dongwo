@@ -51,7 +51,7 @@ window.QuickCard = (function () {
     // 顶部：关闭按钮 + 标题
     html +=
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-close-quickcard">← 返回</button>' +
+        '<button class="btn-back" id="btn-close-quickcard">‹</button>' +
         '<span class="page-title">速读卡</span>' +
         '<span></span>' +
       '</div>';

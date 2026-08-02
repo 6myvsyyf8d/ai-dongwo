@@ -39,7 +39,7 @@
 /* 模块状态网格 */
 .health-module-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: var(--spacing-sm);
   margin-bottom: var(--spacing-md);
 }
@@ -53,14 +53,27 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: var(--spacing-sm);
-  border-radius: var(--radius-md);
-  background: var(--color-bg-tertiary);
-  gap: 2px;
+  padding: 10px 6px;
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.03);
+  border: 0.5px solid rgba(255, 255, 255, 0.04);
+  gap: 4px;
+  transition: background 0.2s, border-color 0.2s;
+}
+.health-module-item:active {
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .health-module-icon {
-  font-size: 18px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  background: rgba(255, 255, 255, 0.06);
+  margin-bottom: 2px;
 }
 
 .health-module-label {
@@ -538,7 +551,7 @@
 /* 响应式 */
 @media (max-width: 640px) {
   .health-module-grid {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 
   .analytics-care-grid {
@@ -552,7 +565,7 @@
 
 @media (min-width: 768px) {
   .health-module-grid {
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(4, 1fr);
   }
 }
 

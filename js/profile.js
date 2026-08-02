@@ -58,7 +58,7 @@ window.Profile = (function () {
 
     container.innerHTML =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-back">← 返回</button>' +
+        '<button class="btn-back" id="btn-back">‹</button>' +
         '<span class="page-title">创建心青年档案</span>' +
         '<span></span>' +
       '</div>' +
@@ -358,16 +358,17 @@ window.Profile = (function () {
     var currentUser = AppState.currentUser;
     var canQuickcard = currentUser && Permissions.canAccessPage(currentUser.role, 'quickcard');
     var quickcardBtnHtml = canQuickcard
-      ? '<button class="top-bar-btn" id="btn-quickcard" title="速读卡">速读卡</button>'
+      ? '<button class="top-bar-text-link" id="btn-quickcard" title="速读卡">速读卡</button>'
       : '';
 
     container.innerHTML =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-back">← 返回</button>' +
+        '<span></span>' +
         '<span class="page-title">档案详情</span>' +
         '<div class="top-bar-actions">' +
-          (youth.emergencyContacts && youth.emergencyContacts.length > 0 ? '<button class="top-bar-btn" id="btn-emergency" title="紧急联系人">🚨 ' + youth.emergencyContacts.length + '</button>' : '') +
-          quickcardBtnHtml +
+          (youth.emergencyContacts && youth.emergencyContacts.length > 0
+            ? quickcardBtnHtml + '<span class="top-bar-text-sep">|</span><button class="top-bar-text-link" id="btn-emergency" title="紧急联系人">紧急联系人</button>'
+            : quickcardBtnHtml) +
         '</div>' +
       '</div>' +
       portraitHtml +
@@ -464,13 +465,13 @@ window.Profile = (function () {
 
     // 人体剪影（无腿）
     linesSvg += '<g opacity="0.65">' +
-      '<ellipse cx="180" cy="195" rx="48" ry="65" fill="rgba(220,200,170,0.025)"/>' +
-      '<circle cx="180" cy="140" r="28" fill="none" stroke="rgba(220,200,170,0.3)" stroke-width="1.2"/>' +
-      '<circle cx="180" cy="140" r="28" fill="rgba(220,200,170,0.03)"/>' +
-      '<rect x="155" y="172" width="50" height="68" rx="10" fill="none" stroke="rgba(220,200,170,0.3)" stroke-width="1.2"/>' +
-      '<rect x="155" y="172" width="50" height="68" rx="10" fill="rgba(220,200,170,0.025)"/>' +
-      '<rect x="124" y="178" width="28" height="10" rx="5" fill="none" stroke="rgba(220,200,170,0.25)" stroke-width="1"/>' +
-      '<rect x="208" y="178" width="28" height="10" rx="5" fill="none" stroke="rgba(220,200,170,0.25)" stroke-width="1"/>' +
+      '<ellipse cx="180" cy="195" rx="48" ry="65" fill="rgba(94,106,210,0.04)"/>' +
+      '<circle cx="180" cy="140" r="28" fill="none" stroke="rgba(94,106,210,0.25)" stroke-width="1.2"/>' +
+      '<circle cx="180" cy="140" r="28" fill="rgba(94,106,210,0.05)"/>' +
+      '<rect x="155" y="172" width="50" height="68" rx="10" fill="none" stroke="rgba(94,106,210,0.25)" stroke-width="1.2"/>' +
+      '<rect x="155" y="172" width="50" height="68" rx="10" fill="rgba(94,106,210,0.04)"/>' +
+      '<rect x="124" y="178" width="28" height="10" rx="5" fill="none" stroke="rgba(94,106,210,0.2)" stroke-width="1"/>' +
+      '<rect x="208" y="178" width="28" height="10" rx="5" fill="none" stroke="rgba(94,106,210,0.2)" stroke-width="1"/>' +
     '</g></svg>';
 
     // 节点光晕 + 可点击节点渲染
@@ -549,12 +550,12 @@ window.Profile = (function () {
     var modules = (profile && profile.modules) ? profile.modules : {};
     var html = '';
 
-    // 沟通说明书
+    // 沟通与表达
     var comm = modules.communicationGuide;
     if (comm) {
       html += '<div class="detail-panel" id="panel-communication">' +
         '<div class="detail-panel-header">' +
-          '<div class="detail-panel-title"><span class="detail-panel-dot" style="background:#5E6AD2;"></span>沟通说明书</div>' +
+          '<div class="detail-panel-title"><span class="detail-panel-dot" style="background:#5E6AD2;"></span>沟通与表达</div>' +
           '<button class="detail-panel-close" onclick="Profile._closePanel()">✕</button>' +
         '</div>' +
         '<div class="detail-panel-body">';

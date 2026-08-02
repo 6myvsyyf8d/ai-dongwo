@@ -422,8 +422,8 @@
 
     container.innerHTML =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-back">← 返回</button>' +
-        '<span class="page-title">' + escapeHtml(youth.name) + ' · 对话采集</span>' +
+        '<button class="btn-back" id="btn-back">‹</button>' +
+        '<span class="page-title">对话采集</span>' +
         '<span></span>' +
       '</div>' +
       '<div id="chat-mode-panel">' +
@@ -450,8 +450,8 @@
       '</div>' +
       // 抽屉触发按钮
       '<div class="chat-drawer-triggers">' +
-        '<button class="chat-drawer-trigger chat-drawer-trigger-left" id="btn-progress-drawer" title="采集进度">📋</button>' +
-        '<button class="chat-drawer-trigger chat-drawer-trigger-right" id="btn-classify-drawer" title="实时归类">📋<span class="drawer-badge" id="classify-badge" style="display:none">0</span></button>' +
+        '<button class="chat-drawer-trigger chat-drawer-trigger-left" id="btn-progress-drawer" title="采集进度">◉ 进度</button>' +
+        '<button class="chat-drawer-trigger chat-drawer-trigger-right" id="btn-classify-drawer" title="实时归类">≡ 归类<span class="drawer-badge" id="classify-badge" style="display:none">0</span></button>' +
       '</div>' +
       '</div>' +
       // 抽屉遮罩
@@ -1092,7 +1092,7 @@
     }
 
     var modules = [
-      { key: 'communicationGuide', name: '沟通说明书', icon: '💬' },
+      { key: 'communicationGuide', name: '沟通与表达', icon: '💬' },
       { key: 'emotionBehavior', name: '情绪与行为', icon: '🌊' },
       { key: 'careMedical', name: '照护与医疗', icon: '💊' },
       { key: 'workSupport', name: '工作与生活', icon: '💼' }

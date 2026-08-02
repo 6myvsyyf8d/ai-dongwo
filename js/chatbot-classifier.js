@@ -93,7 +93,7 @@
    */
   function getModuleName(moduleKey) {
     var names = {
-      communicationGuide: '沟通说明书',
+      communicationGuide: '沟通与表达',
       emotionBehavior: '情绪与行为',
       careMedical: '照护与医疗',
       workSupport: '工作与生活',

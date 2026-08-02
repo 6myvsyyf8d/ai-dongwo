@@ -34,7 +34,7 @@ window.AnalyticsUI = (function () {
   var _currentDate = '';       // 日报/周报/月报的当前日期
   var _currentWeekStart = '';  // 周报起始日期
   var _currentMonthStart = ''; // 月报起始日期
-  var _arDateFilter = 'all';   // 分析页记录列表日期筛选
+  var _arDateFilter = 'today';   // 分析页记录列表日期筛选
 
   // ========== 首页健康速报卡片 ==========
 
@@ -257,8 +257,8 @@ window.AnalyticsUI = (function () {
 
     container.innerHTML =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-analytics-back">← 返回</button>' +
-        '<span class="page-title">📊 ' + Utils.escapeHtml(youth.name) + ' · 数据分析</span>' +
+        '<span></span>' +
+        '<span class="page-title">分析</span>' +
         '<span></span>' +
       '</div>' +
       '<div class="analytics-page">' +
@@ -274,14 +274,6 @@ window.AnalyticsUI = (function () {
 
     // 渲染当前 Tab
     _renderCurrentTab(youth);
-
-    // 返回按钮
-    var backBtn = container.querySelector('#btn-analytics-back');
-    if (backBtn) {
-      backBtn.addEventListener('click', function () {
-        window.location.hash = 'records';
-      });
-    }
 
     // 绑定 Tab 切换
     var tabs = container.querySelectorAll('.analytics-tab');
@@ -2379,11 +2371,12 @@ window.AnalyticsUI = (function () {
       };
       var iconBg = iconBgColors[r.module] || 'rgba(142, 142, 147, 0.1)';
 
-      html += '<div class="record-item">' +
+      html += '<div class="record-item record-item-collapsed">' +
         '<div class="record-item-icon" style="background:' + iconBg + '">' + (modInfo ? modInfo.icon : '📝') + '</div>' +
         '<div class="record-item-body">' +
           '<div class="record-item-meta">' +
             '<span class="record-module-badge ' + r.module + '">' + (modInfo ? modInfo.label : r.module) + '</span>' +
+            '<span class="record-item-toggle">›</span>' +
           '</div>' +
           '<div class="record-item-content">' + Utils.escapeHtml(contentText) + '</div>' +
           tagsHtml +
@@ -2395,6 +2388,14 @@ window.AnalyticsUI = (function () {
       '</div>';
     }
     recordList.innerHTML = html;
+
+    // 绑定折叠/展开事件
+    var items = recordList.querySelectorAll('.record-item');
+    for (var ri = 0; ri < items.length; ri++) {
+      items[ri].addEventListener('click', function () {
+        this.classList.toggle('record-item-collapsed');
+      });
+    }
   }
 
   /**

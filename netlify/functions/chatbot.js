@@ -1,7 +1,7 @@
 // netlify/functions/chatbot.js - Netlify Serverless Function
 // 对话采集 AI 代理：支持 ping / classify / generateReply / generateReplyStream 四个 action
 // API Key 存服务端环境变量 ZHIPU_API_KEY，前端不暴露
-// 与 api/chatbot.js（Vercel 版本）功能等价
+// Netlify Function：对话采集 AI 代理，由 Netlify 自动部署
 
 const ZHIPU_API = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 

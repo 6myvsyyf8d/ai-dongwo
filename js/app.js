@@ -8,7 +8,7 @@
 
   // 不需要登录即可访问的页面
   var PUBLIC_PAGES = ['login', 'register'];
-  var NO_BOTTOM_NAV_PAGES = ['login', 'register', 'government'];
+  var NO_BOTTOM_NAV_PAGES = ['login', 'register', 'government', 'chat', 'timeline', 'charts', 'teacher-workbench', 'quickcard', 'grants', 'archive-code', 'archive', 'join', 'approvals', 'permissions', 'welcome'];
 
   // 路由 → 渲染函数映射（后续模块加载后注册）
   var routes = {};
@@ -429,7 +429,7 @@
     return '<div class="page-header">' +
       '<span class="page-title">AI懂我</span>' +
       '<div class="top-bar-actions">' +
-        '<span class="header-version">v1.0_20260802-5</span>' +
+        '<span class="header-version">v1.0_20260802-28</span>' +
         '<button class="top-bar-btn" id="btn-logout" style="color: var(--color-danger);">退出</button>' +
       '</div>' +
     '</div>';
@@ -575,7 +575,7 @@
         '<div class="dashboard-greeting-date">' + today + ' ' + weekday + '</div>' +
         '<div class="dashboard-greeting-hello">' + greeting + '，' + Utils.escapeHtml(user.name) + '</div>' +
       '</div>' +
-      '<button class="btn btn-sm btn-primary" id="btn-create-task-' + y.id + '" aria-label="新建任务">✚ 新建任务</button>' +
+      '<button class="btn-create-task" id="btn-create-task-' + y.id + '" aria-label="新建任务">✚ 新建任务</button>' +
     '</div>';
 
     // AI 发现区块（仅家长可见）
@@ -632,7 +632,7 @@
         '<div class="dashboard-greeting-hello">' + greeting + '，' + Utils.escapeHtml(user.name) + '</div>' +
         '<div class="dashboard-greeting-meta">' + (user.institutionName || '') + '</div>' +
       '</div>' +
-      '<button class="btn btn-sm btn-primary" id="btn-create-task-' + youths[0].id + '" aria-label="新建任务">✚ 新建任务</button>' +
+      '<button class="btn-create-task" id="btn-create-task-' + youths[0].id + '" aria-label="新建任务">✚ 新建任务</button>' +
     '</div>';
 
     // 任务看板（Kanban 三列，多学生合并，卡片上显示学生名）
@@ -693,7 +693,7 @@
         '<div class="dashboard-greeting-date">' + today + ' ' + weekday + '</div>' +
         '<div class="dashboard-greeting-hello">' + greeting + '，' + Utils.escapeHtml(user.name) + '</div>' +
       '</div>' +
-      '<button class="btn btn-sm btn-primary" id="btn-create-task-' + youths[0].id + '" aria-label="新建任务">✚ 新建任务</button>' +
+      '<button class="btn-create-task" id="btn-create-task-' + youths[0].id + '" aria-label="新建任务">✚ 新建任务</button>' +
     '</div>';
 
     // 任务看板（Kanban 三列：待办 / 进行中 / 已完成）
@@ -1259,8 +1259,8 @@
     var container = getContainer();
     var youths = Permissions.getAccessibleYouths();
 
-    var html = '<div class="page-header">' +
-      '<span class="page-title">⚙️ 管理</span>' +
+    var html = '<div class="page-header page-header--center">' +
+      '<span class="page-title">管理</span>' +
     '</div>' +
     '<div class="page-content">';
 
@@ -1368,7 +1368,7 @@
     var modules = Modules.MODULES;
 
     var html = '<div class="page-header">' +
-      '<button class="btn btn-sm btn-secondary" id="btn-perm-back">← 返回</button>' +
+      '<button class="btn-back" id="btn-perm-back">‹</button>' +
       '<span class="page-title">🔓 我的权限</span>' +
       '<span></span>' +
     '</div>' +

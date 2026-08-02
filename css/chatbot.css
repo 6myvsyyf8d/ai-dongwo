@@ -423,14 +423,14 @@
 }
 
 .chat-drawer-trigger {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+  height: 32px;
+  border-radius: 16px;
   border: 0.5px solid rgba(255, 255, 255, 0.1);
   background: rgba(20, 20, 30, 0.75);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  font-size: 16px;
+  font-size: 12px;
+  font-weight: 500;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -439,6 +439,9 @@
   pointer-events: auto;
   transition: all var(--transition-fast);
   color: rgba(255, 255, 255, 0.8);
+  padding: 0 12px;
+  gap: 4px;
+  white-space: nowrap;
 }
 
 .chat-drawer-trigger:hover {

@@ -1,7 +1,7 @@
 // netlify/functions/chat.js - Netlify Serverless Function
 // 心青年 AI 对话代理：调用智谱 GLM-4-Flash，注入心青年友好 System Prompt + 安全护栏
 // API Key 存服务端环境变量 ZHIPU_API_KEY，前端不暴露
-// 与 api/chat.js（Vercel 版本）功能等价，仅函数签名不同
+// Netlify Function：心青年 AI 对话代理，由 Netlify 自动部署
 
 const ZHIPU_API = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 

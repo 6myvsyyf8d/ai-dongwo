@@ -68,7 +68,7 @@ window.Records = (function () {
   function _renderPermissionDenied() {
     App.getContainer().innerHTML =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-secondary" id="btn-back">← 返回</button>' +
+        '<button class="btn-back" id="btn-back">‹</button>' +
         '<span class="page-title">记录采集</span>' +
         '<span></span>' +
       '</div>' +
@@ -142,7 +142,7 @@ window.Records = (function () {
     container.innerHTML =
       '<div class="page-header">' +
         '<span></span>' +
-        '<span class="page-title">' + Utils.escapeHtml(youth.name) + ' · 记录</span>' +
+        '<span class="page-title">记录</span>' +
         '<span></span>' +
       '</div>' +
       '<div class="page-content">' +

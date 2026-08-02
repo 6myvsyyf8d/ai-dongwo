@@ -87,7 +87,7 @@ window.Constants = {
     { page: 'dashboard', icon: 'icon-home', label: '首页' },
     { page: 'records', icon: 'icon-records', label: '记录' },
     { page: 'profile', icon: 'icon-profile', label: '档案' },
-    { page: 'analytics', icon: 'icon-records', label: '分析' },
+    { page: 'analytics', icon: 'icon-analytics', label: '分析' },
     { page: 'management', icon: 'icon-management', label: '管理' }
   ],
 
