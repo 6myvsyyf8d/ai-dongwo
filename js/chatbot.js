@@ -18,8 +18,6 @@
     template: null,
     totalRounds: 0,
     maxRounds: 10,
-    isRecording: false,
-    recognition: null,
     confirmed: false
   };
 
@@ -230,11 +228,16 @@
         '<div class="chat-panel-col">' +
           '<div class="chat-messages" id="chat-messages"></div>' +
           '<div class="chat-quick-buttons" id="chat-quick-buttons"></div>' +
-          '<div class="chat-input-area">' +
-            '<button class="chat-voice-btn" id="chat-voice-btn" title="按住说话">🎤</button>' +
-            '<textarea class="chat-input" id="chat-input" placeholder="打字或按住说话..." rows="1"></textarea>' +
+          '<div class="chat-input-area" id="chat-input-area">' +
+          '<button class="chat-mode-switch" id="chat-mode-switch" type="button" title="切换语音/文字" aria-label="切换语音/文字">🎤</button>' +
+          '<div class="chat-input-text-mode" id="chat-input-text-mode">' +
+            '<textarea class="chat-input" id="chat-input" placeholder="输入消息..." rows="1"></textarea>' +
             '<button class="chat-send-btn" id="chat-send-btn" aria-label="发送">➤</button>' +
           '</div>' +
+          '<div class="chat-input-voice-mode" id="chat-input-voice-mode" style="display:none;">' +
+            '<button class="chat-voice-hold-btn" id="chat-voice-hold-btn" type="button">按住 说话</button>' +
+          '</div>' +
+        '</div>' +
         '</div>' +
         '<div class="categorize-panel">' +
           '<div class="categorize-panel-header">📋 实时归类</div>' +
@@ -374,7 +377,7 @@
       });
     }
 
-    bindVoiceEvents();
+    bindInputModeEvents();
   }
 
   // ========== 消息渲染 ==========
@@ -850,63 +853,113 @@
     });
   }
 
-  // ========== 语音输入 ==========
-  function bindVoiceEvents() {
-    var voiceBtn = document.getElementById('chat-voice-btn');
-    if (!voiceBtn) return;
+  // ========== 微信式语音/文字切换 ==========
+  var voiceMode = false; // false=文字模式, true=语音模式
+
+  function bindInputModeEvents() {
+    var switchBtn = document.getElementById('chat-mode-switch');
+    var textMode = document.getElementById('chat-input-text-mode');
+    var voiceModeEl = document.getElementById('chat-input-voice-mode');
+    var holdBtn = document.getElementById('chat-voice-hold-btn');
+    if (!switchBtn || !textMode || !voiceModeEl || !holdBtn) return;
 
     var SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      voiceBtn.style.display = 'none';
+      // 不支持语音：隐藏切换钮
+      switchBtn.style.display = 'none';
       return;
     }
 
-    voiceBtn.addEventListener('mousedown', function () { startRecording(voiceBtn, SpeechRecognition); });
-    voiceBtn.addEventListener('mouseup', function () { stopRecording(voiceBtn); });
-    voiceBtn.addEventListener('mouseleave', function () { if (state.isRecording) stopRecording(voiceBtn); });
-
-    voiceBtn.addEventListener('touchstart', function (e) {
-      e.preventDefault();
-      startRecording(voiceBtn, SpeechRecognition);
+    // 切换按钮
+    switchBtn.addEventListener('click', function () {
+      voiceMode = !voiceMode;
+      if (voiceMode) {
+        switchBtn.textContent = '⌨️';
+        textMode.style.display = 'none';
+        voiceModeEl.style.display = 'flex';
+      } else {
+        switchBtn.textContent = '🎤';
+        voiceModeEl.style.display = 'none';
+        textMode.style.display = 'flex';
+      }
     });
-    voiceBtn.addEventListener('touchend', function (e) {
+
+    // 按住说话
+    var recognition = null;
+    var isHolding = false;
+    var cancelled = false;
+    var startY = 0;
+
+    function startHold(e) {
       e.preventDefault();
-      stopRecording(voiceBtn);
-    });
-  }
+      isHolding = true;
+      cancelled = false;
+      startY = (e.touches && e.touches[0].clientY) || e.clientY;
+      holdBtn.classList.add('holding');
+      holdBtn.textContent = '松开 发送';
 
-  function startRecording(voiceBtn, SpeechRecognition) {
-    if (state.isRecording) return;
-    state.isRecording = true;
-    voiceBtn.classList.add('recording');
-    voiceBtn.textContent = '🔴';
-
-    var recognition = new SpeechRecognition();
-    recognition.lang = 'zh-CN';
-    recognition.interimResults = false;
-    recognition.maxAlternatives = 1;
-
-    recognition.onresult = function (event) {
-      var text = event.results[0][0].transcript;
-      handleUserInput(text);
-    };
-
-    recognition.onerror = function () { stopRecording(voiceBtn); };
-    recognition.onend = function () { stopRecording(voiceBtn); };
-
-    state.recognition = recognition;
-    recognition.start();
-  }
-
-  function stopRecording(voiceBtn) {
-    if (!state.isRecording) return;
-    state.isRecording = false;
-    voiceBtn.classList.remove('recording');
-    voiceBtn.textContent = '🎤';
-    if (state.recognition) {
-      state.recognition.stop();
-      state.recognition = null;
+      recognition = new SpeechRecognition();
+      recognition.lang = 'zh-CN';
+      recognition.interimResults = false;
+      recognition.maxAlternatives = 1;
+      recognition.onresult = function (event) {
+        if (cancelled) return;
+        var text = event.results[0][0].transcript;
+        if (text) {
+          handleUserInput(text);
+        } else {
+          if (window.AppState && window.AppState.showToast) {
+            window.AppState.showToast('未识别到语音，请重试');
+          }
+        }
+      };
+      recognition.onerror = function () {
+        if (!cancelled && window.AppState && window.AppState.showToast) {
+          window.AppState.showToast('语音识别失败');
+        }
+      };
+      recognition.onend = function () {
+        recognition = null;
+      };
+      recognition.start();
     }
+
+    function endHold(e) {
+      if (!isHolding) return;
+      e.preventDefault();
+      isHolding = false;
+      holdBtn.classList.remove('holding');
+      holdBtn.classList.remove('cancel');
+      holdBtn.textContent = '按住 说话';
+      if (cancelled) {
+        // 取消：停止识别，不发送
+        if (recognition) { try { recognition.stop(); } catch (err) {} }
+        return;
+      }
+      // 正常结束：识别 onresult 会处理发送
+      if (recognition) { try { recognition.stop(); } catch (err) {} }
+    }
+
+    function cancelHold(e) {
+      if (!isHolding) return;
+      var curY = (e.touches && e.touches[0].clientY) || e.clientY;
+      if (startY - curY > 40) {
+        cancelled = true;
+        holdBtn.classList.add('cancel');
+        holdBtn.textContent = '松开手指，取消发送';
+      } else {
+        cancelled = false;
+        holdBtn.classList.remove('cancel');
+        holdBtn.textContent = '松开 发送';
+      }
+    }
+
+    holdBtn.addEventListener('mousedown', startHold);
+    holdBtn.addEventListener('mouseup', endHold);
+    holdBtn.addEventListener('mouseleave', function(e) { if (isHolding) endHold(e); });
+    holdBtn.addEventListener('touchstart', startHold, { passive: false });
+    holdBtn.addEventListener('touchend', endHold, { passive: false });
+    holdBtn.addEventListener('touchmove', cancelHold, { passive: false });
   }
 
   // ========== 暴露全局接口 ==========
