@@ -181,20 +181,12 @@ exports.handler = async function (event, context) {
           body: JSON.stringify({ error: 'messages 不能为空' })
         };
       }
-      try {
-        const reply = await generateReply(body.messages, body.youthName);
-        return {
-          statusCode: 200,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          body: JSON.stringify({ reply: reply, stream: true })
-        };
-      } catch (err) {
-        return {
-          statusCode: 502,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          body: JSON.stringify({ error: 'AI 服务暂时不可用', message: err.message })
-        };
-      }
+      const reply = await generateReply(body.messages, body.youthName);
+      return {
+        statusCode: 200,
+        headers: { 'Content-Type': 'application/json', ...corsHeaders },
+        body: JSON.stringify({ reply: reply, stream: true })
+      };
     }
 
     return {
