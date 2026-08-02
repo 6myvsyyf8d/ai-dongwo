@@ -65,7 +65,7 @@ window.YouthChat = (function () {
     for (var i = 0; i < state.messages.length; i++) {
       var msg = state.messages[i];
       if (msg.role === 'ai') {
-        html += '<div class="chat-bubble chat-bubble-ai">' + Utils.escapeHtml(msg.text) + '</div>';
+        html += '<div class="chat-bubble chat-bubble-ai">' + window.ChatMarkdown.render(msg.text) + '</div>';
       } else if (msg.role === 'user') {
         html += '<div class="chat-bubble chat-bubble-user">' + Utils.escapeHtml(msg.text) + '</div>';
       } else if (msg.role === 'task') {
@@ -152,21 +152,34 @@ window.YouthChat = (function () {
       sendBtn.disabled = true;
 
       try {
-        // 检查每日额度
         _loadDailyCount();
         var aiReply;
         if (state.dailyCallCount >= DAILY_LIMIT) {
           // 超额：降级到本地回复
           aiReply = '今天我们聊了很多啦，明天再继续好吗？😊';
+          // 移除 typing，直接显示
+          var typingEl = document.getElementById('ai-typing');
+          if (typingEl) typingEl.remove();
         } else {
-          // 调用云端 AI
-          aiReply = await _callAI(text);
+          // 流式渲染
+          var typingEl2 = document.getElementById('ai-typing');
+          if (typingEl2) typingEl2.remove();
+
+          // 创建 streaming bubble
+          var streamBubble = document.createElement('div');
+          streamBubble.className = 'chat-bubble chat-bubble-ai chat-bubble-streaming';
+          msgContainer.appendChild(streamBubble);
+
+          aiReply = await _callAIStream(text, function(token, fullText) {
+            streamBubble.innerHTML = Utils.escapeHtml(fullText).replace(/\n/g, '<br>');
+            msgContainer.scrollTop = msgContainer.scrollHeight;
+          });
+
+          // finalize：markdown 渲染
+          streamBubble.classList.remove('chat-bubble-streaming');
+          streamBubble.innerHTML = window.ChatMarkdown.render(aiReply);
           _incrementDailyCount();
         }
-
-        // 移除 typing 提示
-        var typing = document.getElementById('ai-typing');
-        if (typing) typing.remove();
 
         state.messages.push({ role: 'ai', text: aiReply, timestamp: Utils.formatDateTime() });
         // 提取 AI 发现并存储（保留原有发现抽取逻辑）
@@ -178,9 +191,11 @@ window.YouthChat = (function () {
         msgContainer.innerHTML = _renderMessages();
         msgContainer.scrollTop = msgContainer.scrollHeight;
       } catch (e) {
-        // 失败时降级到本地回复
+        // 流式中断/失败：移除 typing/streamBubble，降级到本地回复
         var typingErr = document.getElementById('ai-typing');
         if (typingErr) typingErr.remove();
+        var streamBubbleErr = msgContainer.querySelector('.chat-bubble-streaming');
+        if (streamBubbleErr) streamBubbleErr.remove();
         var fallback = _generateAIReply(text);
         state.messages.push({ role: 'ai', text: fallback, timestamp: Utils.formatDateTime() });
         _saveMessages();
@@ -317,6 +332,53 @@ window.YouthChat = (function () {
       throw new Error(data.error);
     }
     return data.reply || '我没能理解，可以再说一次吗？😊';
+  }
+
+  /**
+   * 流式调用云端 AI（前端模拟流式）
+   * @param {string} userText
+   * @param {function} onToken - (token, fullText) 回调
+   * @returns {Promise<string>} 完整回复
+   */
+  async function _callAIStream(userText, onToken) {
+    var recent = state.messages.slice(-6).map(function(m) {
+      return {
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.text || ''
+      };
+    });
+
+    var youthProfile = _buildYouthProfileSummary();
+
+    var res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: recent,
+        youthProfile: youthProfile
+      })
+    });
+
+    if (!res.ok) {
+      throw new Error('AI 接口返回 ' + res.status);
+    }
+    var data = await res.json();
+    if (data.error) {
+      throw new Error(data.error);
+    }
+    var reply = data.reply || '我没能理解，可以再说一次吗？😊';
+
+    // 前端模拟流式：逐字符回调
+    if (onToken) {
+      var chars = Array.from(reply);
+      var fullText = '';
+      for (var i = 0; i < chars.length; i++) {
+        fullText += chars[i];
+        onToken(chars[i], fullText);
+        await new Promise(function(r) { setTimeout(r, 30); });
+      }
+    }
+    return reply;
   }
 
   /**
