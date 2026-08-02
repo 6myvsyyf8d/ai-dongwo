@@ -168,6 +168,7 @@ window.YouthChat = (function () {
           // 创建 streaming bubble
           var streamBubble = document.createElement('div');
           streamBubble.className = 'chat-bubble chat-bubble-ai chat-bubble-streaming';
+          streamBubble.textContent = '…';  // 初始占位，首次 onToken 时被覆盖
           msgContainer.appendChild(streamBubble);
 
           aiReply = await _callAIStream(text, function(token, fullText) {
@@ -297,41 +298,6 @@ window.YouthChat = (function () {
       interests: interests,
       communicationStyle: communicationStyle
     };
-  }
-
-  /**
-   * 调用云端 AI（Vercel Serverless Function）
-   * 失败时抛出异常，由调用方降级处理
-   */
-  async function _callAI(userText) {
-    // 取最近 6 条消息作为上下文
-    var recent = state.messages.slice(-6).map(function(m) {
-      return {
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: m.text || ''
-      };
-    });
-    // 最近一条用户消息已在 state.messages 中，无需重复添加
-
-    var youthProfile = _buildYouthProfileSummary();
-
-    var res = await fetch('/api/chat', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        messages: recent,
-        youthProfile: youthProfile
-      })
-    });
-
-    if (!res.ok) {
-      throw new Error('AI 接口返回 ' + res.status);
-    }
-    var data = await res.json();
-    if (data.error) {
-      throw new Error(data.error);
-    }
-    return data.reply || '我没能理解，可以再说一次吗？😊';
   }
 
   /**
