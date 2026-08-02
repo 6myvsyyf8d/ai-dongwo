@@ -277,7 +277,7 @@
   function generateReplyStream(history, youthName, onToken) {
     return generateReply(history, youthName).then(function (reply) {
       if (!reply || !onToken) return reply;
-      // 按字符分块（中文逐字，英文按词）
+      // 按 Unicode code point 逐字符分块
       var chars = Array.from(reply);
       var i = 0;
       var fullText = '';

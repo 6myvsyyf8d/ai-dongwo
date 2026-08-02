@@ -622,3 +622,53 @@
     padding: 4px 10px;
   }
 }
+
+/* ========== 流式渲染气泡 ========== */
+.chat-bubble-streaming {
+  box-shadow: 0 0 0 1px rgba(94, 106, 210, 0.2), 0 2px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(94, 106, 210, 0.15);
+  animation: streamBreath 1.8s ease-in-out infinite;
+}
+
+@keyframes streamBreath {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(94, 106, 210, 0.2), 0 2px 20px rgba(0, 0, 0, 0.4), 0 0 30px rgba(94, 106, 210, 0.15); }
+  50% { box-shadow: 0 0 0 1px rgba(94, 106, 210, 0.3), 0 2px 20px rgba(0, 0, 0, 0.4), 0 0 40px rgba(94, 106, 210, 0.25); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chat-bubble-streaming { animation: none; }
+}
+
+/* ========== 错误气泡 ========== */
+.chat-bubble-error {
+  background: rgba(255, 60, 60, 0.12) !important;
+  border: 1px solid rgba(255, 60, 60, 0.3);
+  color: #ff6b6b;
+}
+
+.chat-bubble-error .stream-interrupted {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 8px;
+  font-size: 0.75rem;
+  background: rgba(255, 60, 60, 0.2);
+  border-radius: var(--radius-full);
+}
+
+.chat-retry-btn {
+  display: inline-block;
+  margin-top: 6px;
+  margin-left: 8px;
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  color: var(--color-text-primary);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.chat-retry-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 0 12px rgba(94, 106, 210, 0.2);
+}

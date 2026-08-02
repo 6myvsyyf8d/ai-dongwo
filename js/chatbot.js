@@ -316,11 +316,48 @@
       if (!chatMessages) return;
       var bubble = document.createElement('div');
       bubble.className = 'chat-bubble chat-bubble-bot';
-      bubble.innerHTML = escapeHtml(text).replace(/\n/g, '<br>') + '<div style="font-size:0.68rem;opacity:0.5;margin-top:4px;text-align:right;">' + formatTime() + '</div>';
+      bubble.innerHTML = window.ChatMarkdown.render(text) + '<div style="font-size:0.68rem;opacity:0.5;margin-top:4px;text-align:right;">' + formatTime() + '</div>';
       chatMessages.appendChild(bubble);
       scrollToBottom();
       state.messages.push({ role: 'ai', text: text, time: new Date().toISOString() });
     }, delay);
+  }
+
+  /**
+   * 创建流式 AI 消息气泡
+   * 返回 { bubbleEl, append(text), finalize(), fail(msg) }
+   */
+  function addStreamingAIMessage() {
+    var chatMessages = document.getElementById('chat-messages');
+    if (!chatMessages) return null;
+    var bubble = document.createElement('div');
+    bubble.className = 'chat-bubble chat-bubble-bot chat-bubble-streaming';
+    chatMessages.appendChild(bubble);
+    scrollToBottom();
+    return {
+      bubbleEl: bubble,
+      append: function (text) {
+        bubble._rawText = (bubble._rawText || '') + text;
+        // 流式过程显示纯文本（转义 + 换行），避免未闭合 markdown 渲染错乱
+        bubble.innerHTML = escapeHtml(bubble._rawText).replace(/\n/g, '<br>');
+        scrollToBottom();
+      },
+      finalize: function () {
+        var text = bubble._rawText || '';
+        bubble.classList.remove('chat-bubble-streaming');
+        bubble.innerHTML = window.ChatMarkdown.render(text) +
+          '<div style="font-size:0.68rem;opacity:0.5;margin-top:4px;text-align:right;">' + formatTime() + '</div>';
+        scrollToBottom();
+        state.messages.push({ role: 'ai', text: text, time: new Date().toISOString() });
+      },
+      fail: function (errMsg) {
+        bubble.classList.remove('chat-bubble-streaming');
+        bubble.classList.add('chat-bubble-error');
+        bubble.innerHTML = '<div>' + escapeHtml(errMsg) + '</div>' +
+          '<button class="chat-retry-btn" type="button">重试</button>';
+        scrollToBottom();
+      }
+    };
   }
 
   function addUserMessage(text) {
@@ -445,22 +482,52 @@
     var useAI = window.ZhipuClient && window.ZhipuClient.isAvailable();
     if (useAI) {
       showTyping();
-      window.ZhipuClient.generateReply(_toApiMessages(state.messages), state.youthName)
-        .then(function (reply) {
-          hideTyping();
-          addAIMessage(reply);
+      var streaming = null;
+      window.ZhipuClient.generateReplyStream(
+        _toApiMessages(state.messages),
+        state.youthName,
+        function (token, fullText) {
+          if (!streaming) {
+            hideTyping();
+            streaming = addStreamingAIMessage();
+          }
+          streaming.append(token);
+        }
+      ).then(function () {
+        if (streaming) {
+          streaming.finalize();
           state.totalRounds++;
           if (state.totalRounds >= state.maxRounds) {
             setTimeout(function () { endConversation(); }, 600);
           }
-        })
-        .catch(function (err) {
-          hideTyping();
-          console.error('ChatBot: AI 回复生成失败', err);
-          fallbackToTemplate();
-        });
+        }
+      }).catch(function (err) {
+        hideTyping();
+        console.error('ChatBot: AI 回复生成失败', err);
+        if (streaming) {
+          // 流式中断：保留部分文本，标记中断
+          streaming.bubbleEl.classList.remove('chat-bubble-streaming');
+          streaming.bubbleEl.innerHTML += '<div class="stream-interrupted">回复中断</div>' +
+            '<button class="chat-retry-btn" type="button">重试</button>';
+        } else {
+          // 未开始流式：显示错误气泡
+          var chatMessages = document.getElementById('chat-messages');
+          var errBubble = document.createElement('div');
+          errBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+          errBubble.innerHTML = '<div>AI 回复失败</div>' +
+            '<button class="chat-retry-btn" type="button">重试</button>';
+          if (chatMessages) chatMessages.appendChild(errBubble);
+        }
+        scrollToBottom();
+      });
     } else {
-      fallbackToTemplate();
+      // 无 AI：显示错误气泡（不再降级到模板提问）
+      var chatMessages = document.getElementById('chat-messages');
+      var errBubble = document.createElement('div');
+      errBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+      errBubble.innerHTML = '<div>AI 服务未配置，请联系管理员</div>';
+      if (chatMessages) chatMessages.appendChild(errBubble);
+      scrollToBottom();
     }
   }
 
@@ -509,22 +576,52 @@
     // AI 生成自然对话回复
     if (window.ZhipuClient && window.ZhipuClient.isAvailable()) {
       showTyping();
-      window.ZhipuClient.generateReply(_toApiMessages(state.messages), state.youthName)
-        .then(function (reply) {
-          hideTyping();
-          addAIMessage(reply);
+      var streaming = null;
+      window.ZhipuClient.generateReplyStream(
+        _toApiMessages(state.messages),
+        state.youthName,
+        function (token, fullText) {
+          if (!streaming) {
+            hideTyping();
+            streaming = addStreamingAIMessage();
+          }
+          streaming.append(token);
+        }
+      ).then(function () {
+        if (streaming) {
+          streaming.finalize();
           state.totalRounds++;
           if (state.totalRounds >= state.maxRounds) {
             setTimeout(function () { endConversation(); }, 600);
           }
-        })
-        .catch(function (err) {
-          hideTyping();
-          console.error('ChatBot: AI 回复生成失败', err);
-          fallbackToTemplate();
-        });
+        }
+      }).catch(function (err) {
+        hideTyping();
+        console.error('ChatBot: AI 回复生成失败', err);
+        if (streaming) {
+          // 流式中断：保留部分文本，标记中断
+          streaming.bubbleEl.classList.remove('chat-bubble-streaming');
+          streaming.bubbleEl.innerHTML += '<div class="stream-interrupted">回复中断</div>' +
+            '<button class="chat-retry-btn" type="button">重试</button>';
+        } else {
+          // 未开始流式：显示错误气泡
+          var chatMessages = document.getElementById('chat-messages');
+          var errBubble = document.createElement('div');
+          errBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+          errBubble.innerHTML = '<div>AI 回复失败</div>' +
+            '<button class="chat-retry-btn" type="button">重试</button>';
+          if (chatMessages) chatMessages.appendChild(errBubble);
+        }
+        scrollToBottom();
+      });
     } else {
-      fallbackToTemplate();
+      // 无 AI：显示错误气泡（不再降级到模板提问）
+      var chatMessages = document.getElementById('chat-messages');
+      var errBubble = document.createElement('div');
+      errBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+      errBubble.innerHTML = '<div>AI 服务未配置，请联系管理员</div>';
+      if (chatMessages) chatMessages.appendChild(errBubble);
+      scrollToBottom();
     }
   }
 
