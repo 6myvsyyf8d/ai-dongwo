@@ -34,22 +34,7 @@
           ]
         }
       ]
-    },
-    "nsis": {
-      "oneClick": false,
-      "allowToChangeInstallationDirectory": true,
-      "createDesktopShortcut": true,
-      "createStartMenuShortcut": true,
-      "shortcutName": "AI懂我"
     }
   },
-  "devDependencies": {
-    "electron": "^28.0.0",
-    "electron-builder": "^24.9.1",
-    "eslint": "^10.8.0",
-    "globals": "^17.8.0"
-  },
-  "dependencies": {
-    "isomorphic-git": "^1.40.0"
-  }
+  "private": true
 }
