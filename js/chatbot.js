@@ -50,6 +50,20 @@
     return div.innerHTML;
   }
 
+  /**
+   * 将内部 state.messages 转为智谱 API 要求的格式
+   * 内部格式: { role: 'ai'/'user', text, time }
+   * API 格式:  { role: 'assistant'/'user', content }
+   */
+  function _toApiMessages(messages) {
+    return messages.map(function (msg) {
+      return {
+        role: msg.role === 'ai' ? 'assistant' : msg.role,
+        content: msg.text
+      };
+    });
+  }
+
   // ========== Tab 切换栏（iOS 风格分段控件，样式见 chatbot.css） ==========
   function renderTabBar() {
     return '' +
@@ -520,14 +534,7 @@
     var useAI = window.ZhipuClient && window.ZhipuClient.isAvailable();
     if (useAI) {
       showTyping();
-      // 转换 state.messages 为智谱 API 要求的格式：{ role: 'assistant'|'user', content }
-      var apiMessages = state.messages.map(function (msg) {
-        return {
-          role: msg.role === 'ai' ? 'assistant' : msg.role,
-          content: msg.text
-        };
-      });
-      window.ZhipuClient.generateReply(apiMessages, state.youthName)
+      window.ZhipuClient.generateReply(_toApiMessages(state.messages), state.youthName)
         .then(function (reply) {
           hideTyping();
           addAIMessage(reply);
@@ -591,7 +598,7 @@
     // AI 生成自然对话回复
     if (window.ZhipuClient && window.ZhipuClient.isAvailable()) {
       showTyping();
-      window.ZhipuClient.generateReply(state.messages, state.youthName)
+      window.ZhipuClient.generateReply(_toApiMessages(state.messages), state.youthName)
         .then(function (reply) {
           hideTyping();
           addAIMessage(reply);
