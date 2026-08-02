@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="zh-CN" data-theme="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
+  <link rel="stylesheet" href="css/theme.css">
   <link rel="stylesheet" href="css/auth.css">
   <link rel="stylesheet" href="css/main.css?v=20260802-0">
   <link rel="stylesheet" href="css/icons.css?v=20260801-0">
@@ -29,6 +30,11 @@
     <div id="toast-container" role="status" aria-live="polite" aria-atomic="true"></div>
     <div id="page-container"></div>
   </div>
+
+  <!-- 主题切换按钮 -->
+  <button id="theme-toggle" class="theme-toggle-btn" aria-label="切换主题" title="切换主题">
+    <span class="theme-toggle-icon">☀️</span>
+  </button>
 
   <script src="js/lib/qrcode.min.js"></script>
   <script src="js/lib/chart.min.js"></script>
@@ -72,6 +78,7 @@
   <script src="js/welcome.js"></script>
   <script src="js/youth-chat.js?v=20260802-3"></script>
   <script src="js/teacher-workbench.js?v=20260730"></script>
+  <script src="js/theme-toggle.js"></script>
   <script src="js/app.js?v=20260802-0"></script>
 </body>
 </html>

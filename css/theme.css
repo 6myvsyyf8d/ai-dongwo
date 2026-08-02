@@ -1,0 +1,837 @@
+/* ================================================================
+   AI懂我 · theme.css
+   双主题系统：暗色 (dark) / 暖色 (warm)
+   ================================================================ */
+
+/* — 默认主题：暗色深空 — */
+:root {
+  /* — Primary: 靛蓝 Indigo — */
+  --color-primary: #5E6AD2;
+  --color-primary-rgb: 94, 106, 210;
+  --color-primary-light: #6872D9;
+  --color-primary-dark: #4F5AC0;
+  --color-primary-surface: rgba(94, 106, 210, 0.10);
+  --color-primary-glow: rgba(94, 106, 210, 0.30);
+
+  /* — Accent / Secondary — */
+  --color-secondary: #9B85B8;
+  --color-accent: #D4A85A;
+  --color-success: #34C759;
+  --color-warning: #FDCB6E;
+  --color-warning-dark: #E08600;
+  --color-danger: #FF453A;
+  --color-danger-dark: #D63031;
+
+  /* — Text: 冷白文字体系 — */
+  --color-text-primary: #EDEDEF;
+  --color-text-secondary: #8A8F98;
+  --color-text-tertiary: rgba(255, 255, 255, 0.60);
+  --color-text-white: #FFFFFF;
+
+  /* — Background: 近纯黑层次 — */
+  --color-bg-primary: #050506;
+  --color-bg-secondary: #0a0a0c;
+  --color-bg-tertiary: #0a0a0f;
+  --color-bg-deep: #020203;
+  --color-bg-overlay: rgba(0, 0, 0, 0.55);
+  --color-bg-warm: #0c0c14;
+
+  /* — Surface: 半透明表面层 — */
+  --color-surface: rgba(255, 255, 255, 0.05);
+  --color-surface-hover: rgba(255, 255, 255, 0.08);
+
+  /* — Border: 微光边框 — */
+  --color-border: rgba(255, 255, 255, 0.10);
+  --color-border-light: rgba(255, 255, 255, 0.06);
+  --color-border-accent: rgba(94, 106, 210, 0.30);
+
+  /* — Misc: 辅助变量 — */
+  --color-card: #0a0a0c;
+  --color-separator: rgba(255, 255, 255, 0.08);
+
+  /* — Role colors — */
+  --color-role-youth: #5E6AD2;
+  --color-role-parent: #34C759;
+  --color-role-teacher: #FDCB6E;
+  --color-role-caregiver: #FF453A;
+  --color-role-government: #8A8F98;
+
+  /* — Module colors — */
+  --color-module-communicationGuide: #9B85B8;
+  --color-module-emotionBehavior: #FF453A;
+  --color-module-careMedical: #34C759;
+  --color-module-workSupport: #FDCB6E;
+  --color-module-relationshipMap: #B5A8D4;
+
+  /* — Shadow: 多层复合阴影系统 — */
+  --shadow-xs: 0 0 0 1px rgba(255,255,255,0.04), 0 1px 4px rgba(0,0,0,0.3);
+  --shadow-sm: 0 0 0 1px rgba(255,255,255,0.06), 0 2px 12px rgba(0,0,0,0.4), 0 0 20px rgba(0,0,0,0.2);
+  --shadow-md: 0 0 0 1px rgba(255,255,255,0.06), 0 2px 20px rgba(0,0,0,0.4), 0 0 40px rgba(0,0,0,0.2);
+  --shadow-lg: 0 0 0 1px rgba(255,255,255,0.08), 0 4px 28px rgba(0,0,0,0.5), 0 0 60px rgba(0,0,0,0.25);
+  --shadow-xl: 0 0 0 1px rgba(255,255,255,0.10), 0 8px 40px rgba(0,0,0,0.5), 0 0 80px rgba(94,106,210,0.10);
+  --shadow-inner: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+
+  /* — 主色系阴影 — */
+  --shadow-primary: 0 0 0 1px rgba(94,106,210,0.50), 0 4px 12px rgba(94,106,210,0.30), inset 0 1px 0 0 rgba(255,255,255,0.20);
+  --shadow-primary-lg: 0 0 0 1px rgba(94,106,210,0.60), 0 6px 20px rgba(94,106,210,0.40), inset 0 1px 0 0 rgba(255,255,255,0.25);
+  --ring-primary: 0 0 0 3px rgba(94, 106, 210, 0.25);
+
+  /* — 主题特有样式变量 — */
+  --body-bg: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(94,106,210,0.08) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 30% 70%, rgba(94,106,210,0.04) 0%, transparent 50%), radial-gradient(ellipse 30% 25% at 70% 30%, rgba(100,120,220,0.04) 0%, transparent 50%), radial-gradient(ellipse at top, #0a0a0f 0%, #050506 50%, #020203 100%);
+  --body-bg-image: url('../assets/starry-bg.jpg') center/cover no-repeat fixed;
+  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+  --card-radius: 16px;
+  --card-shadow: var(--shadow-md);
+  --btn-primary-bg: linear-gradient(135deg, #5E6AD2 0%, #4F5AC0 100%);
+  --btn-primary-bg-hover: linear-gradient(135deg, #6872D9 0%, #5E6AD2 100%);
+  --input-radius: 8px;
+  --input-bg: rgba(15, 15, 18, 0.8);
+  --input-focus-bg: rgba(15, 15, 18, 0.95);
+  --bubble-user-bg: var(--color-accent, #5E6AD2);
+  --bubble-user-radius: 18px 18px 4px 18px;
+  --bubble-ai-bg: rgba(255,255,255,0.04);
+  --bubble-ai-radius: 18px 18px 18px 4px;
+  --tag-radius: var(--radius-full);
+  --tag-border: 0.5px solid var(--color-border-light);
+  --tag-bg: var(--color-surface);
+  --bottom-nav-bg: rgba(10, 10, 12, 0.88);
+  --bottom-nav-border: 0.5px solid rgba(255,255,255,0.08);
+  --bottom-nav-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 24px rgba(0,0,0,0.5), 0 0 60px rgba(94,106,210,0.05);
+  /* 通用半透明层（替代硬编码 rgba(255,255,255,0.03~0.08)） */
+  --color-fill-subtle: rgba(255,255,255,0.03);
+  --color-fill-light: rgba(255,255,255,0.04);
+  --color-fill-medium: rgba(255,255,255,0.06);
+  --color-fill-strong: rgba(255,255,255,0.08);
+}
+
+/* — 显式暗色主题 — */
+[data-theme="dark"] {
+  --color-primary: #5E6AD2;
+  --color-primary-rgb: 94, 106, 210;
+  --color-primary-light: #6872D9;
+  --color-primary-dark: #4F5AC0;
+  --color-primary-surface: rgba(94, 106, 210, 0.10);
+  --color-primary-glow: rgba(94, 106, 210, 0.30);
+
+  --color-secondary: #9B85B8;
+  --color-accent: #D4A85A;
+  --color-success: #34C759;
+  --color-warning: #FDCB6E;
+  --color-warning-dark: #E08600;
+  --color-danger: #FF453A;
+  --color-danger-dark: #D63031;
+
+  --color-text-primary: #EDEDEF;
+  --color-text-secondary: #8A8F98;
+  --color-text-tertiary: rgba(255, 255, 255, 0.60);
+  --color-text-white: #FFFFFF;
+
+  --color-bg-primary: #050506;
+  --color-bg-secondary: #0a0a0c;
+  --color-bg-tertiary: #0a0a0f;
+  --color-bg-deep: #020203;
+  --color-bg-overlay: rgba(0, 0, 0, 0.55);
+  --color-bg-warm: #0c0c14;
+
+  --color-surface: rgba(255, 255, 255, 0.05);
+  --color-surface-hover: rgba(255, 255, 255, 0.08);
+
+  --color-border: rgba(255, 255, 255, 0.10);
+  --color-border-light: rgba(255, 255, 255, 0.06);
+  --color-border-accent: rgba(94, 106, 210, 0.30);
+
+  --color-card: #0a0a0c;
+  --color-separator: rgba(255, 255, 255, 0.08);
+
+  --color-role-youth: #5E6AD2;
+  --color-role-parent: #34C759;
+  --color-role-teacher: #FDCB6E;
+  --color-role-caregiver: #FF453A;
+  --color-role-government: #8A8F98;
+
+  --color-module-communicationGuide: #9B85B8;
+  --color-module-emotionBehavior: #FF453A;
+  --color-module-careMedical: #34C759;
+  --color-module-workSupport: #FDCB6E;
+  --color-module-relationshipMap: #B5A8D4;
+
+  --shadow-xs: 0 0 0 1px rgba(255,255,255,0.04), 0 1px 4px rgba(0,0,0,0.3);
+  --shadow-sm: 0 0 0 1px rgba(255,255,255,0.06), 0 2px 12px rgba(0,0,0,0.4), 0 0 20px rgba(0,0,0,0.2);
+  --shadow-md: 0 0 0 1px rgba(255,255,255,0.06), 0 2px 20px rgba(0,0,0,0.4), 0 0 40px rgba(0,0,0,0.2);
+  --shadow-lg: 0 0 0 1px rgba(255,255,255,0.08), 0 4px 28px rgba(0,0,0,0.5), 0 0 60px rgba(0,0,0,0.25);
+  --shadow-xl: 0 0 0 1px rgba(255,255,255,0.10), 0 8px 40px rgba(0,0,0,0.5), 0 0 80px rgba(94,106,210,0.10);
+  --shadow-inner: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+
+  --shadow-primary: 0 0 0 1px rgba(94,106,210,0.50), 0 4px 12px rgba(94,106,210,0.30), inset 0 1px 0 0 rgba(255,255,255,0.20);
+  --shadow-primary-lg: 0 0 0 1px rgba(94,106,210,0.60), 0 6px 20px rgba(94,106,210,0.40), inset 0 1px 0 0 rgba(255,255,255,0.25);
+  --ring-primary: 0 0 0 3px rgba(94, 106, 210, 0.25);
+
+  --body-bg: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(94,106,210,0.08) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 30% 70%, rgba(94,106,210,0.04) 0%, transparent 50%), radial-gradient(ellipse 30% 25% at 70% 30%, rgba(100,120,220,0.04) 0%, transparent 50%), radial-gradient(ellipse at top, #0a0a0f 0%, #050506 50%, #020203 100%);
+  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
+  --card-radius: 16px;
+  --card-shadow: var(--shadow-md);
+  --btn-primary-bg: linear-gradient(135deg, #5E6AD2 0%, #4F5AC0 100%);
+  --btn-primary-bg-hover: linear-gradient(135deg, #6872D9 0%, #5E6AD2 100%);
+  --input-radius: 8px;
+  --input-bg: rgba(15, 15, 18, 0.8);
+  --input-focus-bg: rgba(15, 15, 18, 0.95);
+  --bubble-user-bg: var(--color-accent, #5E6AD2);
+  --bubble-user-radius: 18px 18px 4px 18px;
+  --bubble-ai-bg: rgba(255,255,255,0.04);
+  --bubble-ai-radius: 18px 18px 18px 4px;
+  --tag-radius: var(--radius-full);
+  --tag-border: 0.5px solid var(--color-border-light);
+  --tag-bg: var(--color-surface);
+  --bottom-nav-bg: rgba(10, 10, 12, 0.88);
+  --bottom-nav-border: 0.5px solid rgba(255,255,255,0.08);
+  --bottom-nav-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 24px rgba(0,0,0,0.5), 0 0 60px rgba(94,106,210,0.05);
+  --color-fill-subtle: rgba(255,255,255,0.03);
+  --color-fill-light: rgba(255,255,255,0.04);
+  --color-fill-medium: rgba(255,255,255,0.06);
+  --color-fill-strong: rgba(255,255,255,0.08);
+}
+
+/* — 暖色主题 — */
+[data-theme="warm"] {
+  --color-primary: #f59e0b;
+  --color-primary-rgb: 245, 158, 11;
+  --color-primary-light: #fbbf24;
+  --color-primary-dark: #d97706;
+  --color-primary-surface: rgba(245, 158, 11, 0.08);
+  --color-primary-glow: rgba(245, 158, 11, 0.25);
+
+  --color-secondary: #b45309;
+  --color-accent: #f59e0b;
+  --color-success: #34C759;
+  --color-warning: #f59e0b;
+  --color-warning-dark: #d97706;
+  --color-danger: #FF453A;
+  --color-danger-dark: #D63031;
+
+  --color-text-primary: #1a1a1a;
+  --color-text-secondary: #c4a882;
+  --color-text-tertiary: rgba(180, 83, 9, 0.50);
+  --color-text-white: #78350f;
+
+  --color-bg-primary: #fffef9;
+  --color-bg-secondary: #fff8ed;
+  --color-bg-tertiary: #fef3e0;
+  --color-bg-deep: #fef3e0;
+  --color-bg-overlay: rgba(180, 83, 9, 0.08);
+  --color-bg-warm: #fffef9;
+
+  --color-surface: rgba(255, 255, 255, 0.85);
+  --color-surface-hover: rgba(255, 255, 255, 0.95);
+
+  --color-border: rgba(245, 158, 11, 0.15);
+  --color-border-light: rgba(245, 158, 11, 0.08);
+  --color-border-accent: rgba(245, 158, 11, 0.30);
+
+  --color-card: rgba(255, 255, 255, 0.85);
+  --color-separator: rgba(245, 158, 11, 0.08);
+
+  --color-role-youth: #f59e0b;
+  --color-role-parent: #34C759;
+  --color-role-teacher: #d97706;
+  --color-role-caregiver: #FF453A;
+  --color-role-government: #8A8F98;
+
+  --color-module-communicationGuide: #b45309;
+  --color-module-emotionBehavior: #FF453A;
+  --color-module-careMedical: #34C759;
+  --color-module-workSupport: #f59e0b;
+  --color-module-relationshipMap: #c4a882;
+
+  /* 暖色阴影 — 更柔和 */
+  --shadow-xs: 0 0 0 1px rgba(245,158,11,0.04), 0 1px 4px rgba(180,83,9,0.04);
+  --shadow-sm: 0 0 0 1px rgba(245,158,11,0.06), 0 2px 12px rgba(180,83,9,0.06), 0 0 20px rgba(180,83,9,0.04);
+  --shadow-md: 0 0 0 1px rgba(245,158,11,0.06), 0 2px 16px rgba(180,83,9,0.06), 0 8px 32px rgba(180,83,9,0.04);
+  --shadow-lg: 0 0 0 1px rgba(245,158,11,0.08), 0 4px 20px rgba(180,83,9,0.08), 0 0 40px rgba(180,83,9,0.05);
+  --shadow-xl: 0 0 0 1px rgba(245,158,11,0.10), 0 8px 32px rgba(180,83,9,0.08), 0 0 60px rgba(245,158,11,0.06);
+  --shadow-inner: inset 0 1px 0 0 rgba(255, 255, 255, 0.40);
+
+  --shadow-primary: 0 0 0 1px rgba(245,158,11,0.50), 0 4px 12px rgba(245,158,11,0.30), inset 0 1px 0 0 rgba(255,255,255,0.40);
+  --shadow-primary-lg: 0 0 0 1px rgba(245,158,11,0.60), 0 6px 20px rgba(245,158,11,0.40), inset 0 1px 0 0 rgba(255,255,255,0.45);
+  --ring-primary: 0 0 0 3px rgba(245, 158, 11, 0.25);
+
+  /* 暖色主题特有样式变量 */
+  --body-bg: radial-gradient(ellipse 60% 50% at 50% 30%, #fffef9 0%, #fff8ed 40%, #fef3e0 100%);
+  --body-bg-image: none;
+  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-radius: 20px;
+  --card-shadow: var(--shadow-md);
+  --btn-primary-bg: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+  --btn-primary-bg-hover: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  --input-radius: 20px;
+  --input-bg: rgba(255, 255, 255, 0.60);
+  --input-focus-bg: rgba(255, 255, 255, 0.85);
+  --bubble-user-bg: linear-gradient(135deg, #f59e0b, #ea580c);
+  --bubble-user-radius: 20px 20px 6px 20px;
+  --bubble-ai-bg: rgba(255, 255, 255, 0.70);
+  --bubble-ai-radius: 20px 20px 20px 6px;
+  --tag-radius: 9999px;
+  --tag-border: 0.5px solid rgba(245, 158, 11, 0.15);
+  --tag-bg: rgba(245, 158, 11, 0.06);
+  --bottom-nav-bg: rgba(255, 255, 255, 0.88);
+  --bottom-nav-border: 0.5px solid rgba(245, 158, 11, 0.15);
+  --bottom-nav-shadow: 0 0 0 1px rgba(245,158,11,0.06), 0 4px 24px rgba(180,83,9,0.08), 0 0 60px rgba(245,158,11,0.05);
+  --color-fill-subtle: rgba(245,158,11,0.03);
+  --color-fill-light: rgba(245,158,11,0.04);
+  --color-fill-medium: rgba(245,158,11,0.06);
+  --color-fill-strong: rgba(245,158,11,0.08);
+}
+
+/* ================================================================
+   暖色主题特有全局样式覆盖
+   ================================================================ */
+
+/* — Sparkle 闪烁动画 — */
+@keyframes sparkle-warm {
+  0%, 100% { opacity: 0.3; transform: scale(0.8); }
+  50% { opacity: 1; transform: scale(1.2); }
+}
+@keyframes float-warm {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* — 暖色渐变文字 — */
+[data-theme="warm"] .text-gradient {
+  background: linear-gradient(135deg, #b45309 0%, #d97706 40%, #f59e0b 70%, #fbbf24 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 去除星空背景，使用纯奶油渐变 */
+[data-theme="warm"] body {
+  background: var(--body-bg);
+}
+
+[data-theme="warm"] html {
+  background-color: var(--color-bg-primary);
+}
+
+/* — 页面头部：毛玻璃暖色顶栏 — */
+[data-theme="warm"] .page-header {
+  background: rgba(255, 254, 249, 0.88);
+  border-bottom: 1px solid var(--color-border-light);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* — 卡片：毛玻璃 + 琥珀微光 — */
+[data-theme="warm"] .card {
+  background: var(--card-bg);
+  border-radius: var(--card-radius);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--color-border-light);
+}
+
+/* — 按钮：琥珀渐变胶囊 — */
+[data-theme="warm"] .btn-primary {
+  background: var(--btn-primary-bg);
+  border-radius: 9999px;
+  box-shadow: var(--shadow-primary);
+}
+[data-theme="warm"] .btn-primary:hover:not(:disabled) {
+  background: var(--btn-primary-bg-hover);
+  box-shadow: var(--shadow-primary-lg);
+}
+[data-theme="warm"] .btn-secondary {
+  border-radius: 9999px;
+}
+[data-theme="warm"] .btn-outline {
+  border-radius: 9999px;
+}
+[data-theme="warm"] .btn {
+  border-radius: 9999px;
+}
+[data-theme="warm"] .btn-sm {
+  border-radius: 9999px;
+}
+
+/* — 输入框：暖色圆角 — */
+[data-theme="warm"] input,
+[data-theme="warm"] select,
+[data-theme="warm"] textarea {
+  background: var(--input-bg);
+  border-radius: var(--input-radius);
+  border-color: rgba(245, 158, 11, 0.15);
+}
+[data-theme="warm"] input:focus,
+[data-theme="warm"] select:focus,
+[data-theme="warm"] textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12), 0 0 20px rgba(245, 158, 11, 0.06);
+  background: var(--input-focus-bg);
+}
+[data-theme="warm"] input::placeholder,
+[data-theme="warm"] textarea::placeholder {
+  color: var(--color-text-secondary);
+}
+
+/* — 底部导航：毛玻璃琥珀胶囊 — */
+[data-theme="warm"] .bottom-nav {
+  background: var(--bottom-nav-bg);
+  border: var(--bottom-nav-border);
+  border-radius: 24px;
+  box-shadow: var(--bottom-nav-shadow);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+[data-theme="warm"] .bottom-nav-item {
+  color: rgba(180, 83, 9, 0.40);
+  border-radius: 12px;
+}
+[data-theme="warm"] .bottom-nav-item:hover {
+  color: rgba(180, 83, 9, 0.60);
+  background: rgba(245, 158, 11, 0.06);
+}
+[data-theme="warm"] .bottom-nav-item.active {
+  color: var(--color-primary);
+  background: rgba(245, 158, 11, 0.12);
+}
+
+/* — 聊天气泡：琥珀渐变 — */
+[data-theme="warm"] .chat-bubble-user {
+  background: var(--bubble-user-bg);
+  border-radius: var(--bubble-user-radius);
+  color: #fff;
+  box-shadow: 0 2px 12px rgba(245,158,11,0.20);
+}
+[data-theme="warm"] .chat-bubble-ai,
+[data-theme="warm"] .chat-bubble-bot {
+  background: var(--bubble-ai-bg);
+  border-radius: var(--bubble-ai-radius);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(245,158,11,0.08);
+  color: var(--color-text-primary);
+}
+
+/* — 标签/徽章：琥珀药丸 — */
+[data-theme="warm"] .badge,
+[data-theme="warm"] .ios-tag,
+[data-theme="warm"] .youth-card-tag {
+  border-radius: var(--tag-radius);
+  border: var(--tag-border);
+  background: var(--tag-bg);
+  color: var(--color-text-primary);
+}
+
+/* — Toast：暖色毛玻璃 — */
+[data-theme="warm"] .toast {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-text-primary);
+  box-shadow: 0 0 0 1px rgba(245,158,11,0.08), 0 4px 16px rgba(180,83,9,0.10);
+}
+
+/* — 用户卡片 / 心青年卡片：毛玻璃 — */
+[data-theme="warm"] .user-card,
+[data-theme="warm"] .youth-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid var(--color-border-light);
+}
+[data-theme="warm"] .youth-card:hover {
+  border-color: var(--color-border);
+  background: var(--color-surface-hover);
+}
+
+/* — 创建按钮 — */
+[data-theme="warm"] .create-btn {
+  border-color: rgba(245, 158, 11, 0.12);
+  background: var(--color-surface);
+  border-radius: 20px;
+}
+[data-theme="warm"] .create-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-surface);
+}
+
+/* — 速读卡 — */
+[data-theme="warm"] .quickcard-footer {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* — 健康速报卡片 — */
+[data-theme="warm"] .glance-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* — 教师工作台 — */
+[data-theme="warm"] .workbench-student-card {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* — 首页问候光晕 — */
+[data-theme="warm"] .home-greeting-glow {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(245,158,11,0.06) 0%, transparent 70%);
+}
+
+/* — 记录页：对话采集入口 — */
+[data-theme="warm"] .records-page .chat-entry-card {
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid rgba(245, 158, 11, 0.10);
+  border-radius: 20px;
+}
+
+/* — 管理页 — */
+[data-theme="warm"] .manage-page .card {
+  background: rgba(255, 255, 255, 0.85);
+}
+[data-theme="warm"] .manage-page .grant-section {
+  background: rgba(255, 255, 255, 0.80);
+  border: 1px solid rgba(245, 158, 11, 0.06);
+}
+
+/* — 分析页 — */
+[data-theme="warm"] .analytics-page .chart-card {
+  background: rgba(255, 255, 255, 0.85);
+}
+
+/* — 档案页模块卡片 — */
+[data-theme="warm"] .profile-module-card {
+  background: rgba(255, 255, 255, 0.85);
+  box-shadow: 0 0 40px rgba(245, 158, 11, 0.04);
+}
+
+/* — 档案页头像卡片 — */
+[data-theme="warm"] .portrait-card {
+  background: linear-gradient(175deg, var(--color-bg-secondary) 0%, var(--color-bg-primary) 40%, #fef3e0 100%);
+  box-shadow: 0 0 0 1px rgba(245,158,11,0.04), 0 4px 32px rgba(180,83,9,0.08), 0 0 80px rgba(245,158,11,0.04);
+  border-radius: 20px;
+}
+
+/* — 详情面板 — */
+[data-theme="warm"] .detail-panel {
+  background: rgba(255, 254, 249, 0.97);
+  border-color: rgba(245, 158, 11, 0.08);
+  box-shadow: 0 -8px 40px rgba(180, 83, 9, 0.10);
+}
+
+/* — 紧急联系人下拉 — */
+[data-theme="warm"] .emergency-dropdown {
+  background: rgba(255, 254, 249, 0.97);
+  border-color: rgba(245, 158, 11, 0.08);
+  box-shadow: 0 8px 32px rgba(180, 83, 9, 0.10), 0 0 0 1px rgba(245,158,11,0.05);
+}
+[data-theme="warm"] .emergency-bar-toggle {
+  background: rgba(255, 254, 249, 0.9) !important;
+  border-color: rgba(245, 158, 11, 0.08) !important;
+}
+[data-theme="warm"] .emergency-bar-item {
+  background: rgba(255, 254, 249, 0.9) !important;
+  border-color: rgba(245, 158, 11, 0.06) !important;
+}
+[data-theme="warm"] .emergency-bar-item:hover {
+  background: rgba(245, 158, 11, 0.06) !important;
+}
+
+/* — 创建任务按钮 — */
+[data-theme="warm"] .btn-create-task {
+  background: rgba(245, 158, 11, 0.08);
+  border-color: rgba(245, 158, 11, 0.25);
+  color: var(--color-primary);
+}
+[data-theme="warm"] .btn-create-task:hover {
+  background: rgba(245, 158, 11, 0.15);
+  border-color: rgba(245, 158, 11, 0.40);
+}
+
+/* — 星座星图 — */
+[data-theme="warm"] .star-field {
+  background: radial-gradient(ellipse 80% 50% at 50% 45%, rgba(245,158,11,0.06) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 30% 70%, rgba(245,158,11,0.04) 0%, transparent 50%), radial-gradient(ellipse 30% 25% at 70% 30%, rgba(245,158,11,0.04) 0%, transparent 50%);
+}
+
+/* — 快捷操作按钮 — */
+[data-theme="warm"] .quick-action-btn,
+[data-theme="warm"] .management-btn {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+}
+
+/* — iOS 卡片组 — */
+[data-theme="warm"] .ios-card-group {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+}
+
+/* — 看板列 — */
+[data-theme="warm"] .kanban-column {
+  background: rgba(245, 158, 11, 0.03);
+  border-color: rgba(245, 158, 11, 0.08);
+  border-radius: 16px;
+}
+[data-theme="warm"] .kanban-card {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(245, 158, 11, 0.08);
+  box-shadow: 0 0 0 1px rgba(245,158,11,0.03), 0 2px 12px rgba(180,83,9,0.06);
+  border-radius: 16px;
+}
+[data-theme="warm"] .kanban-card:hover {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(245, 158, 11, 0.15);
+}
+[data-theme="warm"] .kanban-status-btn[data-status="todo"] {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.30);
+  color: var(--color-warning);
+}
+[data-theme="warm"] .kanban-status-btn[data-status="in_progress"] {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.30);
+  color: var(--color-primary-light);
+}
+
+/* — 矩阵记录 — */
+[data-theme="warm"] .matrix-wrap {
+  background: var(--card-bg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-radius: 20px;
+}
+[data-theme="warm"] .matrix-form-sheet {
+  background: linear-gradient(180deg, rgba(255,254,249,0.98) 0%, rgba(255,248,237,0.99) 100%);
+  box-shadow: 0 -4px 24px rgba(180,83,9,0.10);
+  border-color: rgba(245,158,11,0.08);
+}
+[data-theme="warm"] .matrix-input-tab.active {
+  background: rgba(255, 255, 255, 0.85);
+  color: var(--color-text-primary);
+}
+[data-theme="warm"] .matrix-input-tabs {
+  background: rgba(245, 158, 11, 0.04);
+}
+[data-theme="warm"] .matrix-btn-submit {
+  background: var(--btn-primary-bg);
+  border-radius: 9999px;
+}
+[data-theme="warm"] .matrix-quick-tag.selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* — 时间轴 — */
+[data-theme="warm"] .timeline-strip-dot:hover::after {
+  background: rgba(255, 254, 249, 0.95);
+  border-color: rgba(245, 158, 11, 0.08);
+  box-shadow: 0 4px 16px rgba(180, 83, 9, 0.08);
+}
+[data-theme="warm"] .timeline-range-chip.active {
+  background: rgba(245, 158, 11, 0.12);
+  border-color: rgba(245, 158, 11, 0.30);
+}
+
+/* — 星期选择 — */
+[data-theme="warm"] .weekday-chip.selected {
+  background: var(--btn-primary-bg);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.5), 0 2px 8px rgba(245, 158, 11, 0.3);
+}
+
+/* — 任务类型选择 — */
+[data-theme="warm"] .task-type-option.selected {
+  border-color: var(--type-color, var(--color-primary));
+  box-shadow: inset 0 0 0 1px var(--type-color, var(--color-primary)), 0 0 0 1px rgba(245, 158, 11, 0.10), 0 4px 20px rgba(180, 83, 9, 0.08);
+}
+[data-theme="warm"] .task-type-option.selected .task-type-badge {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) inset, 0 0 16px rgba(245, 158, 11, 0.30);
+}
+[data-theme="warm"] .task-type-option.selected .task-type-name {
+  color: var(--type-color, var(--color-primary));
+}
+
+/* — 心青年对话 — */
+[data-theme="warm"] .youth-chat-header {
+  background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.04));
+}
+[data-theme="warm"] .youth-chat-input {
+  border-radius: 20px;
+  border-color: rgba(245, 158, 11, 0.15);
+}
+[data-theme="warm"] .youth-chat-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
+}
+[data-theme="warm"] .youth-chat-send {
+  border-radius: 20px;
+  background: var(--btn-primary-bg);
+}
+[data-theme="warm"] .youth-chat-input-bar {
+  background: rgba(255, 255, 255, 0.85);
+  border-color: rgba(245, 158, 11, 0.08);
+}
+[data-theme="warm"] .chat-task-card {
+  background: rgba(245, 158, 11, 0.06);
+  border-color: rgba(245, 158, 11, 0.15);
+}
+
+/* ================================================================
+   暖色主题：覆盖 main.css 中硬编码的 rgba(255,255,255,...)
+   在暖色奶油背景下，这些白色半透明会变成刺眼白斑
+   ================================================================ */
+
+/* 页面内容区背景 */
+[data-theme="warm"] #page-container,
+[data-theme="warm"] .page-content {
+  background: transparent;
+}
+
+/* 顶部栏按钮 */
+[data-theme="warm"] .top-bar-btn {
+  background: var(--color-fill-light);
+  border: 0.5px solid var(--color-border-light);
+  color: var(--color-text-secondary);
+}
+[data-theme="warm"] .top-bar-btn:hover {
+  background: var(--color-fill-strong);
+  color: var(--color-text-primary);
+}
+
+/* 顶部文字链接 */
+[data-theme="warm"] .top-bar-text-link {
+  color: var(--color-text-secondary);
+}
+[data-theme="warm"] .top-bar-text-link:hover {
+  color: var(--color-text-primary);
+}
+
+/* 返回按钮 */
+[data-theme="warm"] .btn-back {
+  color: var(--color-text-secondary);
+}
+[data-theme="warm"] .btn-back:active {
+  background: var(--color-fill-light);
+}
+
+/* 用户头像 */
+[data-theme="warm"] .user-card-avatar {
+  background: var(--color-fill-light);
+  border-color: var(--color-border-light);
+}
+
+/* 心青年卡片头像 */
+[data-theme="warm"] .youth-card-avatar {
+  background: var(--color-fill-light);
+}
+
+/* 心青年卡片概要 */
+[data-theme="warm"] .youth-card-summary {
+  background: var(--color-fill-light);
+  color: var(--color-text-secondary);
+}
+
+/* 头部用户角色标签 */
+[data-theme="warm"] .header-user-role {
+  background: var(--color-fill-light);
+}
+
+/* 聊天消息区 */
+[data-theme="warm"] .chat-messages {
+  background: transparent;
+}
+
+/* 系统消息气泡 */
+[data-theme="warm"] .chat-bubble-system {
+  background: var(--color-fill-light);
+  color: var(--color-text-secondary);
+}
+
+/* 详情面板关闭按钮 */
+[data-theme="warm"] .detail-panel-close {
+  background: var(--color-fill-medium);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+[data-theme="warm"] .detail-panel-close:hover {
+  background: var(--color-fill-strong);
+  color: var(--color-text-primary);
+}
+
+/* 下拉面板通用 */
+[data-theme="warm"] .dropdown-panel {
+  background: rgba(255, 254, 249, 0.97);
+  border: 0.5px solid var(--color-border-light);
+  box-shadow: 0 8px 32px rgba(180,83,9,0.10), 0 0 0 1px rgba(245,158,11,0.05);
+}
+
+/* 分隔线 */
+[data-theme="warm"] .divider {
+  border-color: var(--color-border-light);
+}
+
+/* 空状态 */
+[data-theme="warm"] .empty-state {
+  color: var(--color-text-secondary);
+}
+
+/* 健康速报：无用药 */
+[data-theme="warm"] .health-med-none {
+  background: var(--color-fill-subtle);
+  border-color: var(--color-border-light);
+}
+
+/* 健康速报：空关系 */
+[data-theme="warm"] .health-rel-empty {
+  background: var(--color-fill-light);
+  color: var(--color-text-secondary);
+}
+
+/* — 解决 rgba(255,255,255,0.xx) 在暖色背景下的白斑问题 — */
+/* 任何在暖色模式下仍应保持半透明层的元素，统一用琥珀色调 */
+[data-theme="warm"] .section-divider,
+[data-theme="warm"] hr {
+  border-color: var(--color-border-light);
+}
+
+/* 页脚分隔线 */
+[data-theme="warm"] .page-footer {
+  border-top: 1px solid var(--color-border-light);
+}
+
+/* — 政府仪表盘 — */
+[data-theme="warm"] .government-card {
+  border: 1px solid var(--color-border-light);
+  background: var(--card-bg);
+}
+[data-theme="warm"] .government-stat {
+  background: var(--color-fill-subtle);
+}
+[data-theme="warm"] .government-stat:hover {
+  background: var(--color-fill-light);
+}
+[data-theme="warm"] .government-chart {
+  background: var(--color-fill-medium);
+}
+[data-theme="warm"] .government-header {
+  background: var(--color-fill-strong);
+}
+[data-theme="warm"] .government-table {
+  background: var(--color-fill-subtle);
+}
+
+/* — 顶部栏分隔符 — */
+[data-theme="warm"] .top-bar-separator {
+  color: var(--color-text-tertiary);
+}
+
+/* — 健康速报区域 — */
+[data-theme="warm"] .health-section {
+  border-top-color: var(--color-border-light);
+}
