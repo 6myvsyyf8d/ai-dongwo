@@ -127,12 +127,12 @@ window.Constants = {
    */
   DEFAULT_VISIBILITY_CONFIG: {
     pages: {
-      parent:     ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code', 'permissions', 'chat', 'import'],
-      teacher:    ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'teacher-workbench', 'archive-code', 'permissions', 'chat', 'import'],
-      caregiver:  ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code', 'permissions', 'chat', 'import'],
+      parent:     ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code', 'permissions', 'chat', 'import', 'grants', 'timeline', 'charts', 'join', 'approvals'],
+      teacher:    ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'teacher-workbench', 'archive-code', 'permissions', 'chat', 'import', 'grants', 'timeline', 'charts', 'join', 'approvals'],
+      caregiver:  ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code', 'permissions', 'chat', 'import', 'grants', 'timeline', 'charts', 'join', 'approvals'],
       youth:      ['dashboard', 'profile', 'youth-chat', 'permissions'],
       government: ['government'],
-      admin:      ['admin', 'dashboard', 'import']
+      admin:      ['admin', 'dashboard', 'import', 'grants']
     },
     modules: {
       parent:     ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport'],
