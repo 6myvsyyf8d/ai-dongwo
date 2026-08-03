@@ -1,0 +1,208 @@
+/* ================================================================
+   import.css — 批量导入档案页面样式
+   与现有 cookie 主题设计系统保持一致
+   ================================================================ */
+
+/* — 上传区域 — */
+.import-upload-zone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  margin: 16px 0;
+  border: 2px dashed var(--color-border);
+  border-radius: 20px;
+  background: var(--color-card);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.import-upload-zone:hover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-surface);
+}
+
+.import-upload-zone.dragover {
+  border-color: var(--color-primary);
+  background: var(--color-primary-surface);
+  box-shadow: 0 0 0 4px rgba(var(--color-primary-rgb, 196, 122, 58), 0.12);
+}
+
+.import-upload-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+
+.import-upload-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 6px;
+}
+
+.import-upload-hint {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+/* — 预览区域 — */
+.import-preview {
+  margin: 16px 0;
+}
+
+.import-preview-header {
+  margin-bottom: 12px;
+}
+
+.import-preview-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.import-preview-summary {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--color-text-secondary);
+}
+
+.import-preview-summary strong {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* — 预览表格 — */
+.import-table-wrap {
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid var(--color-border);
+  background: var(--color-card);
+  -webkit-overflow-scrolling: touch;
+}
+
+.import-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.import-table thead {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.import-table th {
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 700;
+  font-size: 11px;
+  color: var(--color-text-secondary);
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.import-table td {
+  padding: 9px 12px;
+  border-bottom: 1px solid var(--color-separator);
+  color: var(--color-text-primary);
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.import-table tr:last-child td {
+  border-bottom: none;
+}
+
+.import-table tr:hover td {
+  background: var(--color-surface);
+}
+
+/* — 操作按钮区 — */
+.import-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.import-actions .btn {
+  flex: 1;
+}
+
+/* — 导入结果 — */
+.import-result-card {
+  margin: 16px 0;
+  padding: 28px 20px;
+  border-radius: 20px;
+  background: var(--color-card);
+  text-align: center;
+  border: 1px solid var(--color-border);
+}
+
+.import-result-icon {
+  font-size: 48px;
+  margin-bottom: 12px;
+}
+
+.import-result-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 6px;
+}
+
+.import-result-summary {
+  font-size: 15px;
+  color: var(--color-text-secondary);
+  margin-bottom: 16px;
+}
+
+.import-result-summary strong {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+/* — 失败列表 — */
+.import-failures {
+  text-align: left;
+  margin: 16px 0;
+  padding: 14px;
+  border-radius: 14px;
+  background: var(--color-bg-secondary);
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.import-failure-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--color-separator);
+  font-size: 13px;
+}
+
+.import-failure-item:last-child {
+  border-bottom: none;
+}
+
+.import-failure-name {
+  font-weight: 600;
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+  margin-right: 12px;
+}
+
+.import-failure-reason {
+  color: var(--color-danger);
+  text-align: right;
+  font-size: 12px;
+  word-break: break-all;
+}

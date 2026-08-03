@@ -8,7 +8,7 @@
 
   // 不需要登录即可访问的页面
   var PUBLIC_PAGES = ['login', 'register'];
-  var NO_BOTTOM_NAV_PAGES = ['login', 'register', 'government', 'chat', 'timeline', 'charts', 'teacher-workbench', 'quickcard', 'grants', 'archive-code', 'archive', 'join', 'approvals', 'permissions', 'welcome', 'analytics'];
+  var NO_BOTTOM_NAV_PAGES = ['login', 'register', 'government', 'chat', 'timeline', 'charts', 'teacher-workbench', 'quickcard', 'grants', 'archive-code', 'archive', 'join', 'approvals', 'permissions', 'welcome', 'analytics', 'import'];
 
   // 路由 → 渲染函数映射（后续模块加载后注册）
   var routes = {};
@@ -1373,9 +1373,30 @@
       html += '</div>';
     }
 
+    // === 批量导入 ===
+    html += '<div class="ios-card-group">' +
+      '<div class="ios-card-row" id="btn-import" style="cursor:pointer;">' +
+        '<div class="ios-card-row-icon" style="background:rgba(138,168,232,0.1);border-radius:12px;">📥</div>' +
+        '<div class="ios-card-row-body">' +
+          '<div class="ios-card-row-title">批量导入档案</div>' +
+          '<div class="ios-card-row-subtitle">支持 JSON / CSV 格式</div>' +
+        '</div>' +
+        '<span class="ios-card-row-arrow">›</span>' +
+      '</div>' +
+    '</div>';
+
     html += '</div>';
 
     container.innerHTML = html;
+
+    // 绑定批量导入入口
+    var importBtn = document.getElementById('btn-import');
+    if (importBtn) {
+      importBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        window.location.hash = 'import';
+      });
+    }
 
     // 绑定权限入口卡片点击
     var permRow = document.querySelector('[data-action="permissions"]');
@@ -1824,6 +1845,7 @@
       JoinRequest.renderJoinPage(params.youthId);
     });
     // 申请审批路由
+    registerRoute('import', ImportModule.renderImport);
     registerRoute('approvals', function () {
       if (!AppState.isLoggedIn) {
         window.location.hash = 'login';
