@@ -8,7 +8,7 @@
 
   // 不需要登录即可访问的页面
   var PUBLIC_PAGES = ['login', 'register'];
-  var NO_BOTTOM_NAV_PAGES = ['login', 'register', 'government', 'chat', 'timeline', 'charts', 'teacher-workbench', 'quickcard', 'grants', 'archive-code', 'archive', 'join', 'approvals', 'permissions', 'welcome', 'analytics', 'import'];
+  var NO_BOTTOM_NAV_PAGES = ['login', 'register', 'government', 'chat', 'timeline', 'charts', 'teacher-workbench', 'quickcard', 'grants', 'archive-code', 'archive', 'join', 'approvals', 'permissions', 'welcome', 'import'];
 
   // 路由 → 渲染函数映射（后续模块加载后注册）
   var routes = {};
