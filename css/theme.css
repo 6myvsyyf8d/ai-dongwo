@@ -97,6 +97,9 @@
   --bottom-nav-bg: rgba(10, 10, 12, 0.88);
   --bottom-nav-border: 0.5px solid rgba(255,255,255,0.08);
   --bottom-nav-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 24px rgba(0,0,0,0.5), 0 0 60px rgba(94,106,210,0.05);
+  --nav-item-color: rgba(255,255,255,0.65);
+  --nav-item-hover-color: rgba(255,255,255,0.85);
+  --nav-item-hover-bg: rgba(255,255,255,0.10);
   /* 通用半透明层（替代硬编码 rgba(255,255,255,0.03~0.08)） */
   --color-fill-subtle: rgba(255,255,255,0.03);
   --color-fill-light: rgba(255,255,255,0.04);
@@ -185,6 +188,9 @@
   --bottom-nav-bg: rgba(10, 10, 12, 0.88);
   --bottom-nav-border: 0.5px solid rgba(255,255,255,0.08);
   --bottom-nav-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 24px rgba(0,0,0,0.5), 0 0 60px rgba(94,106,210,0.05);
+  --nav-item-color: rgba(255,255,255,0.65);
+  --nav-item-hover-color: rgba(255,255,255,0.85);
+  --nav-item-hover-bg: rgba(255,255,255,0.10);
   --color-fill-subtle: rgba(255,255,255,0.03);
   --color-fill-light: rgba(255,255,255,0.04);
   --color-fill-medium: rgba(255,255,255,0.06);
@@ -193,24 +199,24 @@
 
 /* — 暖色主题 — */
 [data-theme="warm"] {
-  --color-primary: #f59e0b;
-  --color-primary-rgb: 245, 158, 11;
-  --color-primary-light: #fbbf24;
-  --color-primary-dark: #d97706;
-  --color-primary-surface: rgba(245, 158, 11, 0.08);
-  --color-primary-glow: rgba(245, 158, 11, 0.25);
+  --color-primary: #d97706;
+  --color-primary-rgb: 217, 119, 6;
+  --color-primary-light: #e5980b;
+  --color-primary-dark: #b45309;
+  --color-primary-surface: rgba(217, 119, 6, 0.08);
+  --color-primary-glow: rgba(217, 119, 6, 0.25);
 
-  --color-secondary: #b45309;
-  --color-accent: #f59e0b;
+  --color-secondary: #92400e;
+  --color-accent: #d97706;
   --color-success: #34C759;
-  --color-warning: #f59e0b;
-  --color-warning-dark: #d97706;
+  --color-warning: #d97706;
+  --color-warning-dark: #b45309;
   --color-danger: #FF453A;
   --color-danger-dark: #D63031;
 
   --color-text-primary: #1a1a1a;
-  --color-text-secondary: #c4a882;
-  --color-text-tertiary: rgba(180, 83, 9, 0.50);
+  --color-text-secondary: #8a6d4b;
+  --color-text-tertiary: rgba(138, 109, 75, 0.55);
   --color-text-white: #78350f;
 
   --color-bg-primary: #fffef9;
@@ -223,62 +229,157 @@
   --color-surface: rgba(255, 255, 255, 0.85);
   --color-surface-hover: rgba(255, 255, 255, 0.95);
 
-  --color-border: rgba(245, 158, 11, 0.15);
-  --color-border-light: rgba(245, 158, 11, 0.08);
-  --color-border-accent: rgba(245, 158, 11, 0.30);
+  --color-border: rgba(217, 119, 6, 0.15);
+  --color-border-light: rgba(217, 119, 6, 0.08);
+  --color-border-accent: rgba(217, 119, 6, 0.30);
 
-  --color-card: rgba(255, 255, 255, 0.85);
-  --color-separator: rgba(245, 158, 11, 0.08);
+  --color-card: #fff5e8;
+  --color-separator: rgba(217, 119, 6, 0.08);
 
-  --color-role-youth: #f59e0b;
+  --color-role-youth: #d97706;
   --color-role-parent: #34C759;
-  --color-role-teacher: #d97706;
+  --color-role-teacher: #b45309;
   --color-role-caregiver: #FF453A;
   --color-role-government: #8A8F98;
 
-  --color-module-communicationGuide: #b45309;
+  --color-module-communicationGuide: #92400e;
   --color-module-emotionBehavior: #FF453A;
   --color-module-careMedical: #34C759;
-  --color-module-workSupport: #f59e0b;
-  --color-module-relationshipMap: #c4a882;
+  --color-module-workSupport: #d97706;
+  --color-module-relationshipMap: #8a6d4b;
 
   /* 暖色阴影 — 更柔和 */
-  --shadow-xs: 0 0 0 1px rgba(245,158,11,0.04), 0 1px 4px rgba(180,83,9,0.04);
-  --shadow-sm: 0 0 0 1px rgba(245,158,11,0.06), 0 2px 12px rgba(180,83,9,0.06), 0 0 20px rgba(180,83,9,0.04);
-  --shadow-md: 0 0 0 1px rgba(245,158,11,0.06), 0 2px 16px rgba(180,83,9,0.06), 0 8px 32px rgba(180,83,9,0.04);
-  --shadow-lg: 0 0 0 1px rgba(245,158,11,0.08), 0 4px 20px rgba(180,83,9,0.08), 0 0 40px rgba(180,83,9,0.05);
-  --shadow-xl: 0 0 0 1px rgba(245,158,11,0.10), 0 8px 32px rgba(180,83,9,0.08), 0 0 60px rgba(245,158,11,0.06);
+  --shadow-xs: 0 0 0 1px rgba(217,119,6,0.04), 0 1px 4px rgba(180,83,9,0.04);
+  --shadow-sm: 0 0 0 1px rgba(217,119,6,0.06), 0 2px 12px rgba(180,83,9,0.06), 0 0 20px rgba(180,83,9,0.04);
+  --shadow-md: 0 0 0 1px rgba(217,119,6,0.06), 0 2px 16px rgba(180,83,9,0.06), 0 8px 32px rgba(180,83,9,0.04);
+  --shadow-lg: 0 0 0 1px rgba(217,119,6,0.08), 0 4px 20px rgba(180,83,9,0.08), 0 0 40px rgba(180,83,9,0.05);
+  --shadow-xl: 0 0 0 1px rgba(217,119,6,0.10), 0 8px 32px rgba(180,83,9,0.08), 0 0 60px rgba(217,119,6,0.06);
   --shadow-inner: inset 0 1px 0 0 rgba(255, 255, 255, 0.40);
 
-  --shadow-primary: 0 0 0 1px rgba(245,158,11,0.50), 0 4px 12px rgba(245,158,11,0.30), inset 0 1px 0 0 rgba(255,255,255,0.40);
-  --shadow-primary-lg: 0 0 0 1px rgba(245,158,11,0.60), 0 6px 20px rgba(245,158,11,0.40), inset 0 1px 0 0 rgba(255,255,255,0.45);
-  --ring-primary: 0 0 0 3px rgba(245, 158, 11, 0.25);
+  --shadow-primary: 0 0 0 1px rgba(217,119,6,0.50), 0 4px 12px rgba(217,119,6,0.30), inset 0 1px 0 0 rgba(255,255,255,0.40);
+  --shadow-primary-lg: 0 0 0 1px rgba(217,119,6,0.60), 0 6px 20px rgba(217,119,6,0.40), inset 0 1px 0 0 rgba(255,255,255,0.45);
+  --ring-primary: 0 0 0 3px rgba(217, 119, 6, 0.25);
 
   /* 暖色主题特有样式变量 */
   --body-bg: radial-gradient(ellipse 60% 50% at 50% 30%, #fffef9 0%, #fff8ed 40%, #fef3e0 100%);
   --body-bg-image: none;
-  --card-bg: rgba(255, 255, 255, 0.85);
+  --card-bg: #fff5e8;
   --card-radius: 20px;
   --card-shadow: var(--shadow-md);
-  --btn-primary-bg: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
-  --btn-primary-bg-hover: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+  --btn-primary-bg: linear-gradient(135deg, #d97706 0%, #c2410c 100%);
+  --btn-primary-bg-hover: linear-gradient(135deg, #e5980b 0%, #d97706 100%);
   --input-radius: 20px;
-  --input-bg: rgba(255, 255, 255, 0.60);
-  --input-focus-bg: rgba(255, 255, 255, 0.85);
-  --bubble-user-bg: linear-gradient(135deg, #f59e0b, #ea580c);
+  --input-bg: rgba(255, 255, 255, 0.75);
+  --input-focus-bg: rgba(255, 255, 255, 0.92);
+  --bubble-user-bg: linear-gradient(135deg, #d97706, #c2410c);
   --bubble-user-radius: 20px 20px 6px 20px;
   --bubble-ai-bg: rgba(255, 255, 255, 0.70);
   --bubble-ai-radius: 20px 20px 20px 6px;
   --tag-radius: 9999px;
-  --tag-border: 0.5px solid rgba(245, 158, 11, 0.15);
-  --tag-bg: rgba(245, 158, 11, 0.06);
-  --bottom-nav-bg: rgba(255, 255, 255, 0.88);
-  --bottom-nav-border: 0.5px solid rgba(245, 158, 11, 0.15);
-  --bottom-nav-shadow: 0 0 0 1px rgba(245,158,11,0.06), 0 4px 24px rgba(180,83,9,0.08), 0 0 60px rgba(245,158,11,0.05);
-  --color-fill-subtle: rgba(245,158,11,0.03);
-  --color-fill-light: rgba(245,158,11,0.04);
-  --color-fill-medium: rgba(245,158,11,0.06);
-  --color-fill-strong: rgba(245,158,11,0.08);
+  --tag-border: 0.5px solid rgba(217, 119, 6, 0.15);
+  --tag-bg: rgba(217, 119, 6, 0.06);
+  --bottom-nav-bg: rgba(255, 255, 255, 0.92);
+  --bottom-nav-border: 0.5px solid rgba(217, 119, 6, 0.15);
+  --bottom-nav-shadow: 0 0 0 1px rgba(217,119,6,0.06), 0 4px 24px rgba(180,83,9,0.08), 0 0 60px rgba(217,119,6,0.05);
+  --nav-item-color: rgba(140, 90, 50, 0.50);
+  --nav-item-hover-color: rgba(140, 90, 50, 0.75);
+  --nav-item-hover-bg: rgba(217, 119, 6, 0.08);
+  --color-fill-subtle: rgba(217,119,6,0.03);
+  --color-fill-light: rgba(217,119,6,0.04);
+  --color-fill-medium: rgba(217,119,6,0.06);
+  --color-fill-strong: rgba(217,119,6,0.08);
+}
+/* — Figma 珊瑚橘主题 — */
+[data-theme="figma"] {
+  --color-primary: #b04000;
+  --color-primary-rgb: 176, 64, 0;
+  --color-primary-light: #d08000;
+  --color-primary-dark: #8a2e00;
+  --color-primary-surface: rgba(176, 64, 0, 0.06);
+  --color-primary-glow: rgba(176, 64, 0, 0.15);
+
+  --color-secondary: #d08000;
+  --color-accent: #f0b000;
+  --color-success: #34C759;
+  --color-warning: #f0b000;
+  --color-warning-dark: #d08000;
+  --color-danger: #FF453A;
+  --color-danger-dark: #D63031;
+
+  --color-text-primary: #413f37;
+  --color-text-secondary: #8a8273;
+  --color-text-tertiary: #b5ae9e;
+  --color-text-white: #fafaf7;
+
+  --color-bg-primary: #fef6e2;
+  --color-bg-secondary: #fef3d8;
+  --color-bg-tertiary: #fef0d0;
+  --color-bg-deep: #fef0d0;
+  --color-bg-overlay: rgba(176, 64, 0, 0.04);
+  --color-bg-warm: #fef6e2;
+
+  --color-surface: rgba(255, 255, 255, 0.90);
+  --color-surface-hover: rgba(255, 255, 255, 0.98);
+
+  --color-border: rgba(176, 64, 0, 0.08);
+  --color-border-light: rgba(176, 64, 0, 0.08);
+  --color-border-accent: rgba(176, 64, 0, 0.20);
+
+  --color-card: #ffffff;
+  --color-separator: #d4c8b0;
+
+  --color-role-youth: #b04000;
+  --color-role-parent: #34C759;
+  --color-role-teacher: #d08000;
+  --color-role-caregiver: #FF453A;
+  --color-role-government: #8a8273;
+
+  --color-module-communicationGuide: #b04000;
+  --color-module-emotionBehavior: #d08000;
+  --color-module-careMedical: #34C759;
+  --color-module-workSupport: #f0b000;
+  --color-module-relationshipMap: #8a8273;
+
+  /* Figma 阴影 — 轻柔暖调 */
+  --shadow-xs: 0 0 0 1px rgba(176,64,0,0.03), 0 1px 2px rgba(176,64,0,0.04);
+  --shadow-sm: 0 0 0 1px rgba(176,64,0,0.04), 0 1px 3px rgba(176,64,0,0.04), 0 4px 12px rgba(176,64,0,0.06);
+  --shadow-md: 0 0 0 1px rgba(176,64,0,0.04), 0 2px 6px rgba(176,64,0,0.04), 0 6px 20px rgba(176,64,0,0.06);
+  --shadow-lg: 0 0 0 1px rgba(176,64,0,0.05), 0 4px 12px rgba(176,64,0,0.05), 0 8px 28px rgba(176,64,0,0.08);
+  --shadow-xl: 0 0 0 1px rgba(176,64,0,0.06), 0 6px 16px rgba(176,64,0,0.06), 0 12px 40px rgba(176,64,0,0.10);
+  --shadow-inner: inset 0 1px 0 0 rgba(255, 255, 255, 0.60);
+
+  --shadow-primary: 0 0 0 1px rgba(176,64,0,0.30), 0 2px 8px rgba(176,64,0,0.15), inset 0 1px 0 0 rgba(255,255,255,0.30);
+  --shadow-primary-lg: 0 0 0 1px rgba(176,64,0,0.40), 0 4px 14px rgba(176,64,0,0.25), inset 0 1px 0 0 rgba(255,255,255,0.35);
+  --ring-primary: 0 0 0 3px rgba(176, 64, 0, 0.15);
+
+  /* Figma 主题特有样式变量 */
+  --body-bg: #fef6e2;
+  --body-bg-image: none;
+  --card-bg: #ffffff;
+  --card-radius: 16px;
+  --card-shadow: var(--shadow-sm);
+  --btn-primary-bg: #b04000;
+  --btn-primary-bg-hover: #d08000;
+  --input-radius: 12px;
+  --input-bg: rgba(255, 255, 255, 0.85);
+  --input-focus-bg: #ffffff;
+  --bubble-user-bg: #b04000;
+  --bubble-user-radius: 16px 16px 4px 16px;
+  --bubble-ai-bg: #ffffff;
+  --bubble-ai-radius: 16px 16px 16px 4px;
+  --tag-radius: var(--radius-full);
+  --tag-border: 0.5px solid rgba(176, 64, 0, 0.10);
+  --tag-bg: rgba(176, 64, 0, 0.04);
+  --bottom-nav-bg: rgba(255, 255, 255, 0.95);
+  --bottom-nav-border: 0.5px solid rgba(176, 64, 0, 0.06);
+  --bottom-nav-shadow: 0 -1px 0 rgba(176,64,0,0.04), 0 -4px 16px rgba(176,64,0,0.04);
+  --nav-item-color: #8a8273;
+  --nav-item-hover-color: #5c5548;
+  --nav-item-hover-bg: rgba(176, 64, 0, 0.06);
+  --color-fill-subtle: rgba(176, 64, 0, 0.02);
+  --color-fill-light: rgba(176, 64, 0, 0.03);
+  --color-fill-medium: rgba(176, 64, 0, 0.05);
+  --color-fill-strong: rgba(176, 64, 0, 0.07);
 }
 
 /* ================================================================
@@ -383,16 +484,11 @@
   -webkit-backdrop-filter: blur(24px);
 }
 [data-theme="warm"] .bottom-nav-item {
-  color: rgba(180, 83, 9, 0.40);
   border-radius: 12px;
-}
-[data-theme="warm"] .bottom-nav-item:hover {
-  color: rgba(180, 83, 9, 0.60);
-  background: rgba(245, 158, 11, 0.06);
 }
 [data-theme="warm"] .bottom-nav-item.active {
   color: var(--color-primary);
-  background: rgba(245, 158, 11, 0.12);
+  background: rgba(217, 119, 6, 0.12);
 }
 
 /* — 聊天气泡：琥珀渐变 — */
@@ -834,4 +930,518 @@
 /* — 健康速报区域 — */
 [data-theme="warm"] .health-section {
   border-top-color: var(--color-border-light);
+}
+
+/* ================================================================
+   Figma 珊瑚橘主题特有全局样式覆盖
+   纯白实底 + 轻柔暖调阴影，无毛玻璃半透明
+   ================================================================ */
+
+[data-theme="figma"] body {
+  background: var(--body-bg);
+}
+
+[data-theme="figma"] html {
+  background-color: var(--color-bg-primary);
+}
+
+/* — 页面头部：纯白顶栏 — */
+[data-theme="figma"] .page-header {
+  background: rgba(255, 255, 255, 0.90);
+  border-bottom: 1px solid var(--color-border-light);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* — 卡片：纯白实底 + 暖调轻阴影 — */
+[data-theme="figma"] .card {
+  background: var(--card-bg);
+  border-radius: var(--card-radius);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--color-border-light);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* — 按钮：纯色珊瑚，不做胶囊化 — */
+[data-theme="figma"] .btn-primary {
+  background: var(--btn-primary-bg);
+  border-radius: 10px;
+  box-shadow: var(--shadow-primary);
+}
+[data-theme="figma"] .btn-primary:hover:not(:disabled) {
+  background: var(--btn-primary-bg-hover);
+  box-shadow: var(--shadow-primary-lg);
+}
+[data-theme="figma"] .btn-secondary {
+  border-radius: 10px;
+}
+[data-theme="figma"] .btn-outline {
+  border-radius: 10px;
+}
+[data-theme="figma"] .btn {
+  border-radius: 10px;
+}
+[data-theme="figma"] .btn-sm {
+  border-radius: 8px;
+}
+
+/* — 输入框 — */
+[data-theme="figma"] input,
+[data-theme="figma"] select,
+[data-theme="figma"] textarea {
+  background: var(--input-bg);
+  border-radius: var(--input-radius);
+  border-color: rgba(176, 64, 0, 0.10);
+}
+[data-theme="figma"] input:focus,
+[data-theme="figma"] select:focus,
+[data-theme="figma"] textarea:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(176, 64, 0, 0.08);
+  background: var(--input-focus-bg);
+}
+[data-theme="figma"] input::placeholder,
+[data-theme="figma"] textarea::placeholder {
+  color: var(--color-text-secondary);
+}
+
+/* — 底部导航：纯白底 + 顶部分隔线 — */
+[data-theme="figma"] .bottom-nav {
+  background: var(--bottom-nav-bg);
+  border: var(--bottom-nav-border);
+  border-radius: 16px;
+  box-shadow: var(--bottom-nav-shadow);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+[data-theme="figma"] .bottom-nav-item {
+  border-radius: 12px;
+}
+[data-theme="figma"] .bottom-nav-item.active {
+  color: var(--color-primary);
+  background: rgba(176, 64, 0, 0.06);
+}
+
+/* — 聊天气泡 — */
+[data-theme="figma"] .chat-bubble-user {
+  background: var(--bubble-user-bg);
+  border-radius: var(--bubble-user-radius);
+  color: #fff;
+  box-shadow: 0 1px 4px rgba(176,64,0,0.15);
+}
+[data-theme="figma"] .chat-bubble-ai,
+[data-theme="figma"] .chat-bubble-bot {
+  background: var(--bubble-ai-bg);
+  border-radius: var(--bubble-ai-radius);
+  border: 1px solid rgba(176,64,0,0.06);
+  color: var(--color-text-primary);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* — 标签/徽章 — */
+[data-theme="figma"] .badge,
+[data-theme="figma"] .ios-tag,
+[data-theme="figma"] .youth-card-tag {
+  border-radius: var(--tag-radius);
+  border: var(--tag-border);
+  background: var(--tag-bg);
+  color: var(--color-text-primary);
+}
+
+/* — Toast — */
+[data-theme="figma"] .toast {
+  background: rgba(255, 255, 255, 0.97);
+  color: var(--color-text-primary);
+  box-shadow: var(--shadow-sm);
+}
+
+/* — 用户卡片 / 心青年卡片 — */
+[data-theme="figma"] .user-card,
+[data-theme="figma"] .youth-card {
+  background: var(--card-bg);
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+[data-theme="figma"] .youth-card:hover {
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-md);
+  background: #fff;
+}
+
+/* — 创建按钮 — */
+[data-theme="figma"] .create-btn {
+  border-color: var(--color-border);
+  background: var(--color-surface);
+  border-radius: 16px;
+}
+[data-theme="figma"] .create-btn:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-surface);
+}
+
+/* — 速读卡 — */
+[data-theme="figma"] .quickcard-footer {
+  background: var(--card-bg);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* — 健康速报卡片 — */
+[data-theme="figma"] .glance-card {
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* — 教师工作台 — */
+[data-theme="figma"] .workbench-student-card {
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* — 首页问候光晕 — */
+[data-theme="figma"] .home-greeting-glow {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(176,64,0,0.03) 0%, transparent 70%);
+}
+
+/* — 记录页 — */
+[data-theme="figma"] .records-page .chat-entry-card {
+  background: var(--card-bg);
+  border: 1px solid rgba(176, 64, 0, 0.08);
+  border-radius: 16px;
+}
+
+/* — 管理页 — */
+[data-theme="figma"] .manage-page .card {
+  background: var(--card-bg);
+}
+[data-theme="figma"] .manage-page .grant-section {
+  background: rgba(255, 255, 255, 0.80);
+  border: 1px solid rgba(176, 64, 0, 0.04);
+}
+
+/* — 分析页 — */
+[data-theme="figma"] .analytics-page .chart-card {
+  background: var(--card-bg);
+}
+
+/* — 档案页模块卡片 — */
+[data-theme="figma"] .profile-module-card {
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* — 档案页头像卡片 — */
+[data-theme="figma"] .portrait-card {
+  background: linear-gradient(175deg, var(--color-bg-secondary) 0%, var(--card-bg) 50%, var(--color-bg-primary) 100%);
+  box-shadow: var(--shadow-sm);
+}
+
+/* — 详情面板 — */
+[data-theme="figma"] .detail-panel {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: var(--color-border-light);
+  box-shadow: 0 -4px 20px rgba(176, 64, 0, 0.06);
+}
+
+/* — 紧急联系人 — */
+[data-theme="figma"] .emergency-dropdown {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: var(--color-border-light);
+  box-shadow: var(--shadow-md);
+}
+[data-theme="figma"] .emergency-bar-toggle {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: var(--color-border-light) !important;
+}
+[data-theme="figma"] .emergency-bar-item {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: var(--color-border-light) !important;
+}
+[data-theme="figma"] .emergency-bar-item:hover {
+  background: rgba(176, 64, 0, 0.04) !important;
+}
+
+/* — 创建任务按钮 — */
+[data-theme="figma"] .btn-create-task {
+  background: rgba(176, 64, 0, 0.05);
+  border-color: rgba(176, 64, 0, 0.15);
+  color: var(--color-primary);
+}
+[data-theme="figma"] .btn-create-task:hover {
+  background: rgba(176, 64, 0, 0.10);
+  border-color: rgba(176, 64, 0, 0.30);
+}
+
+/* — 星座星图 — */
+[data-theme="figma"] .star-field {
+  background: radial-gradient(ellipse 80% 50% at 50% 45%, rgba(176,64,0,0.03) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 30% 70%, rgba(176,64,0,0.02) 0%, transparent 50%);
+}
+
+/* — 快捷操作按钮 — */
+[data-theme="figma"] .quick-action-btn,
+[data-theme="figma"] .management-btn {
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* — iOS 卡片组 — */
+[data-theme="figma"] .ios-card-group {
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* — 看板 — */
+[data-theme="figma"] .kanban-column {
+  background: rgba(176, 64, 0, 0.02);
+  border-color: var(--color-border-light);
+}
+[data-theme="figma"] .kanban-card {
+  background: var(--card-bg);
+  border-color: var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+}
+[data-theme="figma"] .kanban-card:hover {
+  background: #fff;
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-md);
+}
+[data-theme="figma"] .kanban-status-btn[data-status="todo"] {
+  background: rgba(176, 64, 0, 0.08);
+  border-color: rgba(176, 64, 0, 0.20);
+  color: var(--color-primary);
+}
+[data-theme="figma"] .kanban-status-btn[data-status="in_progress"] {
+  background: rgba(176, 64, 0, 0.08);
+  border-color: rgba(176, 64, 0, 0.20);
+  color: var(--color-primary-light);
+}
+
+/* — 矩阵记录 — */
+[data-theme="figma"] .matrix-wrap {
+  background: var(--card-bg);
+  box-shadow: var(--shadow-sm);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+[data-theme="figma"] .matrix-form-sheet {
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 -4px 20px rgba(176, 64, 0, 0.06);
+  border-color: var(--color-border-light);
+}
+[data-theme="figma"] .matrix-input-tab.active {
+  background: #fff;
+  color: var(--color-text-primary);
+}
+[data-theme="figma"] .matrix-input-tabs {
+  background: rgba(176, 64, 0, 0.03);
+}
+[data-theme="figma"] .matrix-btn-submit {
+  background: var(--btn-primary-bg);
+  border-radius: 10px;
+}
+[data-theme="figma"] .matrix-quick-tag.selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* — 时间轴 — */
+[data-theme="figma"] .timeline-strip-dot:hover::after {
+  background: rgba(255, 255, 255, 0.98);
+  border-color: var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+}
+[data-theme="figma"] .timeline-range-chip.active {
+  background: rgba(176, 64, 0, 0.08);
+  border-color: rgba(176, 64, 0, 0.20);
+}
+
+/* — 星期选择 — */
+[data-theme="figma"] .weekday-chip.selected {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-primary);
+}
+
+/* — 任务类型选择 — */
+[data-theme="figma"] .task-type-option.selected {
+  border-color: var(--type-color, var(--color-primary));
+  box-shadow: inset 0 0 0 1px var(--type-color, var(--color-primary)), 0 0 0 1px rgba(176, 64, 0, 0.06), 0 2px 12px rgba(176, 64, 0, 0.06);
+}
+[data-theme="figma"] .task-type-option.selected .task-type-badge {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) inset, 0 0 12px rgba(176, 64, 0, 0.15);
+}
+[data-theme="figma"] .task-type-option.selected .task-type-name {
+  color: var(--type-color, var(--color-primary));
+}
+
+/* — 心青年对话 — */
+[data-theme="figma"] .youth-chat-header {
+  background: linear-gradient(135deg, rgba(176,64,0,0.04), rgba(176,64,0,0.02));
+}
+[data-theme="figma"] .youth-chat-input {
+  border-radius: 12px;
+  border-color: rgba(176, 64, 0, 0.10);
+}
+[data-theme="figma"] .youth-chat-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(176, 64, 0, 0.08);
+}
+[data-theme="figma"] .youth-chat-send {
+  border-radius: 10px;
+  background: var(--btn-primary-bg);
+}
+[data-theme="figma"] .youth-chat-input-bar {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: var(--color-border-light);
+}
+[data-theme="figma"] .chat-task-card {
+  background: rgba(176, 64, 0, 0.04);
+  border-color: rgba(176, 64, 0, 0.10);
+}
+
+/* — 页面内容区 — */
+[data-theme="figma"] #page-container,
+[data-theme="figma"] .page-content {
+  background: transparent;
+}
+
+/* — 顶部栏按钮 — */
+[data-theme="figma"] .top-bar-btn {
+  background: var(--color-fill-light);
+  border: 0.5px solid var(--color-border-light);
+  color: var(--color-text-secondary);
+}
+[data-theme="figma"] .top-bar-btn:hover {
+  background: var(--color-fill-strong);
+  color: var(--color-text-primary);
+}
+
+/* — 顶部文字链接 — */
+[data-theme="figma"] .top-bar-text-link {
+  color: var(--color-text-secondary);
+}
+[data-theme="figma"] .top-bar-text-link:hover {
+  color: var(--color-text-primary);
+}
+
+/* — 返回按钮 — */
+[data-theme="figma"] .btn-back {
+  color: var(--color-text-secondary);
+}
+[data-theme="figma"] .btn-back:active {
+  background: var(--color-fill-light);
+}
+
+/* — 头像 — */
+[data-theme="figma"] .user-card-avatar {
+  background: var(--color-fill-light);
+  border-color: var(--color-border-light);
+}
+[data-theme="figma"] .youth-card-avatar {
+  background: var(--color-fill-light);
+}
+[data-theme="figma"] .youth-card-summary {
+  background: var(--color-fill-light);
+  color: var(--color-text-secondary);
+}
+[data-theme="figma"] .header-user-role {
+  background: var(--color-fill-light);
+}
+
+/* — 聊天消息区 — */
+[data-theme="figma"] .chat-messages {
+  background: transparent;
+}
+[data-theme="figma"] .chat-bubble-system {
+  background: var(--color-fill-light);
+  color: var(--color-text-secondary);
+}
+
+/* — 详情面板关闭按钮 — */
+[data-theme="figma"] .detail-panel-close {
+  background: var(--color-fill-medium);
+  border: 1px solid var(--color-border);
+  color: var(--color-text-secondary);
+}
+[data-theme="figma"] .detail-panel-close:hover {
+  background: var(--color-fill-strong);
+  color: var(--color-text-primary);
+}
+
+/* — 下拉面板 — */
+[data-theme="figma"] .dropdown-panel {
+  background: rgba(255, 255, 255, 0.98);
+  border: 0.5px solid var(--color-border-light);
+  box-shadow: var(--shadow-md);
+}
+
+/* — 分隔线 — */
+[data-theme="figma"] .divider,
+[data-theme="figma"] hr {
+  border-color: var(--color-border-light);
+}
+[data-theme="figma"] .section-divider {
+  border-color: var(--color-border-light);
+}
+
+/* — 空状态 — */
+[data-theme="figma"] .empty-state {
+  color: var(--color-text-secondary);
+}
+
+/* — 健康速报 — */
+[data-theme="figma"] .health-med-none {
+  background: var(--color-fill-subtle);
+  border-color: var(--color-border-light);
+}
+[data-theme="figma"] .health-rel-empty {
+  background: var(--color-fill-light);
+  color: var(--color-text-secondary);
+}
+[data-theme="figma"] .health-section {
+  border-top-color: var(--color-border-light);
+}
+
+/* — 页脚 — */
+[data-theme="figma"] .page-footer {
+  border-top: 1px solid var(--color-border-light);
+}
+
+/* — 顶部栏分隔符 — */
+[data-theme="figma"] .top-bar-separator {
+  color: var(--color-text-tertiary);
+}
+
+/* — 政府仪表盘 — */
+[data-theme="figma"] .government-card {
+  border: 1px solid var(--color-border-light);
+  background: var(--card-bg);
+}
+[data-theme="figma"] .government-stat {
+  background: var(--color-fill-subtle);
+}
+[data-theme="figma"] .government-stat:hover {
+  background: var(--color-fill-light);
+}
+[data-theme="figma"] .government-chart {
+  background: var(--color-fill-medium);
+}
+[data-theme="figma"] .government-header {
+  background: var(--color-fill-strong);
+}
+[data-theme="figma"] .government-table {
+  background: var(--color-fill-subtle);
 }

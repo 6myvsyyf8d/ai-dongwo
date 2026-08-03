@@ -143,9 +143,9 @@ input, textarea, [contenteditable] {
   letter-spacing: 0.02em;
 }
 
-.toast.success { background: rgba(52, 199, 89, 0.92); }
-.toast.error { background: rgba(255, 69, 58, 0.92); }
-.toast.warning { background: rgba(253, 203, 110, 0.92); }
+.toast.success { background: var(--color-success); color: #fff; }
+.toast.error { background: var(--color-danger); color: #fff; }
+.toast.warning { background: var(--color-warning); color: #1a1a1a; }
 
 @keyframes toastIn {
   from { opacity: 0; transform: translateY(-8px) scale(0.96); }
@@ -847,7 +847,7 @@ ul, ol { list-style: none; }
   gap: 10px;
   padding: 12px 12px;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.025);
+  background: var(--color-fill-subtle);
   border: 1px solid var(--color-border-light);
   cursor: pointer;
   transition: all var(--transition-fast);
@@ -886,7 +886,7 @@ ul, ol { list-style: none; }
   align-items: center;
   justify-content: center;
   font-size: 18px;
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-fill-light);
   border: 1px solid var(--color-border-light);
   transition: all var(--transition-fast);
   position: relative;
@@ -944,7 +944,7 @@ ul, ol { list-style: none; }
 
 /* — 选中态：整卡激活 — */
 .task-type-option.selected {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--color-fill-light);
   border-color: var(--type-color, var(--color-primary));
   box-shadow:
     inset 0 0 0 1px var(--type-color, var(--color-primary)),
@@ -992,7 +992,7 @@ ul, ol { list-style: none; }
   justify-content: center;
   height: 36px;
   border-radius: var(--radius-full);
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--color-fill-subtle);
   border: 1px solid var(--color-border-light);
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
@@ -1102,7 +1102,7 @@ ul, ol { list-style: none; }
   padding: 6px 4px;
   width: calc(100% - 32px);
   max-width: 420px;
-  box-shadow: 0 0 0 1px var(--color-border-light), 0 4px 24px rgba(0,0,0,0.5), 0 0 60px rgba(var(--color-primary-rgb),0.05);
+  box-shadow: var(--bottom-nav-shadow);
 }
 
 /* — Profile: Action Bar — */
@@ -1216,15 +1216,15 @@ ul, ol { list-style: none; }
   min-width: 56px;
   min-height: 44px;
   text-decoration: none;
-  color: rgba(255, 255, 255, 0.40);
+  color: var(--nav-item-color);
   background: none;
   border: none;
   border-radius: var(--radius-sm);
 }
 
 .bottom-nav-item:hover {
-  color: rgba(255, 255, 255, 0.60);
-  background: rgba(255,255,255,0.06);
+  color: var(--nav-item-hover-color);
+  background: var(--nav-item-hover-bg);
 }
 
 .bottom-nav-item.active {
@@ -1744,8 +1744,8 @@ ul, ol { list-style: none; }
 }
 
 .kanban-column {
-  background: rgba(255, 255, 255, 0.03);
-  border: 0.5px solid rgba(255, 255, 255, 0.06);
+  background: var(--color-fill-subtle);
+  border: 0.5px solid var(--color-border-light);
   border-radius: var(--radius-lg);
   padding: 8px;
 }
@@ -1755,7 +1755,7 @@ ul, ol { list-style: none; }
   justify-content: space-between;
   align-items: center;
   padding: 4px 6px 8px;
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.06);
+  border-bottom: 0.5px solid var(--color-border-light);
   margin-bottom: 8px;
 }
 
@@ -1770,7 +1770,7 @@ ul, ol { list-style: none; }
 .kanban-column-count {
   font-size: var(--font-size-xs);
   color: var(--color-text-tertiary);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-fill-medium);
   border-radius: var(--radius-full);
   padding: 2px 8px;
   min-width: 20px;
@@ -1793,23 +1793,23 @@ ul, ol { list-style: none; }
   color: var(--color-text-tertiary);
   text-align: center;
   padding: 16px 8px;
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--color-fill-subtle);
   border-radius: var(--radius-sm);
   border: 1px dashed var(--color-border-light);
 }
 
 /* 任务卡片：玻璃态 + 多层阴影 */
 .kanban-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 0.5px solid rgba(255, 255, 255, 0.06);
+  background: var(--color-fill-light);
+  border: 0.5px solid var(--color-border-light);
   border-radius: var(--radius-lg);
   padding: 10px;
-  box-shadow: 0 0 0 1px rgba(255,255,255,0.03), 0 2px 12px rgba(0,0,0,0.3);
+  box-shadow: 0 0 0 1px var(--color-fill-subtle), 0 2px 12px rgba(0,0,0,0.3);
   transition: transform var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
 }
 .kanban-card:hover {
-  background: rgba(255, 255, 255, 0.06);
-  border-color: rgba(255, 255, 255, 0.1);
+  background: var(--color-fill-medium);
+  border-color: var(--color-border);
 }
 
 .kanban-card:active {
@@ -1897,7 +1897,7 @@ ul, ol { list-style: none; }
   line-height: 1;
   letter-spacing: 0.02em;
   transition: transform var(--transition-fast), filter var(--transition-fast);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-fill-medium);
   color: var(--color-text-secondary);
 }
 
@@ -2065,7 +2065,7 @@ ul, ol { list-style: none; }
 }
 
 .matrix-form-sheet {
-  background: linear-gradient(180deg, rgba(10,10,12,0.98) 0%, rgba(5,5,6,0.99) 100%);
+  background: var(--color-bg-secondary);
   border-radius: 20px 20px 0 0;
   width: 100%;
   max-width: 430px;
@@ -2075,7 +2075,7 @@ ul, ol { list-style: none; }
   transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
   padding-bottom: 34px;
   box-shadow: 0 -4px 24px rgba(0,0,0,0.5);
-  border: 1px solid rgba(255,255,255,0.06);
+  border: 1px solid var(--color-border-light);
   border-bottom: none;
 }
 .matrix-form-overlay.show .matrix-form-sheet {
@@ -2085,7 +2085,7 @@ ul, ol { list-style: none; }
 .matrix-sheet-handle {
   width: 36px;
   height: 5px;
-  background: rgba(255,255,255,0.12);
+  background: var(--color-fill-strong);
   border-radius: 3px;
   margin: 8px auto 0;
 }
@@ -2122,7 +2122,7 @@ ul, ol { list-style: none; }
   height: 32px;
   border-radius: 16px;
   border: none;
-  background: rgba(255,255,255,0.04);
+  background: var(--color-fill-light);
   font-size: 16px;
   cursor: pointer;
   display: flex;
@@ -2173,7 +2173,7 @@ ul, ol { list-style: none; }
   flex-direction: column;
   align-items: center;
   padding: 20px 16px;
-  background: rgba(255,255,255,0.03);
+  background: var(--color-fill-subtle);
   border-radius: 14px;
   margin-bottom: 12px;
 }
@@ -2223,7 +2223,7 @@ ul, ol { list-style: none; }
   font-size: 14px;
   line-height: 1.5;
   color: var(--color-text-primary, #EDEDEF);
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--color-border);
   display: none;
 }
 .matrix-voice-result.show {
@@ -2243,9 +2243,9 @@ ul, ol { list-style: none; }
   padding: 14px;
   font-size: 16px;
   font-family: inherit;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid var(--color-border);
   border-radius: 14px;
-  background: rgba(255,255,255,0.03);
+  background: var(--color-fill-subtle);
   color: var(--color-text-primary, #EDEDEF);
   line-height: 1.6;
   resize: vertical;

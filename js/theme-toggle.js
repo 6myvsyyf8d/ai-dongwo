@@ -1,13 +1,19 @@
 /* ================================================================
    AI懂我 · theme-toggle.js
-   主题切换逻辑：dark ⇄ warm，localStorage 持久化
+   主题切换逻辑：dark → warm → figma → dark 三档循环，localStorage 持久化
    ================================================================ */
 
 (function () {
   'use strict';
 
-  const THEME_KEY = 'ai-dongwo-theme';
-  const DEFAULT_THEME = 'dark';
+  var THEME_KEY = 'ai-dongwo-theme';
+  var DEFAULT_THEME = 'dark';
+  var THEME_ORDER = ['dark', 'warm', 'figma'];
+  var THEME_ICONS = {
+    dark: '\u2600\uFE0F',  // ☀️
+    warm: '\uD83C\uDF19',  // 🌙
+    figma: '\uD83D\uDCA0'  // 💠
+  };
 
   function getStoredTheme() {
     try {
@@ -33,13 +39,15 @@
   function updateToggleIcon(theme) {
     var icon = document.querySelector('.theme-toggle-icon');
     if (icon) {
-      icon.textContent = theme === 'warm' ? '\uD83C\uDF19' : '\u2600\uFE0F'; // 🌙 : ☀️
+      icon.textContent = THEME_ICONS[theme] || THEME_ICONS[DEFAULT_THEME];
     }
   }
 
   function toggleTheme() {
     var current = document.documentElement.getAttribute('data-theme') || DEFAULT_THEME;
-    var next = current === 'dark' ? 'warm' : 'dark';
+    var idx = THEME_ORDER.indexOf(current);
+    if (idx === -1) { idx = 0; }
+    var next = THEME_ORDER[(idx + 1) % THEME_ORDER.length];
     setStoredTheme(next);
     applyTheme(next);
   }
