@@ -127,12 +127,12 @@ window.Constants = {
    */
   DEFAULT_VISIBILITY_CONFIG: {
     pages: {
-      parent:     ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code', 'permissions', 'chat'],
-      teacher:    ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'teacher-workbench', 'archive-code', 'permissions', 'chat'],
-      caregiver:  ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code', 'permissions', 'chat'],
+      parent:     ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code', 'permissions', 'chat', 'import'],
+      teacher:    ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'teacher-workbench', 'archive-code', 'permissions', 'chat', 'import'],
+      caregiver:  ['dashboard', 'records', 'profile', 'quickcard', 'management', 'analytics', 'archive-code', 'permissions', 'chat', 'import'],
       youth:      ['dashboard', 'profile', 'youth-chat', 'permissions'],
       government: ['government'],
-      admin:      ['admin', 'dashboard']
+      admin:      ['admin', 'dashboard', 'import']
     },
     modules: {
       parent:     ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport'],
