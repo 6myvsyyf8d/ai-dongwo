@@ -415,85 +415,67 @@
     renderEnhancedLayout(youth);
   }
 
-  // ========== 增强版双栏布局 ==========
+  // ========== AI聊聊页面布局（phone 卡片 + 双 Tab） ==========
   function renderEnhancedLayout(youth) {
     var container = window.App ? window.App.getContainer() : document.getElementById('page-container');
     if (!container) return;
 
+    var avatarEmoji = youth.avatar || '🌻';
+    var youthName = youth.name || '心青年';
+
     container.innerHTML =
-      '<div class="page-header">' +
-        '<button class="btn-back" id="btn-back">‹</button>' +
-        '<span class="page-title">对话采集</span>' +
-        '<span></span>' +
-      '</div>' +
-      '<div id="chat-mode-panel">' +
-      '<div class="chat-layout">' +
-        '<div class="chat-panel-col">' +
-          '<div class="chat-messages" id="chat-messages">' +
-            // 采集进度浮标
-            '<div class="chat-progress-float" id="chat-progress-float">' +
-              '<div class="chat-progress-mini">📋 今日采集 <span id="progress-count">0/4</span></div>' +
+      '<div class="chat-ai-phone">' +
+        // 顶部栏
+        '<header class="chat-ai-topbar">' +
+          '<button class="chat-ai-back" id="chat-ai-back">‹</button>' +
+          '<span>AI聊聊</span>' +
+        '</header>' +
+        '<main class="chat-ai-main">' +
+          // 身份条
+          '<section class="chat-ai-person">' +
+            '<div class="chat-ai-avatar">' + avatarEmoji + '</div>' +
+            '<div><b>' + escapeHtml(youthName) + '的AI聊聊</b><span>通过自然对话记录近况，AI整理后由支持者确认。</span></div>' +
+          '</section>' +
+          // Tab 切换条
+          '<div class="chat-ai-tabs">' +
+            '<button class="chat-ai-tab active" data-page="chat-ai-chat">开始聊聊</button>' +
+            '<button class="chat-ai-tab" data-page="chat-ai-records">聊聊记录</button>' +
+          '</div>' +
+          // 开始聊聊 Tab
+          '<section class="chat-ai-page active" id="chat-ai-chat">' +
+            '<div class="chat-ai-section-title"><span>AI聊聊</span><small>一次聊一件事</small></div>' +
+            '<div class="chat-ai-guide">💬 和AI说说今天发生的事。AI会用简短问题帮助你补充信息，不会直接修改正式档案。</div>' +
+            '<div class="chat-ai-section-title"><span>可以从这里开始</span><small>点击即可聊</small></div>' +
+            '<div class="chat-ai-quick-prompts" id="chat-ai-quick-prompts"></div>' +
+            '<div class="chat-ai-chatbox">' +
+              '<div id="chat-ai-messages"></div>' +
+              '<div class="chat-ai-inputbar">' +
+                '<input class="chat-ai-input" id="chat-ai-input" placeholder="继续说说这件事……" />' +
+                '<button class="chat-ai-send" id="chat-ai-send-btn">发送</button>' +
+              '</div>' +
             '</div>' +
-          '</div>' +
-          '<div class="chat-quick-buttons" id="chat-quick-buttons"></div>' +
-          '<div class="chat-input-area" id="chat-input-area">' +
-          '<button class="chat-mode-switch" id="chat-mode-switch" type="button" title="切换语音/文字" aria-label="切换语音/文字">🎤</button>' +
-          '<div class="chat-input-text-mode" id="chat-input-text-mode">' +
-            '<textarea class="chat-input" id="chat-input" placeholder="输入消息..." rows="1"></textarea>' +
-            '<button class="chat-send-btn" id="chat-send-btn" aria-label="发送">➤</button>' +
-          '</div>' +
-          '<div class="chat-input-voice-mode" id="chat-input-voice-mode" style="display:none;">' +
-            '<button class="chat-voice-hold-btn" id="chat-voice-hold-btn" type="button">按住 说话</button>' +
-          '</div>' +
-        '</div>' +
-        '</div>' +
-      '</div>' +
-      // 抽屉触发按钮
-      '<div class="chat-drawer-triggers">' +
-        '<button class="chat-drawer-trigger chat-drawer-trigger-left" id="btn-progress-drawer" title="采集进度">◉ 进度</button>' +
-        '<button class="chat-drawer-trigger chat-drawer-trigger-right" id="btn-classify-drawer" title="实时归类">≡ 归类<span class="drawer-badge" id="classify-badge" style="display:none">0</span></button>' +
-      '</div>' +
-      '</div>' +
-      // 抽屉遮罩
-      '<div class="chat-drawer-backdrop" id="chat-drawer-backdrop"></div>' +
-      // 左侧抽屉：采集进度
-      '<div class="chat-drawer chat-drawer-left" id="chat-drawer-progress">' +
-        '<div class="chat-drawer-header">' +
-          '<span>📋 今日采集进度</span>' +
-          '<button class="chat-drawer-close" id="btn-close-progress">✕</button>' +
-        '</div>' +
-        '<div class="chat-drawer-body" id="chat-drawer-progress-body"></div>' +
-      '</div>' +
-      // 右侧抽屉：实时归类
-      '<div class="chat-drawer chat-drawer-right" id="chat-drawer-classify">' +
-        '<div class="chat-drawer-header">' +
-          '<span>📋 实时归类</span>' +
-          '<button class="chat-drawer-close" id="btn-close-classify">✕</button>' +
-        '</div>' +
-        '<div class="chat-drawer-body" id="chat-drawer-classify-body">' +
-          '<div class="empty-state"><div class="empty-state-icon">📝</div><div class="empty-state-text">对话开始后，AI 将实时归类采集到的信息</div></div>' +
-        '</div>' +
-        '<div class="chat-drawer-footer">' +
-          '<button class="btn-batch-archive" id="btn-batch-archive" disabled>✓ 批量归档</button>' +
-        '</div>' +
-      '</div>' +
-      renderFormPanel();
+            '<div class="chat-ai-privacy">请记录必要的支持信息，避免输入与支持无关的个人隐私。</div>' +
+          '</section>' +
+          // 聊聊记录 Tab
+          '<section class="chat-ai-page" id="chat-ai-records">' +
+            '<div class="chat-ai-section-title"><span>AI聊聊记录</span><small id="chat-ai-pending-count">0条待确认</small></div>' +
+            '<div class="chat-ai-summary">AI将聊天内容整理成结构化记录。请先核对事实，再决定保存、修改或放弃。</div>' +
+            '<div id="chat-ai-records-list"></div>' +
+            '<div class="chat-ai-principle"><b>记录原则：</b>尽量写清"发生了什么—怎样支持—效果如何"，避免使用"不听话、故意捣乱、不配合"等主观标签。</div>' +
+          '</section>' +
+        '</main>' +
+      '</div>';
 
     bindEnhancedEvents();
-    bindTabEvents();
-    bindDrawerEvents();
+    bindAiTabEvents();
     renderQuickButtons();
 
     if (state._resumed) {
-      // 恢复上次会话：重放消息和归类项
       restoreMessages();
       restoreClassifiedItems();
-      updateProgressDisplay();
-      updateClassifyBadge();
-      // 添加恢复提示
+      renderRecordsTab();
       addSystemMessage('↩ 已恢复上次对话');
     } else {
-      // 发送开场白
       addAIMessage(state.template.greeting, 300);
       if (state.template.questions && state.template.questions.length > 0) {
         setTimeout(function () { askNextQuestion(); }, 800);
@@ -501,22 +483,186 @@
     }
   }
 
+  // ========== Tab 切换 ==========
+  function bindAiTabEvents() {
+    var tabs = document.querySelectorAll('.chat-ai-tab');
+    for (var i = 0; i < tabs.length; i++) {
+      tabs[i].addEventListener('click', function () {
+        var pageId = this.getAttribute('data-page');
+        // 切换 active
+        var allTabs = document.querySelectorAll('.chat-ai-tab');
+        var allPages = document.querySelectorAll('.chat-ai-page');
+        for (var j = 0; j < allTabs.length; j++) {
+          allTabs[j].classList.toggle('active', allTabs[j].getAttribute('data-page') === pageId);
+        }
+        for (var k = 0; k < allPages.length; k++) {
+          allPages[k].classList.toggle('active', allPages[k].id === pageId);
+        }
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // 切换到记录 Tab 时刷新
+        if (pageId === 'chat-ai-records') {
+          renderRecordsTab();
+        }
+      });
+    }
+  }
+
+  // ========== 记录 Tab 渲染 ==========
+  function renderRecordsTab() {
+    var listEl = document.getElementById('chat-ai-records-list');
+    var countEl = document.getElementById('chat-ai-pending-count');
+    if (!listEl) return;
+
+    var pendingItems = state.classifiedItems.filter(function (item) { return !item._saved; });
+    var savedItems = state.classifiedItems.filter(function (item) { return item._saved; });
+
+    if (countEl) {
+      countEl.textContent = pendingItems.length + '条待确认';
+    }
+
+    var html = '';
+
+    // 待确认记录
+    if (pendingItems.length > 0) {
+      html += '<div class="chat-ai-section-title"><span>待确认</span><small>不会自动写入档案</small></div>';
+      for (var i = 0; i < pendingItems.length; i++) {
+        var item = pendingItems[i];
+        html += renderRecordCard(item, false);
+      }
+    }
+
+    // 已保存记录
+    if (savedItems.length > 0) {
+      html += '<div class="chat-ai-section-title"><span>最近已保存</span><small>进入动态档案</small></div>';
+      for (var j = 0; j < savedItems.length; j++) {
+        var savedItem = savedItems[j];
+        html += renderRecordCard(savedItem, true);
+      }
+    }
+
+    if (pendingItems.length === 0 && savedItems.length === 0) {
+      html += '<div class="chat-ai-empty">暂无记录，去「开始聊聊」和AI对话吧</div>';
+    }
+
+    listEl.innerHTML = html;
+
+    // 绑定记录卡片事件
+    bindRecordCardEvents();
+  }
+
+  function renderRecordCard(item, isSaved) {
+    var timeStr = item.time || formatTime();
+    var moduleName = '';
+    var moduleIcon = '';
+    var classifier = (window.ChatbotProviders && window.ChatbotProviders.getClassifier()) || window.ChatbotClassifier;
+    if (classifier) {
+      moduleName = classifier.getModuleName(item.module);
+      moduleIcon = classifier.getModuleIcon(item.module);
+    }
+
+    if (isSaved) {
+      return '' +
+        '<div class="chat-ai-record">' +
+          '<div class="chat-ai-record-top">' +
+            '<div class="chat-ai-record-time">' + timeStr + ' · 来自AI聊聊</div>' +
+            '<div class="chat-ai-status saved">已保存</div>' +
+          '</div>' +
+          '<div class="chat-ai-record-source">' + escapeHtml(item.sentence) + '</div>' +
+          '<div class="chat-ai-saved-note">✓ 已归入"' + (moduleName || item.module) + '"</div>' +
+        '</div>';
+    }
+
+    return '' +
+      '<div class="chat-ai-record" data-temp-id="' + item.tempId + '">' +
+        '<div class="chat-ai-record-top">' +
+          '<div class="chat-ai-record-time">' + timeStr + ' · 来自AI聊聊</div>' +
+          '<div class="chat-ai-status pending">待确认</div>' +
+        '</div>' +
+        '<div class="chat-ai-record-source">原话："' + escapeHtml(item.sentence) + '"</div>' +
+        '<div class="chat-ai-extract">' +
+          '<div class="chat-ai-extract-row"><div class="chat-ai-extract-label">归入模块</div><div class="chat-ai-extract-value">' + (moduleIcon || '') + ' ' + (moduleName || item.module || '未分类') + '</div></div>' +
+          '<div class="chat-ai-extract-row"><div class="chat-ai-extract-label">内容摘要</div><div class="chat-ai-extract-value">' + escapeHtml(item.sentence) + '</div></div>' +
+        '</div>' +
+        '<div class="chat-ai-actions">' +
+          '<button class="chat-ai-btn chat-ai-btn-secondary" data-action="edit">修改内容</button>' +
+          '<button class="chat-ai-btn chat-ai-btn-primary" data-action="confirm">确认并保存</button>' +
+        '</div>' +
+      '</div>';
+  }
+
+  function bindRecordCardEvents() {
+    var listEl = document.getElementById('chat-ai-records-list');
+    if (!listEl) return;
+
+    listEl.querySelectorAll('[data-action="confirm"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var card = this.closest('.chat-ai-record');
+        var tempId = card.getAttribute('data-temp-id');
+        var item = state.classifiedItems.find(function (i) { return i.tempId === tempId; });
+        if (!item) return;
+        // 保存记录
+        var user = window.AppState ? window.AppState.currentUser : null;
+        var now = window.Utils ? window.Utils.formatDateTime() : new Date().toISOString();
+        var record = {
+          id: window.Utils ? window.Utils.generateUUID() : 'rec_' + Date.now() + '_' + tempId,
+          youthId: state.youthId,
+          recorderId: user ? user.id : 'unknown',
+          recorderRole: user ? user.role : 'unknown',
+          module: item.module,
+          recordType: 'chatbot_captured',
+          content: { text: item.sentence },
+          classificationConfidence: item.confidence,
+          conversationId: state.conversationId,
+          visibilityLevel: 'full',
+          recordedAt: now,
+          isOffline: !navigator.onLine,
+          syncedAt: navigator.onLine ? now : null
+        };
+        if (window.Storage && window.Storage.addRecord) {
+          window.Storage.addRecord(state.youthId, record);
+        }
+        item._saved = true;
+        renderRecordsTab();
+        if (window.AppState && window.AppState.showToast) {
+          window.AppState.showToast('已保存到档案');
+        }
+        saveSession();
+      });
+    });
+
+    listEl.querySelectorAll('[data-action="edit"]').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var card = this.closest('.chat-ai-record');
+        var tempId = card.getAttribute('data-temp-id');
+        var item = state.classifiedItems.find(function (i) { return i.tempId === tempId; });
+        if (!item) return;
+        // 简单编辑：弹出 prompt
+        var newText = prompt('修改内容：', item.sentence);
+        if (newText && newText.trim()) {
+          item.sentence = newText.trim();
+          renderRecordsTab();
+          saveSession();
+        }
+      });
+    });
+  }
+
   // ========== 恢复会话消息 ==========
   function restoreMessages() {
-    var messagesContainer = document.getElementById('chat-messages');
+    var messagesContainer = document.getElementById('chat-ai-messages');
     if (!messagesContainer) return;
     var savedMessages = state.messages;
     for (var i = 0; i < savedMessages.length; i++) {
       var msg = savedMessages[i];
       if (msg.role === 'ai') {
         var bubble = document.createElement('div');
-        bubble.className = 'chat-bubble chat-bubble-bot';
+        bubble.className = 'chat-ai-bubble chat-ai-bubble-ai';
         var rendered = (window.ChatMarkdown && window.ChatMarkdown.render) ? window.ChatMarkdown.render(msg.text) : escapeHtml(msg.text);
         bubble.innerHTML = rendered + '<div style="font-size:0.68rem;opacity:0.5;margin-top:4px;text-align:right;">' + formatTime() + '</div>';
         messagesContainer.appendChild(bubble);
       } else if (msg.role === 'user') {
         var bubble2 = document.createElement('div');
-        bubble2.className = 'chat-bubble chat-bubble-user';
+        bubble2.className = 'chat-ai-bubble chat-ai-bubble-user';
         bubble2.textContent = msg.text;
         messagesContainer.appendChild(bubble2);
       }
@@ -525,21 +671,17 @@
   }
 
   function restoreClassifiedItems() {
-    var classifyBody = document.getElementById('chat-drawer-classify-body');
-    if (!classifyBody) return;
-    var emptyState = classifyBody.querySelector('.empty-state');
-    if (emptyState) emptyState.remove();
-    for (var i = 0; i < state.classifiedItems.length; i++) {
-      var item = state.classifiedItems[i];
-      renderClassifiedItem(item.sentence, item.module, item.confidence, item.tempId);
-    }
+    // 记录已在 renderRecordsTab 中恢复，此处无需额外操作
   }
 
   function addSystemMessage(text) {
-    var messagesContainer = document.getElementById('chat-messages');
+    var messagesContainer = document.getElementById('chat-ai-messages');
     if (!messagesContainer) return;
     var bubble = document.createElement('div');
-    bubble.className = 'chat-bubble chat-bubble-system';
+    bubble.className = 'chat-ai-bubble chat-ai-bubble-ai';
+    bubble.style.textAlign = 'center';
+    bubble.style.color = 'var(--color-text-tertiary)';
+    bubble.style.fontSize = '11px';
     bubble.textContent = text;
     messagesContainer.appendChild(bubble);
     scrollToBottom();
@@ -547,7 +689,7 @@
 
   // ========== 增强版事件绑定 ==========
   function bindEnhancedEvents() {
-    var backBtn = document.getElementById('btn-back');
+    var backBtn = document.getElementById('chat-ai-back');
     if (backBtn) {
       backBtn.addEventListener('click', function () {
         saveSession();
@@ -558,20 +700,18 @@
     // 页面离开时保存会话
     window.addEventListener('beforeunload', function () { saveSession(); });
     window.addEventListener('hashchange', function (e) {
-      // 仅在离开 chat 页面时保存
       var newHash = window.location.hash.replace('#', '');
       if (newHash.indexOf('chat') !== 0) {
         saveSession();
       }
     });
 
-    var input = document.getElementById('chat-input');
-    var sendBtn = document.getElementById('chat-send-btn');
+    var input = document.getElementById('chat-ai-input');
+    var sendBtn = document.getElementById('chat-ai-send-btn');
 
     if (input) {
+      sendBtn.disabled = !input.value.trim();
       input.addEventListener('input', function () {
-        this.style.height = 'auto';
-        this.style.height = Math.min(this.scrollHeight, 100) + 'px';
         if (sendBtn) sendBtn.disabled = !this.value.trim();
       });
       input.addEventListener('keydown', function (e) {
@@ -579,19 +719,16 @@
           e.preventDefault();
           handleUserInput(input.value);
           input.value = '';
-          input.style.height = 'auto';
           if (sendBtn) sendBtn.disabled = true;
         }
       });
     }
 
     if (sendBtn) {
-      sendBtn.disabled = true;
       sendBtn.addEventListener('click', function () {
         if (!input) return;
         handleUserInput(input.value);
         input.value = '';
-        input.style.height = 'auto';
         sendBtn.disabled = true;
       });
     }
@@ -601,15 +738,13 @@
       confirmBtn.addEventListener('click', confirmAndSave);
     }
 
-    // 重试按钮事件委托（错误气泡 / 流式中断气泡）
-    var chatMessagesEl = document.getElementById('chat-messages');
+    // 重试按钮事件委托
+    var chatMessagesEl = document.getElementById('chat-ai-messages');
     if (chatMessagesEl) {
       chatMessagesEl.addEventListener('click', function (e) {
         if (!e.target || !e.target.classList.contains('chat-retry-btn')) return;
-        // 找到错误气泡，移除它
-        var errBubble = e.target.closest('.chat-bubble-error');
+        var errBubble = e.target.closest('.chat-ai-bubble');
         if (errBubble) errBubble.remove();
-        // 重试上一次用户消息
         var lastUserMsg = null;
         for (var i = state.messages.length - 1; i >= 0; i--) {
           if (state.messages[i].role === 'user') {
@@ -618,7 +753,6 @@
           }
         }
         if (!lastUserMsg) return;
-        // 重新调用 AI（不重复 addUserMessage）
         showTyping();
         var retryStreaming = null;
         window.ZhipuClient.generateReplyStream(
@@ -640,11 +774,10 @@
               setTimeout(function () { endConversation(); }, 600);
             }
           } else {
-            // AI 返回空字符串：移除 typing，显示错误气泡
             hideTyping();
-            var chatMsgs = document.getElementById('chat-messages');
+            var chatMsgs = document.getElementById('chat-ai-messages');
             var emptyBubble = document.createElement('div');
-            emptyBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+            emptyBubble.className = 'chat-ai-bubble chat-ai-bubble-ai';
             emptyBubble.innerHTML = '<div>AI 返回为空，请重试</div>' +
               '<button class="chat-retry-btn" type="button">重试</button>';
             if (chatMsgs) chatMsgs.appendChild(emptyBubble);
@@ -655,13 +788,13 @@
           console.error('ChatBot: 重试失败', err);
           if (retryStreaming) {
             retryStreaming.bubbleEl.classList.remove('chat-bubble-streaming');
-            retryStreaming.bubbleEl.classList.add('chat-bubble-error');
+            retryStreaming.bubbleEl.classList.add('chat-ai-bubble-error');
             retryStreaming.bubbleEl.innerHTML += '<div class="stream-interrupted">回复中断</div>' +
               '<button class="chat-retry-btn" type="button">重试</button>';
           } else {
-            var chatMsgs = document.getElementById('chat-messages');
+            var chatMsgs = document.getElementById('chat-ai-messages');
             var newErrBubble = document.createElement('div');
-            newErrBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+            newErrBubble.className = 'chat-ai-bubble chat-ai-bubble-ai';
             newErrBubble.innerHTML = '<div>AI 回复失败</div>' +
               '<button class="chat-retry-btn" type="button">重试</button>';
             if (chatMsgs) chatMsgs.appendChild(newErrBubble);
@@ -670,18 +803,16 @@
         });
       });
     }
-
-    bindInputModeEvents();
   }
 
   // ========== 消息渲染 ==========
   function addAIMessage(text, delay) {
     delay = delay || 0;
     setTimeout(function () {
-      var chatMessages = document.getElementById('chat-messages');
+      var chatMessages = document.getElementById('chat-ai-messages');
       if (!chatMessages) return;
       var bubble = document.createElement('div');
-      bubble.className = 'chat-bubble chat-bubble-bot';
+      bubble.className = 'chat-ai-bubble chat-ai-bubble-ai';
       bubble.innerHTML = window.ChatMarkdown.render(text) + '<div style="font-size:0.68rem;opacity:0.5;margin-top:4px;text-align:right;">' + formatTime() + '</div>';
       chatMessages.appendChild(bubble);
       scrollToBottom();
@@ -690,22 +821,17 @@
     }, delay);
   }
 
-  /**
-   * 创建流式 AI 消息气泡
-   * 返回 { bubbleEl, append(text), finalize(), fail(msg) }
-   */
   function addStreamingAIMessage() {
-    var chatMessages = document.getElementById('chat-messages');
+    var chatMessages = document.getElementById('chat-ai-messages');
     if (!chatMessages) return null;
     var bubble = document.createElement('div');
-    bubble.className = 'chat-bubble chat-bubble-bot chat-bubble-streaming';
+    bubble.className = 'chat-ai-bubble chat-ai-bubble-ai chat-bubble-streaming';
     chatMessages.appendChild(bubble);
     scrollToBottom();
     return {
       bubbleEl: bubble,
       append: function (text) {
         bubble._rawText = (bubble._rawText || '') + text;
-        // 流式过程显示纯文本（转义 + 换行），避免未闭合 markdown 渲染错乱
         bubble.innerHTML = escapeHtml(bubble._rawText).replace(/\n/g, '<br>');
         scrollToBottom();
       },
@@ -720,7 +846,7 @@
       },
       fail: function (errMsg) {
         bubble.classList.remove('chat-bubble-streaming');
-        bubble.classList.add('chat-bubble-error');
+        bubble.classList.add('chat-ai-bubble-error');
         bubble.innerHTML = '<div>' + escapeHtml(errMsg) + '</div>' +
           '<button class="chat-retry-btn" type="button">重试</button>';
         scrollToBottom();
@@ -729,10 +855,10 @@
   }
 
   function addUserMessage(text) {
-    var chatMessages = document.getElementById('chat-messages');
+    var chatMessages = document.getElementById('chat-ai-messages');
     if (!chatMessages) return;
     var bubble = document.createElement('div');
-    bubble.className = 'chat-bubble chat-bubble-user';
+    bubble.className = 'chat-ai-bubble chat-ai-bubble-user';
     bubble.textContent = text;
     chatMessages.appendChild(bubble);
     scrollToBottom();
@@ -741,7 +867,7 @@
   }
 
   function addSkipButton(questionId) {
-    var chatMessages = document.getElementById('chat-messages');
+    var chatMessages = document.getElementById('chat-ai-messages');
     if (!chatMessages || !state.template) return;
     var question = state.template.questions[state.currentQuestionIndex - 1];
     if (!question) return;
@@ -757,12 +883,12 @@
   }
 
   function showTyping() {
-    var chatMessages = document.getElementById('chat-messages');
+    var chatMessages = document.getElementById('chat-ai-messages');
     if (!chatMessages) return;
     var indicator = document.createElement('div');
-    indicator.className = 'typing-indicator';
+    indicator.className = 'chat-ai-typing';
     indicator.id = 'typing-indicator';
-    indicator.innerHTML = '<span></span><span></span><span></span>';
+    indicator.innerHTML = '<span class="chat-ai-typing-dot"></span><span class="chat-ai-typing-dot"></span><span class="chat-ai-typing-dot"></span>';
     chatMessages.appendChild(indicator);
     scrollToBottom();
   }
@@ -773,7 +899,7 @@
   }
 
   function scrollToBottom() {
-    var chatMessages = document.getElementById('chat-messages');
+    var chatMessages = document.getElementById('chat-ai-messages');
     if (chatMessages) {
       setTimeout(function () {
         chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -844,7 +970,7 @@
     var userText = text.trim();
     addUserMessage(userText);
 
-    // 异步分类（兼容同步和异步返回）
+    // 异步分类
     var classifier = (window.ChatbotProviders && window.ChatbotProviders.getClassifier()) || window.ChatbotClassifier;
     if (classifier) {
       var classifyResult = classifier.classify(userText);
@@ -855,7 +981,6 @@
           console.error('ChatBot: AI 分类失败', err);
         });
       } else {
-        // 同步分类（关键词引擎）
         processClassificationResults(classifyResult);
       }
     }
@@ -884,11 +1009,10 @@
             setTimeout(function () { endConversation(); }, 600);
           }
         } else {
-          // AI 返回空字符串：移除 typing，显示错误气泡
           hideTyping();
-          var chatMsgs = document.getElementById('chat-messages');
+          var chatMsgs = document.getElementById('chat-ai-messages');
           var emptyBubble = document.createElement('div');
-          emptyBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+          emptyBubble.className = 'chat-ai-bubble chat-ai-bubble-ai';
           emptyBubble.innerHTML = '<div>AI 返回为空，请重试</div>' +
             '<button class="chat-retry-btn" type="button">重试</button>';
           if (chatMsgs) chatMsgs.appendChild(emptyBubble);
@@ -898,16 +1022,14 @@
         hideTyping();
         console.error('ChatBot: AI 回复生成失败', err);
         if (streaming) {
-          // 流式中断：保留部分文本，标记中断
           streaming.bubbleEl.classList.remove('chat-bubble-streaming');
-          streaming.bubbleEl.classList.add('chat-bubble-error');
+          streaming.bubbleEl.classList.add('chat-ai-bubble-error');
           streaming.bubbleEl.innerHTML += '<div class="stream-interrupted">回复中断</div>' +
             '<button class="chat-retry-btn" type="button">重试</button>';
         } else {
-          // 未开始流式：显示错误气泡
-          var chatMessages = document.getElementById('chat-messages');
+          var chatMessages = document.getElementById('chat-ai-messages');
           var errBubble = document.createElement('div');
-          errBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+          errBubble.className = 'chat-ai-bubble chat-ai-bubble-ai';
           errBubble.innerHTML = '<div>AI 回复失败</div>' +
             '<button class="chat-retry-btn" type="button">重试</button>';
           if (chatMessages) chatMessages.appendChild(errBubble);
@@ -915,10 +1037,9 @@
         scrollToBottom();
       });
     } else {
-      // 无 AI：显示错误气泡（不再降级到模板提问）
-      var chatMessages = document.getElementById('chat-messages');
+      var chatMessages = document.getElementById('chat-ai-messages');
       var errBubble = document.createElement('div');
-      errBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+      errBubble.className = 'chat-ai-bubble chat-ai-bubble-ai';
       errBubble.innerHTML = '<div>AI 服务未配置，请联系管理员</div>';
       if (chatMessages) chatMessages.appendChild(errBubble);
       scrollToBottom();
@@ -938,11 +1059,10 @@
         sentence: r.sentence,
         module: r.module,
         confidence: r.confidence,
-        tempId: tempId
+        tempId: tempId,
+        time: formatTime()
       });
-      renderClassifiedItem(r.sentence, r.module, r.confidence, tempId);
     }
-    updateConfirmButton();
     saveSession();
   }
 
@@ -954,10 +1074,9 @@
       sentence: btnData.text,
       module: btnData.module,
       confidence: 1.0,
-      tempId: tempId
+      tempId: tempId,
+      time: formatTime()
     });
-    renderClassifiedItem(btnData.text, btnData.module, 1.0, tempId);
-    updateConfirmButton();
     saveSession();
 
     // AI 生成自然对话回复
@@ -983,11 +1102,10 @@
             setTimeout(function () { endConversation(); }, 600);
           }
         } else {
-          // AI 返回空字符串：移除 typing，显示错误气泡
           hideTyping();
-          var chatMsgs = document.getElementById('chat-messages');
+          var chatMsgs = document.getElementById('chat-ai-messages');
           var emptyBubble = document.createElement('div');
-          emptyBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+          emptyBubble.className = 'chat-ai-bubble chat-ai-bubble-ai';
           emptyBubble.innerHTML = '<div>AI 返回为空，请重试</div>' +
             '<button class="chat-retry-btn" type="button">重试</button>';
           if (chatMsgs) chatMsgs.appendChild(emptyBubble);
@@ -997,16 +1115,14 @@
         hideTyping();
         console.error('ChatBot: AI 回复生成失败', err);
         if (streaming) {
-          // 流式中断：保留部分文本，标记中断
           streaming.bubbleEl.classList.remove('chat-bubble-streaming');
-          streaming.bubbleEl.classList.add('chat-bubble-error');
+          streaming.bubbleEl.classList.add('chat-ai-bubble-error');
           streaming.bubbleEl.innerHTML += '<div class="stream-interrupted">回复中断</div>' +
             '<button class="chat-retry-btn" type="button">重试</button>';
         } else {
-          // 未开始流式：显示错误气泡
-          var chatMessages = document.getElementById('chat-messages');
+          var chatMessages = document.getElementById('chat-ai-messages');
           var errBubble = document.createElement('div');
-          errBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+          errBubble.className = 'chat-ai-bubble chat-ai-bubble-ai';
           errBubble.innerHTML = '<div>AI 回复失败</div>' +
             '<button class="chat-retry-btn" type="button">重试</button>';
           if (chatMessages) chatMessages.appendChild(errBubble);
@@ -1014,10 +1130,9 @@
         scrollToBottom();
       });
     } else {
-      // 无 AI：显示错误气泡（不再降级到模板提问）
-      var chatMessages = document.getElementById('chat-messages');
+      var chatMessages = document.getElementById('chat-ai-messages');
       var errBubble = document.createElement('div');
-      errBubble.className = 'chat-bubble chat-bubble-bot chat-bubble-error';
+      errBubble.className = 'chat-ai-bubble chat-ai-bubble-ai';
       errBubble.innerHTML = '<div>AI 服务未配置，请联系管理员</div>';
       if (chatMessages) chatMessages.appendChild(errBubble);
       scrollToBottom();
@@ -1239,23 +1354,19 @@
       if (window.Storage && window.Storage.addRecord) {
         window.Storage.addRecord(state.youthId, record);
       }
+      item._saved = true;
     }
 
     // 禁用输入
-    var inputEl = document.getElementById('chat-input');
-    var sendBtn = document.getElementById('chat-send-btn');
-    var batchBtn = document.getElementById('btn-batch-archive');
+    var inputEl = document.getElementById('chat-ai-input');
+    var sendBtn = document.getElementById('chat-ai-send-btn');
     if (inputEl) inputEl.disabled = true;
     if (sendBtn) sendBtn.disabled = true;
-    if (batchBtn) {
-      batchBtn.disabled = true;
-      batchBtn.textContent = '✓ 已保存';
-      batchBtn.style.background = 'var(--color-success)';
-    }
 
     addAIMessage('记录已保存！你可以在档案页看到这些记录。');
     saveConversationSummary();
     clearSession();
+    renderRecordsTab();
   }
 
   // ========== 今日已采集模块（跨所有来源） ==========
@@ -1400,16 +1511,20 @@
 
   // ========== 快捷按钮 ==========
   function renderQuickButtons() {
-    var area = document.getElementById('chat-quick-buttons');
-    var qProvider = (window.ChatbotProviders && window.ChatbotProviders.getQuestionProvider()) || window.ChatbotTemplates;
-    if (!area || !qProvider) return;
+    var area = document.getElementById('chat-ai-quick-prompts');
+    if (!area) return;
     area.innerHTML = '';
-    var buttons = qProvider.getQuickButtons();
-    buttons.forEach(function (btn) {
+    var prompts = [
+      { label: '😊 今天有什么开心的事？', text: '今天有什么开心的事？' },
+      { label: '🌊 遇到了什么困难？', text: '遇到了什么困难？' },
+      { label: '💼 今天的工作怎么样？', text: '今天的工作怎么样？' },
+      { label: '🤝 哪种帮助有效？', text: '哪种帮助有效？' }
+    ];
+    prompts.forEach(function (p) {
       var el = document.createElement('button');
-      el.className = 'chat-quick-btn';
-      el.textContent = btn.label;
-      el.onclick = function () { handleQuickButton(btn); };
+      el.className = 'chat-ai-prompt';
+      el.textContent = p.label;
+      el.onclick = function () { handleQuickButton({ text: p.text, module: 'communicationGuide', label: p.label }); };
       area.appendChild(el);
     });
   }

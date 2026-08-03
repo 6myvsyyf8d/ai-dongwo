@@ -1,0 +1,496 @@
+/* ================================================================
+   chat-ai.css - AI聊聊页面样式
+   焦糖色系 (cookie/caramel)，phone 卡片布局
+   参考「AI懂我-AI聊聊页面优化样例」
+   ================================================================ */
+
+/* — Phone 容器 — */
+.chat-ai-phone {
+  width: min(100%, 430px);
+  min-height: 100vh;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding-bottom: 110px;
+  background: linear-gradient(180deg, #fefbf7, #fef5e8);
+}
+
+/* — 顶部栏 — */
+.chat-ai-topbar {
+  height: 57px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.93);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-bottom: 1px solid rgba(196, 122, 58, 0.06);
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+
+/* — 返回按钮 — */
+.chat-ai-back {
+  position: absolute;
+  left: 14px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  font-size: 22px;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.chat-ai-back:active {
+  background: var(--color-fill-light);
+}
+
+/* — 主内容区 — */
+.chat-ai-main {
+  padding: 14px 15px;
+}
+
+/* — 身份条 — */
+.chat-ai-person {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: #fff;
+  box-shadow: 0 9px 25px rgba(160, 90, 40, 0.18);
+}
+.chat-ai-avatar {
+  width: 50px;
+  height: 50px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 50px;
+  border-radius: 50%;
+  background: #fff;
+  font-size: 27px;
+}
+.chat-ai-person b {
+  display: block;
+  font-size: 18px;
+}
+.chat-ai-person span {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  line-height: 1.45;
+  opacity: 0.88;
+}
+
+/* — Tab 切换条 — */
+.chat-ai-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px;
+  margin-top: 12px;
+  padding: 4px;
+  border-radius: 15px;
+  background: rgba(196, 122, 58, 0.08);
+}
+.chat-ai-tab {
+  border: 0;
+  padding: 9px 3px;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  font-weight: 750;
+  font-family: inherit;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.chat-ai-tab.active {
+  background: #fff;
+  color: var(--color-primary);
+  box-shadow: 0 3px 10px rgba(160, 90, 40, 0.12);
+}
+
+/* — 页面切换 — */
+.chat-ai-page {
+  display: none;
+}
+.chat-ai-page.active {
+  display: block;
+}
+
+/* — 区块标题 — */
+.chat-ai-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 18px 2px 9px;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+.chat-ai-section-title small {
+  font-size: 11px;
+  color: var(--color-text-tertiary);
+  font-weight: 500;
+}
+
+/* ========== 开始聊聊 Tab ========== */
+
+/* — 引导提示 — */
+.chat-ai-guide {
+  padding: 11px 12px;
+  border-radius: 15px;
+  background: rgba(196, 122, 58, 0.06);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.55;
+  border: 0.5px solid rgba(196, 122, 58, 0.06);
+}
+
+/* — 快捷提问 — */
+.chat-ai-quick-prompts {
+  display: flex;
+  gap: 7px;
+  overflow-x: auto;
+  padding: 1px 0 4px;
+  scrollbar-width: none;
+}
+.chat-ai-quick-prompts::-webkit-scrollbar { display: none; }
+
+.chat-ai-prompt {
+  white-space: nowrap;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid rgba(196, 122, 58, 0.10);
+  color: var(--color-text-secondary);
+  font-size: 11.5px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  flex-shrink: 0;
+  font-family: inherit;
+}
+.chat-ai-prompt:active {
+  background: var(--color-primary-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+}
+
+/* — 对话气泡区 — */
+.chat-ai-chatbox {
+  margin-top: 10px;
+  padding: 13px;
+  border-radius: 19px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+
+/* — 气泡 — */
+.chat-ai-bubble {
+  max-width: 87%;
+  padding: 10px 12px;
+  margin-bottom: 9px;
+  border-radius: 15px;
+  font-size: 12.5px;
+  line-height: 1.55;
+  word-break: break-word;
+}
+.chat-ai-bubble:last-child {
+  margin-bottom: 0;
+}
+
+.chat-ai-bubble-ai {
+  background: rgba(196, 122, 58, 0.06);
+  border-bottom-left-radius: 5px;
+  color: var(--color-text-primary);
+}
+
+.chat-ai-bubble-user {
+  margin-left: auto;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  color: #fff;
+  border-bottom-right-radius: 5px;
+}
+
+/* — AI 回复中的选项 — */
+.chat-ai-choice-title {
+  margin: 7px 0 6px;
+  color: var(--color-text-tertiary);
+  font-size: 11px;
+}
+.chat-ai-choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.chat-ai-choice {
+  padding: 6px 9px;
+  border-radius: 9px;
+  background: #fff;
+  border: 1px solid rgba(196, 122, 58, 0.15);
+  color: var(--color-primary);
+  font-size: 11px;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  font-family: inherit;
+}
+.chat-ai-choice:active {
+  background: var(--color-primary-surface);
+  border-color: var(--color-primary);
+}
+
+/* — 输入栏 — */
+.chat-ai-inputbar {
+  display: flex;
+  gap: 7px;
+  margin-top: 11px;
+}
+.chat-ai-input {
+  flex: 1;
+  padding: 11px 12px;
+  border: 1px solid rgba(196, 122, 58, 0.12);
+  border-radius: 13px;
+  background: rgba(196, 122, 58, 0.03);
+  color: var(--color-text-primary);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
+}
+.chat-ai-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(196, 122, 58, 0.10);
+}
+.chat-ai-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.chat-ai-send {
+  width: 55px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--color-primary);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+.chat-ai-send:active:not(:disabled) {
+  transform: scale(0.95);
+  background: var(--color-primary-dark);
+}
+.chat-ai-send:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* — 隐私提示 — */
+.chat-ai-privacy {
+  margin-top: 9px;
+  text-align: center;
+  color: var(--color-text-tertiary);
+  font-size: 10px;
+}
+
+/* — 打字指示器 — */
+.chat-ai-typing {
+  display: flex;
+  gap: 4px;
+  padding: 4px 0;
+}
+.chat-ai-typing-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-text-tertiary);
+  animation: chatAiTyping 1.4s infinite;
+}
+.chat-ai-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.chat-ai-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes chatAiTyping {
+  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+  40% { transform: scale(1); opacity: 1; }
+}
+
+/* ========== 聊聊记录 Tab ========== */
+
+/* — 结构化摘要 — */
+.chat-ai-summary {
+  padding: 12px;
+  border-radius: 16px;
+  background: rgba(218, 154, 78, 0.06);
+  border: 1px solid rgba(218, 154, 78, 0.15);
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+/* — 记录卡片 — */
+.chat-ai-record {
+  padding: 13px;
+  margin-bottom: 9px;
+  border-radius: 17px;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+}
+.chat-ai-record:last-child {
+  margin-bottom: 0;
+}
+
+/* — 记录顶部 — */
+.chat-ai-record-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.chat-ai-record-time {
+  font-size: 10.5px;
+  color: var(--color-text-tertiary);
+}
+
+/* — 状态标签 — */
+.chat-ai-status {
+  padding: 3px 7px;
+  border-radius: 8px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.chat-ai-status.pending {
+  background: rgba(218, 154, 78, 0.10);
+  color: var(--color-warning);
+}
+.chat-ai-status.saved {
+  background: rgba(90, 158, 90, 0.10);
+  color: var(--color-success);
+}
+
+/* — 原文引用 — */
+.chat-ai-record-source {
+  margin-top: 7px;
+  color: var(--color-text-secondary);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* — 结构化提取区 — */
+.chat-ai-extract {
+  margin-top: 9px;
+  padding: 10px;
+  border-radius: 13px;
+  background: rgba(196, 122, 58, 0.04);
+}
+
+.chat-ai-extract-row {
+  display: grid;
+  grid-template-columns: 76px 1fr;
+  gap: 6px;
+  margin-bottom: 6px;
+  font-size: 11.5px;
+  line-height: 1.45;
+}
+.chat-ai-extract-row:last-child {
+  margin-bottom: 0;
+}
+
+.chat-ai-extract-label {
+  color: var(--color-primary);
+  font-weight: 800;
+}
+.chat-ai-extract-value {
+  color: var(--color-text-primary);
+}
+
+/* — 操作按钮 — */
+.chat-ai-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 7px;
+  margin-top: 9px;
+}
+
+.chat-ai-btn {
+  padding: 9px;
+  text-align: center;
+  border-radius: 11px;
+  font-size: 11.5px;
+  font-weight: 800;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all var(--transition-fast);
+}
+.chat-ai-btn-secondary {
+  background: rgba(196, 122, 58, 0.08);
+  color: var(--color-primary);
+}
+.chat-ai-btn-secondary:active {
+  background: rgba(196, 122, 58, 0.14);
+}
+.chat-ai-btn-primary {
+  background: var(--color-primary);
+  color: #fff;
+}
+.chat-ai-btn-primary:active {
+  background: var(--color-primary-dark);
+  transform: scale(0.98);
+}
+
+/* — 已保存提示 — */
+.chat-ai-saved-note {
+  margin-top: 9px;
+  padding: 8px 10px;
+  border-radius: 11px;
+  background: rgba(90, 158, 90, 0.08);
+  color: var(--color-success);
+  font-size: 11px;
+}
+
+/* — 记录原则 — */
+.chat-ai-principle {
+  margin-top: 11px;
+  padding: 12px;
+  border-radius: 16px;
+  background: #fff;
+  border: 1px solid rgba(196, 122, 58, 0.08);
+  font-size: 11.5px;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+.chat-ai-principle b {
+  color: var(--color-primary);
+}
+
+/* — 空状态 — */
+.chat-ai-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--color-text-tertiary);
+  font-size: 13px;
+}
+
+/* ========== 大屏适配 ========== */
+@media (min-width: 600px) {
+  body {
+    padding: 25px 0;
+  }
+  .chat-ai-phone {
+    min-height: 850px;
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 25px 75px rgba(160, 90, 40, 0.14);
+  }
+}
