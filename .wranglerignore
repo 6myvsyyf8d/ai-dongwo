@@ -1,0 +1,7 @@
+.netlify
+.netlify-config
+.git
+.gitignore
+.DS_Store
+node_modules
+*.log

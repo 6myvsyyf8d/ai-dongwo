@@ -1,7 +1,7 @@
-// netlify/functions/chatbot.js - Netlify Serverless Function
+// functions/api/chatbot.js - Cloudflare Pages Function
 // 对话采集 AI 代理：支持 ping / classify / generateReply / generateReplyStream 四个 action
-// API Key 存服务端环境变量 ZHIPU_API_KEY，前端不暴露
-// Netlify Function：对话采集 AI 代理，由 Netlify 自动部署
+// API Key 存 Pages 环境变量 ZHIPU_API_KEY（控制台 → Settings → Environment variables）
+// Pages Functions 运行在 Workers 运行时，路径自动映射 /api/chatbot
 
 const ZHIPU_API = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 
@@ -13,15 +13,21 @@ const MODULE_DESC = {
   workSupport: '学习、工作、日常活动、任务安排'
 };
 
-// CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   'Access-Control-Allow-Headers': 'Content-Type'
 };
 
+function jsonResponse(obj, status = 200) {
+  return new Response(JSON.stringify(obj), {
+    status,
+    headers: { 'Content-Type': 'application/json', ...corsHeaders }
+  });
+}
+
 // 统一调用智谱 API
-async function callZhipu(messages, options) {
+async function callZhipu(messages, options, env) {
   options = options || {};
   const body = {
     model: options.model || 'glm-4-flash',
@@ -35,7 +41,7 @@ async function callZhipu(messages, options) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.ZHIPU_API_KEY}`
+      'Authorization': `Bearer ${env.ZHIPU_API_KEY}`
     },
     body: JSON.stringify(body)
   });
@@ -54,7 +60,7 @@ async function callZhipu(messages, options) {
 }
 
 // 分类：将文本按句子归类到档案模块
-async function classify(text, youthName) {
+async function classify(text, env) {
   const moduleList = Object.keys(MODULE_DESC)
     .map(k => `- ${k}: ${MODULE_DESC[k]}`)
     .join('\n');
@@ -64,7 +70,7 @@ async function classify(text, youthName) {
   const result = await callZhipu([
     { role: 'system', content: systemPrompt },
     { role: 'user', content: text }
-  ], { temperature: 0.1, maxTokens: 512 });
+  ], { temperature: 0.1, maxTokens: 512 }, env);
 
   try {
     let jsonStr = result.trim();
@@ -78,8 +84,8 @@ async function classify(text, youthName) {
 }
 
 // 生成对话回复 + 追问
-async function generateReply(history, youthName, youthProfile) {
-  var systemPrompt = `你是一位专业的特殊教育/照护工作者，正在与${youthName || '心青年'}的照护者对话。\n` +
+async function generateReply(history, youthName, youthProfile, env) {
+  let systemPrompt = `你是一位专业的特殊教育/照护工作者，正在与${youthName || '心青年'}的照护者对话。\n` +
     '你的任务是：\n' +
     '1. 以温暖、专业、不评判的口吻回应\n' +
     '2. 从对话中提取有价值的照护信息\n' +
@@ -92,41 +98,28 @@ async function generateReply(history, youthName, youthProfile) {
   }
 
   const messages = [{ role: 'system', content: systemPrompt }].concat(history);
-  const reply = await callZhipu(messages, { temperature: 0.7, maxTokens: 300 });
+  const reply = await callZhipu(messages, { temperature: 0.7, maxTokens: 300 }, env);
   return reply;
 }
 
-exports.handler = async function (event, context) {
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 204, headers: corsHeaders, body: '' };
-  }
+// CORS 预检
+export function onRequestOptions() {
+  return new Response(null, { status: 204, headers: corsHeaders });
+}
 
-  if (event.httpMethod !== 'POST') {
-    return {
-      statusCode: 405,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      body: JSON.stringify({ error: 'Method Not Allowed' })
-    };
-  }
+export async function onRequestPost(context) {
+  const { request, env } = context;
 
   // API Key 校验
-  if (!process.env.ZHIPU_API_KEY) {
-    return {
-      statusCode: 500,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      body: JSON.stringify({ error: '服务端未配置 ZHIPU_API_KEY' })
-    };
+  if (!env.ZHIPU_API_KEY) {
+    return jsonResponse({ error: '服务端未配置 ZHIPU_API_KEY' }, 500);
   }
 
   let body;
   try {
-    body = JSON.parse(event.body || '{}');
+    body = await request.json();
   } catch (e) {
-    return {
-      statusCode: 400,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      body: JSON.stringify({ error: '请求体格式错误' })
-    };
+    return jsonResponse({ error: '请求体格式错误' }, 400);
   }
 
   const action = body.action;
@@ -134,75 +127,39 @@ exports.handler = async function (event, context) {
   try {
     // ping：检测代理可用性
     if (action === 'ping') {
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        body: JSON.stringify({ ok: true })
-      };
+      return jsonResponse({ ok: true });
     }
 
     // classify：文本分类到档案模块
     if (action === 'classify') {
       if (!body.text) {
-        return {
-          statusCode: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          body: JSON.stringify({ error: 'text 不能为空' })
-        };
+        return jsonResponse({ error: 'text 不能为空' }, 400);
       }
-      const results = await classify(body.text, body.youthName);
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        body: JSON.stringify({ results: results })
-      };
+      const results = await classify(body.text, env);
+      return jsonResponse({ results });
     }
 
     // generateReply：生成对话回复
     if (action === 'generateReply') {
       if (!Array.isArray(body.messages) || body.messages.length === 0) {
-        return {
-          statusCode: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          body: JSON.stringify({ error: 'messages 不能为空' })
-        };
+        return jsonResponse({ error: 'messages 不能为空' }, 400);
       }
-      const reply = await generateReply(body.messages, body.youthName, body.youthProfile);
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        body: JSON.stringify({ reply: reply })
-      };
+      const reply = await generateReply(body.messages, body.youthName, body.youthProfile, env);
+      return jsonResponse({ reply });
     }
 
     // generateReplyStream：返回完整回复，前端模拟流式显示
     if (action === 'generateReplyStream') {
       if (!Array.isArray(body.messages) || body.messages.length === 0) {
-        return {
-          statusCode: 400,
-          headers: { 'Content-Type': 'application/json', ...corsHeaders },
-          body: JSON.stringify({ error: 'messages 不能为空' })
-        };
+        return jsonResponse({ error: 'messages 不能为空' }, 400);
       }
-      const reply = await generateReply(body.messages, body.youthName, body.youthProfile);
-      return {
-        statusCode: 200,
-        headers: { 'Content-Type': 'application/json', ...corsHeaders },
-        body: JSON.stringify({ reply: reply, stream: true })
-      };
+      const reply = await generateReply(body.messages, body.youthName, body.youthProfile, env);
+      return jsonResponse({ reply, stream: true });
     }
 
-    return {
-      statusCode: 400,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      body: JSON.stringify({ error: '未知 action: ' + action })
-    };
+    return jsonResponse({ error: '未知 action: ' + action }, 400);
   } catch (err) {
     console.error('chatbot handler error:', err);
-    return {
-      statusCode: 502,
-      headers: { 'Content-Type': 'application/json', ...corsHeaders },
-      body: JSON.stringify({ error: 'AI 服务暂时不可用', message: err.message })
-    };
+    return jsonResponse({ error: 'AI 服务暂时不可用', message: err.message }, 502);
   }
-};
+}

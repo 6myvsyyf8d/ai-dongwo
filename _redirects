@@ -1,0 +1,4 @@
+# Cloudflare Pages SPA 回退
+# Pages Functions 自动优先匹配 /api/* 路径，不会被此规则拦截
+# 其余未匹配的路由回退到 index.html（SPA hash 路由）
+/*    /index.html   200

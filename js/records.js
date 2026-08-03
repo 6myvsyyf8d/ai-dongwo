@@ -79,7 +79,7 @@ window.Records = (function () {
       '</div>';
 
     document.getElementById('btn-back').addEventListener('click', function () {
-      window.location.hash = 'dashboard';
+      history.back();
     });
   }
 
@@ -137,6 +137,7 @@ window.Records = (function () {
           '</div>' +
           '<span class="ios-card-row-arrow">›</span>' +
         '</div>' +
+        _renderTodaySummary(youth.id) +
       '</div>';
 
     container.innerHTML =
@@ -189,8 +190,7 @@ window.Records = (function () {
       communicationGuide: 'rgba(175, 82, 222, 0.1)',
       emotionBehavior: 'rgba(255, 59, 48, 0.1)',
       careMedical: 'rgba(52, 199, 89, 0.1)',
-      workSupport: 'rgba(255, 159, 10, 0.1)',
-      relationshipMap: 'rgba(88, 86, 214, 0.1)'
+      workSupport: 'rgba(255, 159, 10, 0.1)'
     };
     var iconBg = iconBgColors[record.module] || 'rgba(142, 142, 147, 0.1)';
 
@@ -779,6 +779,61 @@ window.Records = (function () {
     var records = queryByModule(youthId, moduleKey);
     if (!limit) limit = 5;
     return records.slice(0, limit);
+  }
+
+  /**
+   * 渲染今日采集 summary — 显示各维度采集状态
+   */
+  function _renderTodaySummary(youthId) {
+    var todayModules = _getTodayCollectedModules(youthId);
+    var allModules = Modules.MODULES;
+    var collectedCount = todayModules.length;
+    var totalCount = allModules.length;
+    var remainingCount = totalCount - collectedCount;
+
+    var html = '<div class="today-summary">' +
+      '<div class="today-summary-header">' +
+        '<span>📋 今日采集进度</span>' +
+        '<span class="today-summary-count">' + collectedCount + '/' + totalCount + '</span>' +
+      '</div>';
+
+    if (remainingCount === 0) {
+      html += '<div class="today-summary-done">✅ 今日所有维度已采集完毕</div>';
+    } else {
+      html += '<div class="today-summary-modules">';
+      for (var i = 0; i < allModules.length; i++) {
+        var m = allModules[i];
+        var isCollected = todayModules.indexOf(m.key) !== -1;
+        html += '<div class="today-summary-item' + (isCollected ? ' collected' : '') + '">' +
+          '<span class="today-summary-icon">' + (isCollected ? '✅' : '○') + '</span>' +
+          '<span class="today-summary-name">' + m.icon + ' ' + m.shortLabel + '</span>' +
+        '</div>';
+      }
+      html += '</div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  /**
+   * 获取今日已采集的模块 key 列表
+   */
+  function _getTodayCollectedModules(youthId) {
+    if (!youthId || !window.Storage) return [];
+    var allRecords = window.Storage.getRecords(youthId);
+    var today = new Date().toDateString();
+    var modules = {};
+    for (var i = 0; i < allRecords.length; i++) {
+      var r = allRecords[i];
+      if (r.module && r.recordedAt) {
+        var recDate = new Date(r.recordedAt).toDateString();
+        if (recDate === today) {
+          modules[r.module] = true;
+        }
+      }
+    }
+    return Object.keys(modules);
   }
 
   return {

@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>迁移部署指南 · Netlify → Cloudflare Pages</title>
+<style>
+  :root{
+    --bg:#050506; --bg-card:#0a0a0c; --fg:#EDEDEF; --muted:#8A8F98;
+    --accent:#5E6AD2; --accent-glow:rgba(94,106,210,0.3);
+    --border:rgba(255,255,255,0.06); --border-hover:rgba(255,255,255,0.10);
+    --success:#22c55e; --warning:#f59e0b; --cf:#f6821f;
+  }
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{
+    background:var(--bg); color:var(--fg);
+    font-family:"Inter","Noto Sans SC",system-ui,sans-serif;
+    line-height:1.7; padding:0 16px 80px;
+  }
+  .wrap{max-width:860px; margin:0 auto;}
+  header{text-align:center; padding:48px 0 32px; border-bottom:1px solid var(--border);}
+  header h1{font-size:1.8rem; font-weight:600; letter-spacing:-0.02em; margin-bottom:8px;}
+  header h1 span{color:var(--cf);}
+  header p{color:var(--muted); font-size:0.95rem;}
+  .badges{display:flex; gap:8px; justify-content:center; margin-top:16px; flex-wrap:wrap;}
+  .badge{padding:4px 12px; border-radius:999px; font-size:0.75rem; border:1px solid var(--border-hover);}
+  .badge.free{color:var(--success); border-color:rgba(34,197,94,0.3);}
+  .badge.cf{color:var(--cf); border-color:rgba(246,130,31,0.3);}
+  section{padding:32px 0; border-bottom:1px solid var(--border);}
+  section h2{font-size:1.25rem; font-weight:600; margin-bottom:6px; display:flex; align-items:center; gap:10px;}
+  section h2 .num{
+    display:inline-flex; align-items:center; justify-content:center;
+    width:28px; height:28px; border-radius:8px; background:var(--accent);
+    color:#fff; font-size:0.85rem; flex-shrink:0;
+  }
+  section .lead{color:var(--muted); font-size:0.9rem; margin-bottom:20px;}
+  .card{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:12px;
+    padding:20px; margin-bottom:16px;
+  }
+  .card h3{font-size:1rem; font-weight:600; margin-bottom:12px; color:var(--cf);}
+  ol,ul{padding-left:20px; margin-bottom:12px;}
+  li{margin-bottom:8px; font-size:0.9rem;}
+  li strong{color:var(--fg);}
+  code{
+    background:rgba(255,255,255,0.06); padding:2px 6px; border-radius:4px;
+    font-family:"SF Mono",monospace; font-size:0.85em; color:#c4b5fd;
+  }
+  pre{
+    background:var(--bg-card); border:1px solid var(--border); border-radius:8px;
+    padding:14px; overflow-x:auto; margin:10px 0;
+  }
+  pre code{background:none; padding:0; color:var(--fg); font-size:0.82rem;}
+  .note{padding:12px 16px; border-radius:8px; font-size:0.85rem; margin:12px 0;}
+  .note.warn{background:rgba(245,158,11,0.1); border:1px solid rgba(245,158,11,0.25); color:#fcd34d;}
+  .note.danger{background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.25); color:#fca5a5;}
+  .note.ok{background:rgba(34,197,94,0.1); border:1px solid rgba(34,197,94,0.25); color:#86efac;}
+  .note.info{background:rgba(94,106,210,0.1); border:1px solid var(--accent-glow); color:#a5b4fc;}
+  table{width:100%; border-collapse:collapse; margin:12px 0; font-size:0.85rem;}
+  th,td{padding:8px 12px; text-align:left; border-bottom:1px solid var(--border);}
+  th{color:var(--muted); font-weight:500; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.05em;}
+  .check{list-style:none; padding-left:0;}
+  .check li:before{content:"\2610  "; color:var(--accent); font-size:1.1em;}
+  footer{text-align:center; padding:32px 0; color:var(--muted); font-size:0.8rem;}
+  .arrow{color:var(--accent); font-weight:600;}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <h1>迁移部署指南 <span>Netlify → Cloudflare Pages</span></h1>
+  <p>AI懂我 · 单平台搞定静态 + API</p>
+  <div class="badges">
+    <span class="badge free">永久免费</span>
+    <span class="badge cf">无限部署</span>
+    <span class="badge">免备案</span>
+    <span class="badge">前端零改动</span>
+  </div>
+</header>
+
+<section>
+  <h2>方案总览</h2>
+  <p class="lead">Netlify 因部署次数过多超额。Cloudflare Pages 自带 Pages Functions，能同时托管静态文件和 API，一个平台全部搞定。</p>
+  <table>
+    <tr><th>部分</th><th>原（Netlify）</th><th>新（Cloudflare Pages）</th></tr>
+    <tr><td>静态文件</td><td>Netlify 托管</td><td>Pages 静态托管</td></tr>
+    <tr><td>API（chat）</td><td>netlify/functions/chat.js</td><td>functions/api/chat.js</td></tr>
+    <tr><td>API（chatbot）</td><td>netlify/functions/chatbot.js</td><td>functions/api/chatbot.js</td></tr>
+    <tr><td>API Key</td><td>Netlify 环境变量</td><td>Pages 环境变量</td></tr>
+    <tr><td>域名</td><td>xxx.netlify.app</td><td>xxx.pages.dev</td></tr>
+  </table>
+  <div class="note info">
+    <strong>为什么只用 Cloudflare？</strong> Pages Functions 每天 10 万次免费请求，永久免费、无限部署。API 和静态同域名（同源），前端 <code>/api/chat</code>、<code>/api/chatbot</code> 路径不变，<strong>零改动</strong>。
+  </div>
+</section>
+
+<section>
+  <h2>本次改动文件</h2>
+  <table>
+    <tr><th>文件</th><th>改动</th><th>说明</th></tr>
+    <tr><td><code>functions/api/chat.js</code></td><td>新增</td><td>心青年 AI 对话，Workers 格式</td></tr>
+    <tr><td><code>functions/api/chatbot.js</code></td><td>新增</td><td>对话采集代理，Workers 格式</td></tr>
+    <tr><td><code>_redirects</code></td><td>新增</td><td>SPA 回退规则</td></tr>
+    <tr><td><code>index.html</code></td><td>无改动</td><td>已回退，保持原样</td></tr>
+    <tr><td><code>js/zhipu-client.js</code></td><td>无改动</td><td>已回退，路径 <code>/api/chatbot</code> 不变</td></tr>
+    <tr><td><code>js/youth-chat.js</code></td><td>无改动</td><td>已回退，路径 <code>/api/chat</code> 不变</td></tr>
+  </table>
+  <div class="note ok">前端代码完全不变。Pages Functions 的 <code>functions/api/chat.js</code> 自动映射到 <code>/api/chat</code>，<code>functions/api/chatbot.js</code> 自动映射到 <code>/api/chatbot</code>，与现有前端调用完全一致。</div>
+</section>
+
+<section>
+  <h2><span class="num">1</span>部署到 Cloudflare Pages</h2>
+  <p class="lead">两种方式任选其一。</p>
+
+  <div class="card">
+    <h3>方式 A：连接 Git 仓库（推荐，自动部署）</h3>
+    <ol>
+      <li>注册/登录 <strong>Cloudflare</strong> → 左侧「Workers 和 Pages」→「创建」→「Pages」</li>
+      <li>选择「连接到 Git」，授权 GitHub，选择项目仓库</li>
+      <li>配置构建：
+        <ul>
+          <li>框架预设：<code>None</code></li>
+          <li>构建命令：<strong>留空</strong>（纯静态无构建）</li>
+          <li>输出目录：<code>.</code>（根目录）</li>
+        </ul>
+      </li>
+      <li>点击「保存并部署」，等待部署完成</li>
+      <li>获得域名：<code>xxx.pages.dev</code></li>
+    </ol>
+    <div class="note ok">之后每次 git push 自动重新部署，<strong>无限次免费</strong>，不会再有 Netlify 的部署超额问题。</div>
+    <div class="note warn">确保仓库包含 <code>functions/api/</code> 目录和 <code>_redirects</code> 文件。Cloudflare 会自动识别 functions 目录并部署为 Pages Functions。</div>
+  </div>
+
+  <div class="card">
+    <h3>方式 B：Wrangler 命令行部署（无需 Git）</h3>
+    <pre><code># 安装 Wrangler CLI
+npm install -g wrangler
+
+# 登录 Cloudflare
+wrangler login
+
+# 在项目根目录部署
+cd /path/to/ai-dongwo
+wrangler pages deploy . --project-name=ai-dongwo</code></pre>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">2</span>配置环境变量</h2>
+  <p class="lead">API Key 必须配置在 Pages 环境变量中，不能写进代码。</p>
+  <div class="card">
+    <ol>
+      <li>Cloudflare 控制台 → Workers 和 Pages → 选择你的 Pages 项目</li>
+      <li>「设置」→「Environment variables」</li>
+      <li>添加变量：
+        <ul>
+          <li>变量名：<code>ZHIPU_API_KEY</code></li>
+          <li>值：你的智谱 API Key</li>
+          <li>环境：选择 <strong>Production</strong></li>
+        </ul>
+      </li>
+      <li>点击「保存」</li>
+      <li><strong>重新部署一次</strong>（环境变量变更后需重新部署才生效）</li>
+    </ol>
+    <div class="note warn">环境变量变更后必须重新部署。在「部署」列表里点某次部署的「重试部署」即可。</div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">3</span>验证 API 是否正常</h2>
+  <p class="lead">部署并配置环境变量后，测试两个 API。</p>
+  <div class="card">
+    <h3>测试 chatbot（ping）</h3>
+    <pre><code># 替换为你的 pages.dev 域名
+curl -X POST https://你的域名.pages.dev/api/chatbot \
+  -H "Content-Type: application/json" \
+  -d '{"action":"ping"}'
+
+# 应返回 {"ok":true}</code></pre>
+  </div>
+  <div class="card">
+    <h3>测试 chat（心青年对话）</h3>
+    <pre><code>curl -X POST https://你的域名.pages.dev/api/chat \
+  -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"你好"}],"youthProfile":{"name":"小明"}}'
+
+# 应返回 {"reply":"..."}</code></pre>
+    <div class="note warn">如果返回 500「未配置 ZHIPU_API_KEY」，说明环境变量没配好或没重新部署。</div>
+  </div>
+</section>
+
+<section>
+  <h2><span class="num">4</span>清理 Netlify</h2>
+  <p class="lead">迁移完成后，停止 Netlify 部署以避免继续产生费用。</p>
+  <div class="card">
+    <ul>
+      <li><strong>方案一（保留站点）</strong>：Netlify 控制台 → Site settings → 关闭自动部署。删掉 <code>netlify/functions/</code> 函数。</li>
+      <li><strong>方案二（彻底删除）</strong>：确认 Cloudflare Pages 一切正常后，Netlify → Site settings → 底部「Delete this site」。</li>
+    </ul>
+    <div class="note danger">删除前务必确认新站点能正常打开页面、AI 对话能用。</div>
+  </div>
+</section>
+
+<section>
+  <h2>验证清单</h2>
+  <ul class="check">
+    <li>Cloudflare Pages 域名能打开首页，样式正常</li>
+    <li>登录、档案、记录等页面可正常操作</li>
+    <li>对话采集功能：发送消息能收到 AI 回复（走 /api/chatbot）</li>
+    <li>心青年 AI 对话：发送消息能收到回复（走 /api/chat）</li>
+    <li>环境变量 ZHIPU_API_KEY 已配置并重新部署</li>
+    <li>Netlify 已停止部署或已删除</li>
+  </ul>
+</section>
+
+<section>
+  <h2>成本说明</h2>
+  <table>
+    <tr><th>项目</th><th>费用</th><th>额度</th></tr>
+    <tr><td>Cloudflare Pages 静态托管</td><td>免费</td><td>无限请求、无限部署</td></tr>
+    <tr><td>Pages Functions</td><td>免费</td><td>每天 10 万次请求</td></tr>
+    <tr><td>智谱 API</td><td>看用量</td><td>与部署平台无关</td></tr>
+  </table>
+  <div class="note ok"><strong>永久免费</strong>。每天 10 万次 API 请求对参赛项目绰绰有余，且不会过期。相比 Netlify 的部署次数限制和阿里云 FC 的 3 个月试用期，Cloudflare Pages 是最优选择。</div>
+</section>
+
+<section>
+  <h2>附：Netlify Function → Pages Function 改动对照</h2>
+  <p class="lead">仅 3 处差异，逻辑代码完全一致。</p>
+  <table>
+    <tr><th>差异点</th><th>Netlify Function</th><th>Pages Function</th></tr>
+    <tr><td>入口签名</td><td><code>exports.handler = async (event, context)</code></td><td><code>export async function onRequestPost(context)</code></td></tr>
+    <tr><td>环境变量</td><td><code>process.env.ZHIPU_API_KEY</code></td><td><code>context.env.ZHIPU_API_KEY</code></td></tr>
+    <tr><td>请求/响应</td><td><code>event.body</code> / <code>return { statusCode, body }</code></td><td><code>request.json()</code> / <code>return new Response()</code></td></tr>
+    <tr><td>路径映射</td><td>netlify.toml redirects 配置</td><td>文件路径自动映射 <code>functions/api/chat.js → /api/chat</code></td></tr>
+    <tr><td>CORS 预检</td><td>handler 内判断 OPTIONS</td><td><code>export function onRequestOptions()</code> 独立函数</td></tr>
+  </table>
+</section>
+
+<footer>
+  AI懂我 · Cloudflare Pages 单平台迁移指南
+</footer>
+
+</div>
+</body>
+</html>

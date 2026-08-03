@@ -8,6 +8,8 @@ window.QuickCard = (function () {
 
   function renderQuickCard(params) {
     var youthId = params.youthId;
+    var viaScan = params.via === 'scan'; // 是否通过扫码访问
+
     if (!youthId && AppState.currentYouth) {
       youthId = AppState.currentYouth.id;
     }
@@ -27,24 +29,41 @@ window.QuickCard = (function () {
       return;
     }
 
-    if (!AppState.currentYouth || AppState.currentYouth.id !== youthId) {
-      AppState.selectYouth(youthId);
-    }
-
-    if (!Permissions.canRead()) {
+    // 扫码访问：放开权限校验，任何人都能看速读卡
+    if (!viaScan && !Permissions.canRead()) {
       App.getContainer().innerHTML = '<div class="page-content"><div class="permission-denied"><div class="permission-denied-icon">🔒</div><div class="permission-denied-title">无访问权限</div></div></div>';
       return;
     }
 
-    _renderQuickCard(youth);
+    if (!AppState.currentYouth || AppState.currentYouth.id !== youthId) {
+      AppState.selectYouth(youthId);
+    }
+
+    _renderQuickCard(youth, viaScan);
   }
 
-  function _renderQuickCard(youth) {
+  function _renderQuickCard(youth, viaScan) {
     var container = App.getContainer();
     var age = Utils.calculateAge(youth.birthDate);
     var genderLabel = youth.gender === 'male' ? '男' : youth.gender === 'female' ? '女' : '其他';
     var m = youth.modules;
     var avatar = youth.avatar || '🌟';
+
+    // 判断当前用户是否已有授权
+    var user = AppState.currentUser;
+    var hasAccess = false;
+    var canApply = false;
+    if (user && viaScan) {
+      // 扫码场景：检查是否已授权
+      var grants = Storage.getAccessGrants(youth.id);
+      hasAccess = grants.some(function (g) {
+        return g.granteeId === user.id && g.status === 'active';
+      });
+      // 老师/照护者可以申请加入
+      if (!hasAccess && (user.role === 'teacher' || user.role === 'caregiver')) {
+        canApply = true;
+      }
+    }
 
     var html = '';
 
@@ -127,24 +146,43 @@ window.QuickCard = (function () {
     }
 
     // ---- 底部操作 ----
-    html += '<div class="qc-footer">' +
-      '<button class="qc-btn-primary" id="btn-full-profile">查看完整档案 →</button>' +
-    '</div>';
+    html += '<div class="qc-footer">';
+    if (viaScan) {
+      if (hasAccess) {
+        html += '<button class="qc-btn-primary" id="btn-full-profile">查看完整档案 →</button>';
+      } else if (canApply) {
+        html += '<button class="qc-btn-primary" id="btn-apply-join">📝 申请加入家庭</button>';
+      }
+      // 志愿者等其他角色：不显示任何操作按钮，仅查看速读卡
+    } else {
+      html += '<button class="qc-btn-primary" id="btn-full-profile">查看完整档案 →</button>';
+    }
+    html += '</div>';
 
     html += '</div>';
 
     container.innerHTML = html;
-    _bindEvents(youth);
+    _bindEvents(youth, viaScan);
   }
 
-  function _bindEvents(youth) {
+  function _bindEvents(youth, viaScan) {
     document.getElementById('btn-close-quickcard').addEventListener('click', function () {
       history.back();
     });
 
-    document.getElementById('btn-full-profile').addEventListener('click', function () {
-      window.location.hash = 'profile?youthId=' + encodeURIComponent(youth.id);
-    });
+    var fullProfileBtn = document.getElementById('btn-full-profile');
+    if (fullProfileBtn) {
+      fullProfileBtn.addEventListener('click', function () {
+        window.location.hash = 'profile?youthId=' + encodeURIComponent(youth.id);
+      });
+    }
+
+    var applyJoinBtn = document.getElementById('btn-apply-join');
+    if (applyJoinBtn) {
+      applyJoinBtn.addEventListener('click', function () {
+        window.location.hash = 'join?youthId=' + encodeURIComponent(youth.id);
+      });
+    }
   }
 
   return {

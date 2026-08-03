@@ -11,7 +11,7 @@ window.Permissions = (function () {
     parent: [
       'read:full',
       'write:communicationGuide', 'write:emotionBehavior',
-      'write:careMedical', 'write:workSupport', 'write:relationshipMap',
+      'write:careMedical', 'write:workSupport',
       'manage:grants'
     ],
     teacher: [

@@ -139,7 +139,7 @@ window.JoinRequest = (function () {
         '<div class="join-pending-icon">⏳</div>' +
         '<div class="join-pending-title">申请审核中</div>' +
         '<div class="join-pending-text">您对 <strong>' + Utils.escapeHtml(youth.name) + '</strong> 的加入申请正在等待家长审批。</div>' +
-        '<button class="join-back-btn" id="btn-back-dashboard">返回首页</button>' +
+        '<button class="btn-back" id="btn-back-dashboard">‹</button>' +
       '</div>' +
     '</div>';
   }
@@ -214,7 +214,7 @@ window.JoinRequest = (function () {
     var backBtn = document.getElementById('btn-back-dashboard');
     if (backBtn) {
       backBtn.addEventListener('click', function () {
-        window.location.hash = 'dashboard';
+        history.back();
       });
     }
   }

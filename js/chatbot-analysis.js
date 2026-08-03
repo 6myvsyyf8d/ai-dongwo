@@ -97,7 +97,7 @@
    * 生成周报
    */
   function generateWeeklyReport(startDate, endDate, records) {
-    var modules = ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport', 'relationshipMap'];
+    var modules = ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport'];
     var byDay = groupByDay(records || []);
     var days = Object.keys(byDay).sort();
 
@@ -384,8 +384,8 @@
     for (var d = 0; d < days.length; d++) {
       var dayRecs = byDay[days[d]] || [];
       var hasSocial = dayRecs.some(function (r) {
-        return r.module === 'relationshipMap' || (r.content && r.content.text &&
-          (r.content.text.indexOf('社交') > -1 || r.content.text.indexOf('互动') > -1 || r.content.text.indexOf('朋友') > -1));
+        return r.content && r.content.text &&
+          (r.content.text.indexOf('社交') > -1 || r.content.text.indexOf('互动') > -1 || r.content.text.indexOf('朋友') > -1);
       });
       var hasPositive = dayRecs.some(function (r) {
         return r.module === 'emotionBehavior' && r.content && r.content.text &&

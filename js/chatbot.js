@@ -65,7 +65,7 @@
     var matrix = window.Constants ? window.Constants.RECORD_MATRIX : {};
     var types = (window.Records && window.Records.RECORD_TYPES) || [];
     var modules = (window.Modules && window.Modules.MODULES) || [];
-    // 仅显示矩阵中定义的模块（排除 relationshipMap）
+    // 仅显示矩阵中定义的模块
     var matrixModules = modules.filter(function(m) { return matrix.hasOwnProperty(m.key); });
 
     var html = '<div id="form-mode-panel" style="display:' + (currentMode === 'form' ? 'block' : 'none') + ';padding:12px 16px;">';

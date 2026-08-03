@@ -222,7 +222,6 @@
       '- emotionBehavior: 情绪状态、行为表现、异常行为、情绪触发\n' +
       '- careMedical: 饮食、睡眠、用药、健康状况、医疗相关\n' +
       '- workSupport: 学习、工作、日常活动、任务安排\n' +
-      '- relationshipMap: 人际关系、家庭互动、社交网络\n' +
       '\n返回 JSON 数组格式：[{ "sentence": "原句", "module": "模块key或null", "confidence": 0.0-1.0 }]\n' +
       '只返回 JSON，不要其他内容。';
 

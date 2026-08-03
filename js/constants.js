@@ -135,12 +135,12 @@ window.Constants = {
       admin:      ['admin', 'dashboard']
     },
     modules: {
-      parent:     ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport', 'relationshipMap'],
+      parent:     ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport'],
       teacher:    ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport'],
       caregiver:  ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport'],
       youth:      ['communicationGuide', 'careMedical'],
       government: [],
-      admin:      ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport', 'relationshipMap']
+      admin:      ['communicationGuide', 'emotionBehavior', 'careMedical', 'workSupport']
     }
   }
 };

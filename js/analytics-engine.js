@@ -588,12 +588,8 @@ window.AnalyticsEngine = (function () {
     var socialPosMatch = 0;
     for (var i = 0; i < dayKeys.length; i++) {
       var dayRecords = byDay[dayKeys[i]] || [];
-      var hasSocial = dayRecords.some(function (r) { return r.module === 'relationshipMap'; });
       var hasPositive = _hasPositiveContent(dayRecords);
-      if (hasSocial) {
-        socialPosCount++;
-        if (hasPositive) socialPosMatch++;
-      }
+      if (hasPositive) socialPosMatch++;
     }
     if (socialPosCount >= 3) {
       links.push('有社交互动的日子，积极情绪出现概率高 ' + Math.round(socialPosMatch / socialPosCount * 100) + '%');

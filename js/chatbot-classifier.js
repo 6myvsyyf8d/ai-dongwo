@@ -96,8 +96,7 @@
       communicationGuide: '沟通与表达',
       emotionBehavior: '情绪与行为',
       careMedical: '照护与医疗',
-      workSupport: '工作与生活',
-      relationshipMap: '关系地图'
+      workSupport: '工作与生活'
     };
     return names[moduleKey] || '待分类';
   }
@@ -110,8 +109,7 @@
       communicationGuide: '💬',
       emotionBehavior: '🌊',
       careMedical: '💊',
-      workSupport: '💼',
-      relationshipMap: '🗺️'
+      workSupport: '💼'
     };
     return icons[moduleKey] || '📝';
   }

@@ -39,7 +39,7 @@ window.Grants = (function () {
 
     var html =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-icon" id="btn-grants-close" style="width:32px;height:32px;padding:0;border:none;background:transparent;cursor:pointer;font-size:18px;color:var(--color-text-secondary);">✕</button>' +
+        '<button class="btn-back" id="btn-grants-close">‹</button>' +
         '<span class="page-title">🔑 授权管理 · ' + Utils.escapeHtml(youth.name) + '</span>' +
         '<span></span>' +
       '</div>' +

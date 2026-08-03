@@ -689,17 +689,6 @@ window.Storage = (function () {
             assessedAt: '2026-05-01', assessorId: teacherWang.id
           },
           workPreferences: ['理货', '清洁', '简单包装']
-        },
-        relationshipMap: {
-          relationships: [
-            { name: '小明爸爸', relationType: 'parent', importance: 'primary', notes: '主要照顾者' },
-            { name: '小明妈妈', relationType: 'parent', importance: 'primary', notes: '负责日常起居' },
-            { name: '小明保姆', relationType: 'caregiver', importance: 'secondary', notes: '工作日白天照护' },
-            { name: '王老师', relationType: 'teacher', importance: 'secondary', notes: '阳光家园特教老师' }
-          ],
-          peerInteractions: [
-            { name: '小花', relationType: 'peer', notes: '在同一机构，经常一起活动' }
-          ]
         }
       },
       createdAt: now, updatedAt: now, deceasedAt: null
@@ -780,17 +769,6 @@ window.Storage = (function () {
             assessedAt: '2026-05-15', assessorId: teacherWang.id
           },
           workPreferences: ['绘画', '手工制作', '图书整理']
-        },
-        relationshipMap: {
-          relationships: [
-            { name: '小花爸爸', relationType: 'parent', importance: 'primary', notes: '主要照顾者' },
-            { name: '小花妈妈', relationType: 'parent', importance: 'primary', notes: '负责日常起居' },
-            { name: '小花保姆', relationType: 'caregiver', importance: 'secondary', notes: '工作日白天照护' },
-            { name: '王老师', relationType: 'teacher', importance: 'secondary', notes: '阳光家园特教老师' }
-          ],
-          peerInteractions: [
-            { name: '小明', relationType: 'peer', notes: '在同一机构，经常一起活动' }
-          ]
         }
       },
       createdAt: now, updatedAt: now, deceasedAt: null
@@ -802,7 +780,7 @@ window.Storage = (function () {
     set(KEYS.PROFILES, profiles);
 
     // ==================== 创建授权 ====================
-    var fullScope = ['read:full', 'write:communicationGuide', 'write:emotionBehavior', 'write:careMedical', 'write:workSupport', 'write:relationshipMap', 'manage:grants'];
+    var fullScope = ['read:full', 'write:communicationGuide', 'write:emotionBehavior', 'write:careMedical', 'write:workSupport', 'manage:grants'];
     var readScope = ['read:full', 'write:communicationGuide', 'write:emotionBehavior', 'write:careMedical'];
 
     var grants = [
@@ -886,7 +864,6 @@ window.Storage = (function () {
     mingRecs.push(r(mingId, mingYouth.id, 'youth', 'emotionBehavior', '今天很好，和小花一起玩', ['心情', '社交'], 14));
     mingRecs.push(r(mingId, mingYouth.id, 'youth', 'workSupport', '想去超市工作，我喜欢整理东西', ['愿望', '工作'], 9));
     mingRecs.push(r(mingId, mingYouth.id, 'youth', 'emotionBehavior', '今天游泳很开心，学会了换气', ['心情', '成就'], 3));
-    mingRecs.push(r(mingId, mingYouth.id, 'youth', 'relationshipMap', '小花是我最好的朋友', ['关系', '朋友'], 7));
     // 近3天记录（确保日报有内容）
     mingRecs.push(r(mingId, mingDad.id, 'parent', 'emotionBehavior', '今天心情不错，早餐吃了喜欢的鸡蛋饼，还主动帮忙收拾了碗筷', ['积极', '主动'], 2));
     mingRecs.push(r(mingId, mingDad.id, 'parent', 'careMedical', '今天按时吃了钙片，游泳课后精神很好，晚饭全吃完了', ['用药', '饮食'], 2));
@@ -1213,7 +1190,7 @@ window.Storage = (function () {
 
   /**
    * 获取指定心青年某天的任务列表
-   * 包含：当天生成的 routine 实例 + 当天到期的 adhoc + 未完成的 handover
+   * 包含：当天生成的 routine 实例 + 当天到期的 adhoc
    * @param {string} youthId
    * @param {string} date - YYYY-MM-DD，默认今天
    */
@@ -1230,16 +1207,6 @@ window.Storage = (function () {
       if (t.taskType === 'adhoc' && !t.parentTaskId) {
         var dueDate = (t.dueTime || '').substring(0, 10);
         return dueDate === date;
-      }
-      // handover 任务：未完成的显示（创建于当天或之前）；已完成的仅今天完成/创建的显示
-      if (t.taskType === 'handover' && !t.parentTaskId) {
-        var createdDate = (t.createdAt || '').substring(0, 10);
-        if (t.status !== 'done') {
-          return createdDate <= date;
-        }
-        // 已完成：今天完成的 或 今天创建的（用于 Kanban 已完成列展示）
-        var completedDate = t.completedAt ? (t.completedAt || '').substring(0, 10) : null;
-        return completedDate === date || createdDate === date;
       }
       return false;
     });

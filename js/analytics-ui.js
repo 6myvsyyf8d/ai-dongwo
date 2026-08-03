@@ -39,7 +39,7 @@ window.AnalyticsUI = (function () {
   // ========== 首页健康速报卡片 ==========
 
   /**
-   * 渲染首页"今日健康速报"卡片 HTML
+   * 渲染首页"今日活动亮点"卡片 HTML
    * @param {object} youth - 心青年档案
    * @returns {string} HTML 字符串
    */
@@ -48,105 +48,32 @@ window.AnalyticsUI = (function () {
 
     var today = Utils.formatDate(new Date());
     var summary = AnalyticsEngine.dailySummary(youth.id, today);
-    var modules = Modules.MODULES.filter(function (m) { return m.key !== 'relationshipMap'; });
 
-    // 模块状态行
-    var statusRows = '';
-    for (var i = 0; i < modules.length; i++) {
-      var key = modules[i].key;
-      var status = summary.moduleStatuses[key];
-      if (!status) continue;
-
-      var statusClass = '';
-      var statusText = '';
-      if (status.hasRecords) {
-        if (status.hasNegative) {
-          statusClass = 'health-status-warning';
-          statusText = '⚠️ 注意';
-        } else {
-          statusClass = 'health-status-normal';
-          statusText = '正常';
-        }
-      } else {
-        statusClass = 'health-status-empty';
-        statusText = '无记录';
+    // 今日活动亮点标签（pill 形状）
+    var tagsHtml = '';
+    if (summary.highlights && summary.highlights.highlights && summary.highlights.highlights.length > 0) {
+      var hl = summary.highlights;
+      for (var hi = 0; hi < hl.highlights.length; hi++) {
+        tagsHtml += '<span class="activity-tag">' +
+          '<span class="activity-tag-icon">' + hl.highlights[hi].icon + '</span>' +
+          '<span class="activity-tag-text">' + Utils.escapeHtml(hl.highlights[hi].text) + '</span>' +
+        '</span>';
       }
-
-      statusRows += '<div class="health-module-item ' + statusClass + '">' +
-        '<span class="health-module-icon">' + modules[i].icon + '</span>' +
-        '<span class="health-module-label">' + modules[i].shortLabel + '</span>' +
-        '<span class="health-module-status">' + statusText + '</span>' +
-      '</div>';
+    } else {
+      // 无亮点时显示引导标签
+      tagsHtml = '<span class="activity-tag activity-tag-empty">' +
+        '<span class="activity-tag-icon">📝</span>' +
+        '<span class="activity-tag-text">今天还没有记录，去记录一下吧</span>' +
+      '</span>';
     }
 
-    // 用药状态卡片
-    var medHtml = '';
-    if (summary.medicationStatus && summary.medicationStatus.hasMedication) {
-      // 按优先级判断：拒绝 > 已服 > 有记录
-      var hasRefused = false, hasTaken = false, hasRecorded = false;
-      for (var mi = 0; mi < summary.medicationStatus.details.length; mi++) {
-        var s = summary.medicationStatus.details[mi].status;
-        if (s === 'refused') hasRefused = true;
-        else if (s === 'taken') hasTaken = true;
-        else if (s === 'recorded') hasRecorded = true;
-      }
-      var medStatusClass = 'health-med-normal';
-      var medIcon = '💊';
-      var medText = '有用药记录';
-      if (hasRefused) {
-        medStatusClass = 'health-med-warn';
-        medIcon = '⚠️';
-        medText = '拒绝服药';
-      } else if (hasTaken) {
-        medStatusClass = 'health-med-ok';
-        medIcon = '✅';
-        medText = '已按时服药';
-      } else if (hasRecorded) {
-        medStatusClass = 'health-med-normal';
-        medIcon = '💊';
-        medText = '有用药记录';
-      }
-      medHtml = '<div class="health-med-card ' + medStatusClass + '">' +
-        '<span class="health-med-icon">' + medIcon + '</span>' +
-        '<span class="health-med-text">' + medText + '</span>' +
-      '</div>';
-    } else {
-      medHtml = '<div class="health-med-card health-med-none">' +
-        '<span class="health-med-icon">💊</span>' +
-        '<span class="health-med-text">今日无用药记录</span>' +
-      '</div>';
-    }
-
-    // 关系地图摘要卡片
-    var relStatus = summary.moduleStatuses.relationshipMap;
-    var relModule = youth.modules.relationshipMap || {};
-    var relCount = (relModule.relationships && relModule.relationships.length) || 0;
-    var todayRelCount = relStatus ? relStatus.count : 0;
-    var relHtml = '<div class="health-rel-card">' +
-      '<span class="health-rel-icon">🗺️</span>' +
-      '<div class="health-rel-info">' +
-        '<span class="health-rel-text">关系地图</span>' +
-        '<span class="health-rel-meta">' + relCount + ' 个关系' + (todayRelCount > 0 ? ' · 今日 ' + todayRelCount + ' 次互动' : '') + '</span>' +
-      '</div>' +
-      '<span class="health-rel-status ' + (todayRelCount > 0 ? 'health-rel-active' : 'health-rel-empty') + '">' +
-        (todayRelCount > 0 ? '有互动' : '无记录') +
-      '</span>' +
-    '</div>';
-
-    // 异常预警行
-    var alertHtml = '';
-    if (summary.alerts.length > 0) {
-      var alertTexts = summary.alerts.map(function (a) { return '⚠️ ' + a.text; });
-      alertHtml = '<div class="health-alert-row health-alert-warning">' +
-        '<span class="health-alert-text" id="health-alert-text">' + Utils.escapeHtml(alertTexts[0]) + '</span>' +
-        (alertTexts.length > 1 ? '<span class="health-alert-dots">' + alertTexts.map(function (_, i) {
-          return '<span class="health-alert-dot' + (i === 0 ? ' active' : '') + '"></span>';
-        }).join('') + '</span>' : '') +
-      '</div>';
-    } else {
-      alertHtml = '<div class="health-alert-row health-alert-clear">' +
-        '<span class="health-alert-text">✅ 暂无异常预警</span>' +
-      '</div>';
+    // 鼓励语
+    var encouragementHtml = '';
+    if (summary.highlights && summary.highlights.encouragement) {
+      encouragementHtml = '<div class="activity-encouragement">' +
+        Utils.escapeHtml(summary.highlights.encouragement) + ' 💪</div>';
+    } else if (summary.recordCount === 0) {
+      encouragementHtml = '<div class="activity-encouragement">每天记录一点点，见证成长每一步 🌱</div>';
     }
 
     // 底部统计
@@ -160,13 +87,11 @@ window.AnalyticsUI = (function () {
 
     return '<div class="health-card" data-youth-id="' + youth.id + '" id="health-card">' +
       '<div class="health-card-header">' +
-        '<span class="health-card-title">📊 今日健康速报</span>' +
+        '<span class="health-card-title">🌟 今日活动亮点</span>' +
         '<span class="health-card-date">' + _formatDateChinese(today) + '</span>' +
       '</div>' +
-      '<div class="health-module-grid">' + statusRows + '</div>' +
-      medHtml +
-      relHtml +
-      alertHtml +
+      '<div class="activity-tags">' + tagsHtml + '</div>' +
+      encouragementHtml +
       footerHtml +
     '</div>';
   }
@@ -817,17 +742,15 @@ window.AnalyticsUI = (function () {
 
     var moduleLabels = {
       emotionBehavior: '情绪行为',
-      communicationGuide: '沟通说明',
+      communicationGuide: '沟通与表达',
       careMedical: '照护医疗',
-      workSupport: '工作生活',
-      relationshipMap: '关系地图'
+      workSupport: '工作生活'
     };
     var moduleColors = {
       emotionBehavior: '#D4877B',
       communicationGuide: '#9B85B8',
       careMedical: '#A8C9A0',
-      workSupport: '#D4A85A',
-      relationshipMap: '#B5A8D4'
+      workSupport: '#D4A85A'
     };
 
     var counts = {};
@@ -901,19 +824,17 @@ window.AnalyticsUI = (function () {
       emotionBehavior: '情绪管理',
       communicationGuide: '沟通表达',
       careMedical: '生活自理',
-      workSupport: '工作能力',
-      relationshipMap: '社交关系'
+      workSupport: '工作能力'
     };
     var moduleColors = {
       emotionBehavior: '#D4877B',
       communicationGuide: '#9B85B8',
       careMedical: '#A8C9A0',
-      workSupport: '#D4A85A',
-      relationshipMap: '#B5A8D4'
+      workSupport: '#D4A85A'
     };
 
     // 计算每个模块的能力分（正向标签越多，分越高，范围0-100）
-    var moduleKeys = ['emotionBehavior', 'communicationGuide', 'careMedical', 'workSupport', 'relationshipMap'];
+    var moduleKeys = ['emotionBehavior', 'communicationGuide', 'careMedical', 'workSupport'];
     var scores = [];
     var labels = [];
 
@@ -1024,7 +945,7 @@ window.AnalyticsUI = (function () {
 
     if (weekRecords.length === 0) return '';
 
-    var modules = Modules.MODULES.filter(function(m) { return m.key !== 'relationshipMap'; });
+    var modules = Modules.MODULES;
     var moduleIcons = {
       emotionBehavior: '😊',
       communicationGuide: '💬',
@@ -1451,22 +1372,19 @@ window.AnalyticsUI = (function () {
       emotionBehavior: '#D4877B',
       communicationGuide: '#9B85B8',
       careMedical: '#A8C9A0',
-      workSupport: '#D4A85A',
-      relationshipMap: '#B5A8D4'
+      workSupport: '#D4A85A'
     };
     var moduleIcons = {
       emotionBehavior: '😊',
       communicationGuide: '💬',
       careMedical: '💊',
-      workSupport: '💼',
-      relationshipMap: '🗺️'
+      workSupport: '💼'
     };
     var moduleLabels = {
       emotionBehavior: '情绪行为',
-      communicationGuide: '沟通说明',
+      communicationGuide: '沟通与表达',
       careMedical: '照护医疗',
-      workSupport: '工作生活',
-      relationshipMap: '关系地图'
+      workSupport: '工作生活'
     };
 
     var html = '<div class="ios-card-group">';
@@ -1506,7 +1424,7 @@ window.AnalyticsUI = (function () {
 
     // === 模块概览卡片（2列网格 + 迷你sparkline） ===
     html += '<div class="timeline-module-grid">';
-    var moduleKeys = ['communicationGuide', 'careMedical', 'workSupport', 'relationshipMap', 'emotionBehavior'];
+    var moduleKeys = ['communicationGuide', 'careMedical', 'workSupport', 'emotionBehavior'];
     for (var mk = 0; mk < moduleKeys.length; mk++) {
       var mKey = moduleKeys[mk];
       var mRecords = records.filter(function(r) { return r.module === mKey; });
@@ -1576,10 +1494,9 @@ window.AnalyticsUI = (function () {
     if (records.length === 0) return '';
     var moduleLabels = {
       emotionBehavior: '情绪行为',
-      communicationGuide: '沟通说明',
+      communicationGuide: '沟通与表达',
       careMedical: '照护医疗',
-      workSupport: '工作生活',
-      relationshipMap: '关系地图'
+      workSupport: '工作生活'
     };
     var html = '<div class="timeline-strip-container">' +
       '<div class="timeline-strip-track">';
@@ -1813,10 +1730,9 @@ window.AnalyticsUI = (function () {
     if (!maxKey) return null;
     var labelMap = {
       emotionBehavior: '情绪行为',
-      communicationGuide: '沟通说明',
+      communicationGuide: '沟通与表达',
       careMedical: '照护医疗',
-      workSupport: '工作生活',
-      relationshipMap: '关系地图'
+      workSupport: '工作生活'
     };
     return { key: maxKey, label: labelMap[maxKey] || maxKey, count: maxCount };
   }
@@ -1963,7 +1879,7 @@ window.AnalyticsUI = (function () {
         if (ratio > maxRatio) { maxRatio = ratio; maxModule = keys[i]; }
       }
       if (maxRatio > 0.6 && keys.length >= 3) {
-        var labelMap = { emotionBehavior: '情绪行为', communicationGuide: '沟通说明', careMedical: '照护医疗', workSupport: '工作生活', relationshipMap: '关系地图' };
+        var labelMap = { emotionBehavior: '情绪行为', communicationGuide: '沟通与表达', careMedical: '照护医疗', workSupport: '工作生活' };
         recommendations.push('「' + (labelMap[maxModule] || maxModule) + '」模块记录占比过高（' + Math.round(maxRatio * 100) + '%），建议均衡关注其他模块');
       }
     }
@@ -2366,8 +2282,7 @@ window.AnalyticsUI = (function () {
         communicationGuide: 'rgba(175, 82, 222, 0.1)',
         emotionBehavior: 'rgba(255, 59, 48, 0.1)',
         careMedical: 'rgba(52, 199, 89, 0.1)',
-        workSupport: 'rgba(255, 159, 10, 0.1)',
-        relationshipMap: 'rgba(88, 86, 214, 0.1)'
+        workSupport: 'rgba(255, 159, 10, 0.1)'
       };
       var iconBg = iconBgColors[r.module] || 'rgba(142, 142, 147, 0.1)';
 

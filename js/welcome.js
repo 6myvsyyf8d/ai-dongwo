@@ -182,8 +182,7 @@ window.Welcome = (function () {
         communicationGuide: { preferredMethods: [], expressionDifficulties: null, specialHabits: [], sensoryPreferences: null },
         emotionBehavior: { behaviorRedLines: [], emotionTrend: [], interventionHistory: [] },
         careMedical: { allergies: [], medications: [], medicalHistory: [], careNotes: [], dailyRoutine: null },
-        workSupport: { ispPlans: [], capabilityAssessment: null, workPreferences: [], favoriteActivities: [], favoritePlaces: [], futureWishes: [] },
-        relationshipMap: { relationships: [], peerInteractions: [] }
+        workSupport: { ispPlans: [], capabilityAssessment: null, workPreferences: [], favoriteActivities: [], favoritePlaces: [], futureWishes: [] }
       },
       createdAt: now,
       updatedAt: now,

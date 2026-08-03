@@ -41,40 +41,55 @@ window.ArchiveCode = (function () {
    * 渲染已有档案码
    */
   function _renderExistingCode(container, youth, code) {
+    var isExpired = _isCodeExpired(code);
+
+    var statusHtml = isExpired
+      ? '<span class="badge badge-danger">已过期</span>'
+      : '<span class="badge badge-success">有效</span>';
+
+    var expireInfo = '';
+    if (code.expiresAt) {
+      expireInfo = '<div class="data-item"><div class="data-label">有效期至</div><div class="data-value">' + Utils.formatDisplay(code.expiresAt) + '</div></div>';
+    }
+
+    var qrHtml = '';
+    if (isExpired) {
+      qrHtml = '<div class="archive-code-expired-hint">此档案码已过期，请重新生成</div>';
+    } else {
+      qrHtml = '<div class="archive-code-qr" id="qr-container"></div>';
+    }
+
     container.innerHTML =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-icon" id="btn-archive-close" style="width:32px;height:32px;padding:0;border:none;background:transparent;cursor:pointer;font-size:18px;color:var(--color-text-secondary);">✕</button>' +
+        '<button class="btn-back" id="btn-archive-close">‹</button>' +
         '<span class="page-title">档案码</span>' +
         '<span></span>' +
       '</div>' +
       '<div class="page-content">' +
         '<div class="archive-code-display">' +
-          '<div class="archive-code-qr" id="qr-container"></div>' +
+          qrHtml +
           '<div class="archive-code-title">' + Utils.escapeHtml(youth.name) + ' 的档案码</div>' +
           '<div class="archive-code-subtitle">生成时间：' + Utils.formatDisplay(code.generatedAt) + '</div>' +
           '<div class="archive-code-actions">' +
-            '<button class="btn btn-primary" id="btn-print">🖨️ 打印卡片</button>' +
             '<button class="btn btn-outline" id="btn-regenerate">🔄 重新生成</button>' +
           '</div>' +
           '<div class="card" style="margin-top:24px;text-align:left;">' +
             '<div class="card-title">档案码信息</div>' +
-            '<div class="data-item"><div class="data-label">状态</div><div class="data-value"><span class="badge badge-success">有效</span></div></div>' +
+            '<div class="data-item"><div class="data-label">状态</div><div class="data-value">' + statusHtml + '</div></div>' +
             '<div class="data-item"><div class="data-label">生成时间</div><div class="data-value">' + Utils.formatDisplay(code.generatedAt) + '</div></div>' +
-            '<div class="data-item"><div class="data-label">档案ID</div><div class="data-value" style="font-size:12px;word-break:break-all;">' + code.youthId + '</div></div>' +
+            expireInfo +
           '</div>' +
         '</div>' +
       '</div>';
 
-    // 生成二维码
-    _generateQR(code.codeUrl, document.getElementById('qr-container'));
+    // 生成二维码（仅未过期时）
+    if (!isExpired) {
+      _generateQR(code.codeUrl, document.getElementById('qr-container'));
+    }
 
     // 绑定事件
     document.getElementById('btn-archive-close').addEventListener('click', function () {
       history.back();
-    });
-
-    document.getElementById('btn-print').addEventListener('click', function () {
-      _printCard(youth, code);
     });
 
     document.getElementById('btn-regenerate').addEventListener('click', function () {
@@ -90,7 +105,7 @@ window.ArchiveCode = (function () {
   function _renderGeneratePrompt(container, youth) {
     container.innerHTML =
       '<div class="page-header">' +
-        '<button class="btn btn-sm btn-icon" id="btn-archive-close" style="width:32px;height:32px;padding:0;border:none;background:transparent;cursor:pointer;font-size:18px;color:var(--color-text-secondary);">✕</button>' +
+        '<button class="btn-back" id="btn-archive-close">‹</button>' +
         '<span class="page-title">档案码</span>' +
         '<span></span>' +
       '</div>' +
@@ -123,12 +138,16 @@ window.ArchiveCode = (function () {
     var origin = window.location.origin + window.location.pathname;
     var codeUrl = origin + '#archive/' + encodeURIComponent(youth.id) + '?token=' + token;
 
+    var now = new Date();
+    var expiresAt = new Date(now.getTime() + 60 * 60 * 1000); // 1 小时后过期
+
     var code = {
       id: Utils.generateUUID(),
       youthId: youth.id,
       codeUrl: codeUrl,
       qrImageData: null,
-      generatedAt: Utils.formatDateTime(),
+      generatedAt: Utils.formatDateTime(now),
+      expiresAt: Utils.formatDateTime(expiresAt),
       status: 'active',
       revokedAt: null,
       hmacSecret: secret
@@ -227,6 +246,25 @@ window.ArchiveCode = (function () {
   }
 
   /**
+   * 检查档案码是否已过期
+   * @param {object} code - 档案码对象
+   * @returns {boolean}
+   */
+  function _isCodeExpired(code) {
+    if (!code) return true;
+    // 兼容旧数据：如果没有 expiresAt，用 generatedAt + 1 小时推算
+    var expireTime;
+    if (code.expiresAt) {
+      expireTime = new Date(code.expiresAt).getTime();
+    } else if (code.generatedAt) {
+      expireTime = new Date(code.generatedAt).getTime() + 60 * 60 * 1000;
+    } else {
+      return true;
+    }
+    return Date.now() > expireTime;
+  }
+
+  /**
    * 解析档案码 URL
    * 格式: {origin}#archive/{youthId}?token={HMAC}
    */
@@ -259,6 +297,7 @@ window.ArchiveCode = (function () {
 
   return {
     renderArchiveCode: renderArchiveCode,
-    parseArchiveUrl: parseArchiveUrl
+    parseArchiveUrl: parseArchiveUrl,
+    isCodeExpired: _isCodeExpired
   };
 })();

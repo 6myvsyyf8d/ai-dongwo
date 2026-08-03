@@ -100,13 +100,6 @@
           followUp: function (name) { return '有什么特别的事想记录下来吗？'; }
         },
         {
-          id: 'social',
-          text: function (name) { return '今天和谁互动了吗？'; },
-          module: 'relationshipMap',
-          skipText: '跳过社交',
-          followUp: function (name) { return '互动得怎么样？'; }
-        },
-        {
           id: 'medication_night',
           text: function (name) { return '晚上的药吃了吗？'; },
           module: 'careMedical',
@@ -189,8 +182,7 @@
       { id: 'mood_bad', label: '情绪差', module: 'emotionBehavior', text: '情绪不太好，有点烦躁' },
       { id: 'sleep_good', label: '睡得好', module: 'careMedical', text: '昨晚睡得不错' },
       { id: 'sleep_bad', label: '睡得差', module: 'careMedical', text: '昨晚没睡好' },
-      { id: 'med_ok', label: '已服药', module: 'careMedical', text: '今天按时吃药了' },
-      { id: 'social_ok', label: '有社交', module: 'relationshipMap', text: '今天有社交互动' }
+      { id: 'med_ok', label: '已服药', module: 'careMedical', text: '今天按时吃药了' }
     ];
   }
 

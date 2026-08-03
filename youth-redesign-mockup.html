@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>AI懂我 · 心青年 — 温暖治愈风格 Redesign Mockup</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Noto Sans SC', 'PingFang SC', 'Hiragino Sans GB', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #fff;
+      -webkit-font-smoothing: antialiased;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+      -webkit-user-select: none;
+      overflow-x: hidden;
+    }
+    input, textarea { user-select: text; -webkit-user-select: text; }
+
+    /* — 全局背景：奶油色径向渐变 — */
+    .bg-cream {
+      background:
+        radial-gradient(ellipse 60% 50% at 50% 30%, #fffef9 0%, #fff8ed 40%, #fef3e0 100%);
+    }
+
+    /* — Sparkle 闪烁动画 — */
+    @keyframes sparkle {
+      0%, 100% { opacity: 0.3; transform: scale(0.8); }
+      50% { opacity: 1; transform: scale(1.2); }
+    }
+    .sparkle { animation: sparkle 2s ease-in-out infinite; }
+    .sparkle:nth-child(2n) { animation-delay: 0.5s; }
+    .sparkle:nth-child(3n) { animation-delay: 1s; }
+    .sparkle:nth-child(5n) { animation-delay: 1.5s; }
+
+    /* — 浮动动画（饼干等） — */
+    @keyframes float {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+    .float { animation: float 3s ease-in-out infinite; }
+
+    /* — 渐变文字 — */
+    .text-gradient-amber {
+      background: linear-gradient(135deg, #b45309 0%, #d97706 40%, #f59e0b 70%, #fbbf24 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    /* — 胶囊按钮 — */
+    .btn-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 12px 28px;
+      border-radius: 9999px;
+      font-size: 15px;
+      font-weight: 600;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      transition: all 0.2s ease;
+      letter-spacing: 0.01em;
+    }
+    .btn-pill:active { transform: scale(0.96); }
+
+    .btn-pill-primary {
+      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+      color: #fff;
+      box-shadow: 0 0 0 1px rgba(245,158,11,0.3), 0 4px 16px rgba(245,158,11,0.25);
+    }
+    .btn-pill-primary:hover {
+      box-shadow: 0 0 0 1px rgba(245,158,11,0.5), 0 6px 24px rgba(245,158,11,0.35);
+    }
+
+    .btn-pill-ghost {
+      background: rgba(245,158,11,0.06);
+      color: #b45309;
+      border: 1px solid rgba(245,158,11,0.2);
+    }
+    .btn-pill-ghost:hover {
+      background: rgba(245,158,11,0.12);
+      border-color: rgba(245,158,11,0.35);
+    }
+
+    /* — 卡片 — */
+    .card-warm {
+      background: rgba(255,255,255,0.85);
+      border-radius: 20px;
+      padding: 20px;
+      border: 1px solid rgba(245,158,11,0.12);
+      box-shadow:
+        0 0 0 1px rgba(245,158,11,0.06),
+        0 2px 16px rgba(180,83,9,0.06),
+        0 8px 32px rgba(180,83,9,0.04);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+
+    /* — 数字球 — */
+    .number-ball {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 40%, #d97706 100%);
+      color: #fff;
+      font-weight: 700;
+      font-size: 17px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(245,158,11,0.3), inset 0 1px 0 rgba(255,255,255,0.3);
+    }
+
+    /* — 聊天气泡 — */
+    .chat-bubble-ai {
+      align-self: flex-start;
+      background: rgba(255,255,255,0.9);
+      color: #1a1a1a;
+      border-radius: 20px 20px 20px 6px;
+      padding: 12px 16px;
+      max-width: 78%;
+      font-size: 15px;
+      line-height: 1.55;
+      box-shadow: 0 1px 4px rgba(180,83,9,0.06);
+      border: 1px solid rgba(245,158,11,0.08);
+    }
+    .chat-bubble-user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+      color: #fff;
+      border-radius: 20px 20px 6px 20px;
+      padding: 12px 16px;
+      max-width: 78%;
+      font-size: 15px;
+      line-height: 1.55;
+      box-shadow: 0 2px 12px rgba(245,158,11,0.2);
+    }
+
+    /* — 输入框 — */
+    .input-warm {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid rgba(245,158,11,0.15);
+      border-radius: 20px;
+      background: rgba(255,255,255,0.7);
+      font-size: 15px;
+      font-family: inherit;
+      color: #1a1a1a;
+      transition: all 0.2s;
+      outline: none;
+    }
+    .input-warm:focus {
+      border-color: #f59e0b;
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 0 0 3px rgba(245,158,11,0.1);
+    }
+    .input-warm::placeholder {
+      color: #c4a882;
+    }
+
+    /* — 底部导航栏 — */
+    .bottom-nav-warm {
+      position: fixed;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 200;
+      background: rgba(255,255,255,0.88);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(245,158,11,0.1);
+      border-radius: 24px;
+      display: flex;
+      justify-content: space-around;
+      align-items: center;
+      padding: 6px 4px;
+      width: calc(100% - 32px);
+      max-width: 420px;
+      box-shadow: 0 0 0 1px rgba(245,158,11,0.04), 0 4px 24px rgba(180,83,9,0.08);
+    }
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      padding: 6px 16px;
+      cursor: pointer;
+      border-radius: 12px;
+      transition: all 0.2s;
+      color: #c4a882;
+      font-size: 10px;
+      font-weight: 500;
+      border: none;
+      background: none;
+      font-family: inherit;
+    }
+    .nav-item.active {
+      color: #b45309;
+      background: rgba(245,158,11,0.08);
+    }
+    .nav-item .nav-icon { font-size: 22px; line-height: 1; }
+
+    /* — 页面切换 tab — */
+    .page-tab {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      border: 1px solid rgba(245,158,11,0.15);
+      background: transparent;
+      color: #b45309;
+      transition: all 0.2s;
+    }
+    .page-tab.active {
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      color: #fff;
+      border-color: transparent;
+      box-shadow: 0 2px 8px rgba(245,158,11,0.25);
+    }
+
+    /* — 页面容器 — */
+    .mockup-page {
+      display: none;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding-bottom: 100px;
+    }
+    .mockup-page.active { display: flex; flex-direction: column; }
+
+    /* — 顶部导航 — */
+    .top-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid rgba(245,158,11,0.08);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+    .top-bar-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #78350f;
+    }
+
+    /* — 滚动条隐藏 — */
+    .hide-scrollbar::-webkit-scrollbar { display: none; }
+    .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    /* — 页面切换器 — */
+    .page-switcher {
+      position: fixed;
+      top: 12px;
+      right: 12px;
+      z-index: 500;
+      display: flex;
+      gap: 6px;
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 9999px;
+      padding: 4px;
+      border: 1px solid rgba(245,158,11,0.15);
+      box-shadow: 0 2px 12px rgba(180,83,9,0.08);
+    }
+    .switcher-btn {
+      padding: 6px 14px;
+      border-radius: 9999px;
+      font-size: 12px;
+      font-weight: 500;
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: #b45309;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .switcher-btn.active {
+      background: linear-gradient(135deg, #f59e0b, #ea580c);
+      color: #fff;
+      box-shadow: 0 2px 8px rgba(245,158,11,0.2);
+    }
+  </style>
+</head>
+<body class="bg-cream">
+
+  <!-- 页面切换器 -->
+  <div class="page-switcher">
+    <button class="switcher-btn active" onclick="switchPage('chat')">💬 对话</button>
+    <button class="switcher-btn" onclick="switchPage('profile')">📋 档案</button>
+    <button class="switcher-btn" onclick="switchPage('login')">🔑 登录</button>
+  </div>
+
+  <!-- ==================== 页面 1：心青年对话页 ==================== -->
+  <div id="page-chat" class="mockup-page active">
+    <!-- 顶部 -->
+    <div class="top-bar">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:20px;">🌻</span>
+        <span class="top-bar-title">嗨，小明</span>
+      </div>
+      <span style="font-size:12px;color:#c4a882;">今天也是美好的一天 ✨</span>
+    </div>
+
+    <!-- 对话区 -->
+    <div class="hide-scrollbar" style="flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px;">
+
+      <!-- AI 欢迎 -->
+      <div class="chat-bubble-ai">
+        你好呀，小明！我是你的 AI 伙伴 🌻 今天过得怎么样呀？
+      </div>
+
+      <!-- 用户回复 -->
+      <div class="chat-bubble-user">
+        今天心情还不错，刚刚画了一幅画 🎨
+      </div>
+
+      <!-- AI 回复 -->
+      <div class="chat-bubble-ai">
+        哇，画了一幅画！太棒了！画的是什么呀？我很想看看呢 😊
+      </div>
+
+      <!-- 用户回复 -->
+      <div class="chat-bubble-user">
+        画了一只小猫，还有一棵大树 🌳
+      </div>
+
+      <!-- AI 任务卡片 -->
+      <div style="align-self:flex-start;max-width:82%;">
+        <div class="card-warm" style="padding:16px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <span style="font-size:24px;">📋</span>
+            <div>
+              <div style="font-size:14px;font-weight:600;color:#78350f;">任务提醒</div>
+              <div style="font-size:12px;color:#b45309;">记得按时吃药哦 💊</div>
+            </div>
+          </div>
+          <button class="btn-pill btn-pill-primary" style="width:100%;padding:8px;font-size:13px;margin-top:8px;">
+            ✓ 完成任务
+          </button>
+        </div>
+      </div>
+
+      <!-- AI 回复 -->
+      <div class="chat-bubble-ai">
+        你画得真好！小猫和大树，听起来就很有画面感呢。对了，今天心情好，要不要给心情打个分？ 🌟
+      </div>
+
+      <!-- 心情选择卡片 -->
+      <div style="align-self:flex-start;max-width:85%;">
+        <div class="card-warm" style="padding:14px;">
+          <div style="font-size:13px;color:#78350f;margin-bottom:10px;font-weight:500;">今天心情怎么样？</div>
+          <div style="display:flex;gap:10px;overflow-x:auto;" class="hide-scrollbar">
+            <button style="padding:8px 14px;border-radius:9999px;font-size:20px;border:1.5px solid rgba(245,158,11,0.2);background:rgba(255,255,255,0.7);cursor:pointer;transition:all 0.2s;font-family:inherit;">😄</button>
+            <button style="padding:8px 14px;border-radius:9999px;font-size:20px;border:1.5px solid rgba(245,158,11,0.2);background:rgba(255,255,255,0.7);cursor:pointer;transition:all 0.2s;font-family:inherit;">😊</button>
+            <button style="padding:8px 14px;border-radius:9999px;font-size:20px;border:1.5px solid rgba(245,158,11,0.2);background:rgba(255,255,255,0.2);cursor:pointer;transition:all 0.2s;font-family:inherit;box-shadow:0 0 0 2px #f59e0b,0 0 12px rgba(245,158,11,0.2);">😐</button>
+            <button style="padding:8px 14px;border-radius:9999px;font-size:20px;border:1.5px solid rgba(245,158,11,0.2);background:rgba(255,255,255,0.7);cursor:pointer;transition:all 0.2s;font-family:inherit;">😔</button>
+            <button style="padding:8px 14px;border-radius:9999px;font-size:20px;border:1.5px solid rgba(245,158,11,0.2);background:rgba(255,255,255,0.7);cursor:pointer;transition:all 0.2s;font-family:inherit;">😢</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Sparkle 装饰 -->
+      <div style="text-align:center;padding:8px 0;">
+        <span class="sparkle" style="font-size:14px;margin:0 4px;">✨</span>
+        <span class="sparkle" style="font-size:10px;margin:0 4px;animation-delay:0.7s;">⭐</span>
+        <span class="sparkle" style="font-size:14px;margin:0 4px;animation-delay:0.3s;">✨</span>
+      </div>
+    </div>
+
+    <!-- 输入栏 -->
+    <div style="padding:10px 16px;display:flex;gap:8px;align-items:center;background:rgba(255,255,255,0.6);border-top:1px solid rgba(245,158,11,0.08);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);">
+      <button style="width:40px;height:40px;border-radius:50%;border:1px solid rgba(245,158,11,0.15);background:rgba(255,255,255,0.7);font-size:18px;cursor:pointer;flex-shrink:0;font-family:inherit;">🎤</button>
+      <input type="text" class="input-warm" placeholder="输入想说的话…" style="flex:1;padding:12px 16px;">
+      <button class="btn-pill btn-pill-primary" style="padding:10px 20px;font-size:14px;flex-shrink:0;">发送</button>
+    </div>
+
+    <!-- 底部导航 -->
+    <div class="bottom-nav-warm">
+      <button class="nav-item active"><span class="nav-icon">🏠</span>首页</button>
+      <button class="nav-item"><span class="nav-icon">📝</span>记录</button>
+      <button class="nav-item"><span class="nav-icon">📋</span>档案</button>
+      <button class="nav-item"><span class="nav-icon">📊</span>分析</button>
+      <button class="nav-item"><span class="nav-icon">⚙️</span>管理</button>
+    </div>
+  </div>
+
+  <!-- ==================== 页面 2：心青年档案页 ==================== -->
+  <div id="page-profile" class="mockup-page">
+    <div class="top-bar">
+      <button style="background:none;border:none;font-size:22px;cursor:pointer;color:#78350f;padding:0;font-family:inherit;">‹</button>
+      <span class="top-bar-title">我的档案</span>
+      <span style="font-size:12px;color:#c4a882;">🌻</span>
+    </div>
+
+    <div style="flex:1;overflow-y:auto;padding:16px;" class="hide-scrollbar">
+
+      <!-- 头部卡片：头像 + 姓名 -->
+      <div class="card-warm" style="text-align:center;padding:28px 20px;margin-bottom:16px;">
+        <div class="float" style="font-size:56px;margin-bottom:8px;">🌻</div>
+        <div style="font-size:22px;font-weight:700;color:#78350f;letter-spacing:2px;">小明</div>
+        <div style="font-size:13px;color:#b45309;margin-top:4px;">男 · 16岁 · 使用中</div>
+        <div style="display:flex;gap:6px;justify-content:center;margin-top:12px;flex-wrap:wrap;">
+          <span style="font-size:11px;padding:4px 12px;border-radius:9999px;background:rgba(245,158,11,0.08);color:#b45309;border:1px solid rgba(245,158,11,0.15);">🎨 喜欢画画</span>
+          <span style="font-size:11px;padding:4px 12px;border-radius:9999px;background:rgba(245,158,11,0.08);color:#b45309;border:1px solid rgba(245,158,11,0.15);">🎵 爱听音乐</span>
+          <span style="font-size:11px;padding:4px 12px;border-radius:9999px;background:rgba(245,158,11,0.08);color:#b45309;border:1px solid rgba(245,158,11,0.15);">🐱 喜欢小动物</span>
+        </div>
+        <!-- Sparkle -->
+        <div style="margin-top:10px;">
+          <span class="sparkle">✨</span>
+          <span class="sparkle" style="margin:0 6px;font-size:12px;">⭐</span>
+          <span class="sparkle">✨</span>
+        </div>
+      </div>
+
+      <!-- 基本信息卡片 -->
+      <div class="card-warm" style="margin-bottom:12px;">
+        <div style="font-size:12px;color:#c4a882;font-weight:600;letter-spacing:0.06em;margin-bottom:12px;text-transform:uppercase;">📋 基本信息</div>
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(245,158,11,0.06);">
+            <span style="font-size:14px;color:#78350f;">性别</span>
+            <span style="font-size:14px;color:#c4a882;">男</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(245,158,11,0.06);">
+            <span style="font-size:14px;color:#78350f;">出生日期</span>
+            <span style="font-size:14px;color:#c4a882;">2010-03-15</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(245,158,11,0.06);">
+            <span style="font-size:14px;color:#78350f;">年龄</span>
+            <span style="font-size:14px;color:#c4a882;">16岁</span>
+          </div>
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;">
+            <span style="font-size:14px;color:#78350f;">档案状态</span>
+            <span style="font-size:12px;padding:3px 10px;border-radius:9999px;background:rgba(52,199,89,0.1);color:#16a34a;border:1px solid rgba(52,199,89,0.2);">使用中</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 今日亮点卡片 -->
+      <div class="card-warm" style="margin-bottom:12px;border-left:3px solid #f59e0b;">
+        <div style="font-size:12px;color:#c4a882;font-weight:600;letter-spacing:0.06em;margin-bottom:12px;text-transform:uppercase;">🌟 今日亮点</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          <span style="padding:8px 14px;border-radius:9999px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);font-size:13px;color:#78350f;">🎨 画了一幅画</span>
+          <span style="padding:8px 14px;border-radius:9999px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);font-size:13px;color:#78350f;">😊 心情愉快</span>
+          <span style="padding:8px 14px;border-radius:9999px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);font-size:13px;color:#78350f;">💊 按时服药</span>
+        </div>
+        <div style="font-size:13px;color:#b45309;margin-top:12px;padding-top:10px;border-top:1px solid rgba(245,158,11,0.08);line-height:1.5;">
+          你做得很棒！继续加油哦 💪
+        </div>
+      </div>
+
+      <!-- 紧急联系人卡片 -->
+      <div class="card-warm" style="margin-bottom:12px;">
+        <div style="font-size:12px;color:#c4a882;font-weight:600;letter-spacing:0.06em;margin-bottom:12px;text-transform:uppercase;">🆘 紧急联系人</div>
+        <div style="display:flex;flex-direction:column;gap:8px;">
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:rgba(245,158,11,0.04);">
+            <span style="font-size:20px;">👨‍👩‍👧</span>
+            <div style="flex:1;">
+              <div style="font-size:14px;font-weight:500;color:#78350f;">王爸爸</div>
+              <div style="font-size:12px;color:#c4a882;">父亲</div>
+            </div>
+            <span style="font-size:13px;color:#f59e0b;font-weight:600;">📞 138****8888</span>
+          </div>
+          <div style="display:flex;align-items:center;gap:10px;padding:10px;border-radius:14px;background:rgba(245,158,11,0.04);">
+            <span style="font-size:20px;">👩‍👧</span>
+            <div style="flex:1;">
+              <div style="font-size:14px;font-weight:500;color:#78350f;">李妈妈</div>
+              <div style="font-size:12px;color:#c4a882;">母亲</div>
+            </div>
+            <span style="font-size:13px;color:#f59e0b;font-weight:600;">📞 139****9999</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- 操作按钮 -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px;">
+        <button class="btn-pill btn-pill-primary" style="font-size:14px;">✏️ 编辑档案</button>
+        <button class="btn-pill btn-pill-ghost" style="font-size:14px;">📋 速读卡</button>
+      </div>
+    </div>
+
+    <div class="bottom-nav-warm">
+      <button class="nav-item"><span class="nav-icon">🏠</span>首页</button>
+      <button class="nav-item"><span class="nav-icon">📝</span>记录</button>
+      <button class="nav-item active"><span class="nav-icon">📋</span>档案</button>
+      <button class="nav-item"><span class="nav-icon">📊</span>分析</button>
+      <button class="nav-item"><span class="nav-icon">⚙️</span>管理</button>
+    </div>
+  </div>
+
+  <!-- ==================== 页面 3：心青年登录页 ==================== -->
+  <div id="page-login" class="mockup-page">
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center;">
+
+      <!-- 主视觉：向日葵 + Sparkle -->
+      <div style="position:relative;display:inline-block;margin-bottom:24px;">
+        <div class="float" style="font-size:72px;">🌻</div>
+        <span class="sparkle" style="position:absolute;top:-8px;right:-10px;font-size:18px;">✨</span>
+        <span class="sparkle" style="position:absolute;bottom:0;left:-12px;font-size:14px;animation-delay:0.8s;">⭐</span>
+        <span class="sparkle" style="position:absolute;top:10px;left:-18px;font-size:12px;animation-delay:0.4s;">✨</span>
+      </div>
+
+      <!-- 标题 -->
+      <div style="font-size:28px;font-weight:700;margin-bottom:6px;line-height:1.3;">
+        <span class="text-gradient-amber">AI懂我</span>
+      </div>
+      <div style="font-size:14px;color:#b45309;margin-bottom:32px;letter-spacing:0.02em;">
+        心青年全生涯数字档案灯塔
+      </div>
+
+      <!-- 登录卡片 -->
+      <div class="card-warm" style="width:100%;max-width:360px;text-align:left;">
+        <div style="font-size:16px;font-weight:600;color:#78350f;margin-bottom:16px;text-align:center;">
+          心青年登录
+        </div>
+
+        <div style="margin-bottom:14px;">
+          <label style="font-size:12px;color:#c4a882;font-weight:500;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">用户名</label>
+          <input type="text" class="input-warm" placeholder="输入用户名" value="xiaoming">
+        </div>
+
+        <div style="margin-bottom:20px;">
+          <label style="font-size:12px;color:#c4a882;font-weight:500;display:block;margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;">密码</label>
+          <input type="password" class="input-warm" placeholder="输入密码" value="123456">
+        </div>
+
+        <button class="btn-pill btn-pill-primary" style="width:100%;font-size:16px;padding:14px;">
+          ✨ 登录
+        </button>
+
+        <div style="text-align:center;margin-top:16px;font-size:13px;color:#c4a882;">
+          还没有账号？
+          <a href="#" style="color:#f59e0b;font-weight:600;text-decoration:none;">注册</a>
+        </div>
+      </div>
+
+      <!-- 底部 Sparkle -->
+      <div style="margin-top:24px;">
+        <span class="sparkle">✨</span>
+        <span class="sparkle" style="margin:0 8px;font-size:14px;animation-delay:0.5s;">🌟</span>
+        <span class="sparkle" style="animation-delay:1s;">✨</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function switchPage(name) {
+      document.querySelectorAll('.mockup-page').forEach(p => p.classList.remove('active'));
+      document.getElementById('page-' + name).classList.add('active');
+      document.querySelectorAll('.switcher-btn').forEach(b => b.classList.remove('active'));
+      event.target.classList.add('active');
+    }
+  </script>
+</body>
+</html>

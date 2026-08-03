@@ -1375,6 +1375,61 @@ ul, ol { list-style: none; }
 .ios-card-row:active { background: var(--color-surface-hover); }
 .ios-card-row.no-border { border-bottom: none; }
 
+/* — 今日采集 Summary — */
+.today-summary {
+  padding: 10px 12px;
+  border-top: 0.5px solid var(--color-border-light);
+}
+.today-summary-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-text-secondary);
+  margin-bottom: 8px;
+}
+.today-summary-count {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-primary);
+  background: var(--color-primary-surface);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+.today-summary-done {
+  font-size: var(--font-size-xs);
+  color: var(--color-success);
+  padding: 4px 0;
+}
+.today-summary-modules {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.today-summary-item {
+  font-size: var(--font-size-2xs);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-fill-light);
+  color: var(--color-text-tertiary);
+  border: 0.5px solid var(--color-border-light);
+}
+.today-summary-item.collected {
+  color: var(--color-text-secondary);
+  background: var(--color-primary-surface);
+  border-color: var(--color-border-accent);
+}
+.today-summary-icon {
+  font-size: 10px;
+}
+.today-summary-name {
+  font-size: 11px;
+}
+
 .ios-card-row-static {
   display: flex;
   align-items: center;
@@ -3585,6 +3640,24 @@ ul, ol { list-style: none; }
 .theme-toggle-icon {
   line-height: 1;
   pointer-events: none;
+}
+
+/* — 档案码过期提示 — */
+.archive-code-expired-hint {
+  width: 200px;
+  height: 200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px dashed var(--color-border);
+  border-radius: 16px;
+  color: var(--color-text-tertiary);
+  font-size: var(--font-size-sm);
+  text-align: center;
+  padding: 24px;
+  line-height: 1.5;
+  background: var(--color-surface);
 }
 
 

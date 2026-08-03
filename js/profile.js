@@ -120,7 +120,7 @@ window.Profile = (function () {
    */
   function _bindCreateFormEvents() {
     document.getElementById('btn-back').addEventListener('click', function () {
-      window.location.hash = 'dashboard';
+      history.back();
     });
 
     // 性别选择
@@ -298,8 +298,7 @@ window.Profile = (function () {
         communicationGuide: { preferredMethods: [], expressionDifficulties: null, specialHabits: [], sensoryPreferences: null },
         emotionBehavior: { behaviorRedLines: [], emotionTrend: [], interventionHistory: [] },
         careMedical: { allergies: [], medications: [], medicalHistory: [], careNotes: [], dailyRoutine: null },
-        workSupport: { ispPlans: [], capabilityAssessment: null, workPreferences: [], favoriteActivities: [], favoritePlaces: [], futureWishes: [] },
-        relationshipMap: { relationships: [], peerInteractions: [] }
+        workSupport: { ispPlans: [], capabilityAssessment: null, workPreferences: [], favoriteActivities: [], favoritePlaces: [], futureWishes: [] }
       },
       createdAt: now,
       updatedAt: now,
@@ -861,16 +860,6 @@ window.Profile = (function () {
         html += '</div>';
       }
       html += _renderModuleCard('💼 就业偏好', moduleData.workPreferences);
-    } else if (moduleKey === 'relationshipMap') {
-      if (moduleData.relationships && moduleData.relationships.length > 0) {
-        html += '<div class="module-card"><div class="module-card-title">👥 重要关系人</div>';
-        for (var i = 0; i < moduleData.relationships.length; i++) {
-          var rel = moduleData.relationships[i];
-          var relTypeLabels = { parent: '家长', sibling: '兄弟姐妹', teacher: '老师', caregiver: '照护者', friend: '朋友', colleague: '同事', other: '其他' };
-          html += '<div class="data-item"><div class="data-label">' + Utils.escapeHtml(rel.name) + '</div><div class="data-value">' + (relTypeLabels[rel.relationType] || rel.relationType) + '</div></div>';
-        }
-        html += '</div>';
-      }
     }
 
     if (!html) {
@@ -937,7 +926,7 @@ window.Profile = (function () {
     var backBtn = document.getElementById('btn-back');
     if (backBtn) {
       backBtn.addEventListener('click', function () {
-        window.location.hash = 'dashboard';
+        history.back();
       });
     }
 
