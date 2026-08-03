@@ -89,69 +89,74 @@ window.Records = (function () {
    */
   function _renderRecordList(youth) {
     var container = App.getContainer();
+    var user = AppState.currentUser;
+    var youths = Permissions.getAccessibleYouths();
 
-    // === 两级快速记录选择器 ===
-    var matrix = window.Constants ? window.Constants.RECORD_MATRIX : {};
-    var matrixModules = Modules.MODULES.filter(function (m) { return matrix.hasOwnProperty(m.key); });
-
-    // 默认选中第一个模块
-    var defaultModule = matrixModules.length > 0 ? matrixModules[0] : null;
-
-    // 模块选择行
-    var moduleRowHtml = '<div class="quick-module-row">';
-    for (var r = 0; r < matrixModules.length; r++) {
-      var mod = matrixModules[r];
-      var isActive = mod.key === (defaultModule ? defaultModule.key : '');
-      moduleRowHtml += '<button class="quick-module-chip' + (isActive ? ' active' : '') + '" data-module="' + mod.key + '">' +
-        '<span class="quick-module-icon">' + mod.icon + '</span>' +
-        '<span class="quick-module-label">' + mod.shortLabel + '</span>' +
-      '</button>';
+    // 新建任务按钮 + 任务看板
+    var kanbanHtml = '';
+    if (window.App && typeof window.App.renderTaskKanban === 'function') {
+      kanbanHtml = window.App.renderTaskKanban(youths, user);
     }
-    moduleRowHtml += '</div>';
-
-    // 类型选择行（初始显示默认模块的类型）
-    var typeRowHtml = '<div class="quick-type-row" id="quick-type-row">';
-    if (defaultModule) {
-      var validTypes = matrix[defaultModule.key] || [];
-      typeRowHtml += _renderTypeChips(validTypes, defaultModule);
-    }
-    typeRowHtml += '</div>';
-
-    var matrixHtml = '<div class="ios-card-group" style="margin-bottom:12px;">' +
-      '<div class="ios-card-group-header">📝 快速记录</div>' +
-      '<div class="quick-record-picker">' +
-        moduleRowHtml +
-        typeRowHtml +
-      '</div>' +
-      '<div style="font-size:11px;color:var(--color-text-tertiary);text-align:center;padding:6px 0 2px;">先选模块，再点类型快速记录</div>' +
-    '</div>';
-
-    // === 对话采集入口 ===
-    var chatEntryHtml =
-      '<div class="ios-card-group" style="margin-bottom:12px;">' +
-        '<div class="ios-card-row" data-action="chat" style="cursor:pointer;">' +
-          '<div class="ios-card-row-icon" style="font-size:24px;background:rgba(139,168,136,0.12);border-radius:12px;">💬</div>' +
-          '<div class="ios-card-row-body">' +
-            '<div class="ios-card-row-title">对话采集</div>' +
-            '<div class="ios-card-row-subtitle">AI 对话式记录，边聊边记</div>' +
-          '</div>' +
-          '<span class="ios-card-row-arrow">›</span>' +
-        '</div>' +
-        _renderTodaySummary(youth.id) +
-      '</div>';
 
     container.innerHTML =
       '<div class="page-header">' +
         '<span></span>' +
-        '<span class="page-title">记录</span>' +
+        '<span class="page-title">任务</span>' +
         '<span></span>' +
       '</div>' +
       '<div class="page-content">' +
-        matrixHtml +
-        chatEntryHtml +
+        '<div style="padding: 0 0 12px 0;">' +
+          '<button class="btn-create-task" id="btn-create-task-records" aria-label="新建任务" style="width:100%;">✚ 新建任务</button>' +
+        '</div>' +
+        kanbanHtml +
+        '<div class="dashboard-footer-space"></div>' +
       '</div>';
 
-    _bindListEvents(youth.id);
+    _bindTaskPageEvents(youth, youths, user);
+  }
+
+  /**
+   * 绑定任务页事件（新建任务 + Kanban 状态切换）
+   */
+  function _bindTaskPageEvents(youth, youths, user) {
+    // 新建任务按钮
+    var createBtn = document.getElementById('btn-create-task-records');
+    if (createBtn && youth) {
+      createBtn.addEventListener('click', function () {
+        if (window.App && typeof window.App.showTaskForm === 'function') {
+          window.App.showTaskForm(youth);
+        }
+      });
+    }
+
+    // Kanban 任务状态切换（todo → in_progress → done → todo 循环）
+    var kanbanBtns = document.querySelectorAll('.kanban-status-btn');
+    for (var i = 0; i < kanbanBtns.length; i++) {
+      kanbanBtns[i].addEventListener('click', function (e) {
+        e.stopPropagation();
+        var btn = this;
+        var taskId = btn.getAttribute('data-task-id');
+        var yId = btn.getAttribute('data-youth-id');
+        var currentStatus = btn.getAttribute('data-status');
+        var nextStatus = window.App && window.App.nextKanbanStatus
+          ? window.App.nextKanbanStatus(currentStatus)
+          : (currentStatus === 'todo' ? 'in_progress' : currentStatus === 'in_progress' ? 'done' : 'todo');
+        var updates = { status: nextStatus };
+        if (nextStatus === 'done') {
+          updates.completedAt = Utils.formatDateTime();
+        } else if (nextStatus === 'todo') {
+          updates.completedAt = null;
+        }
+        var updated = Storage.updateTask(yId, taskId, updates);
+        if (updated) {
+          // 重新渲染任务页
+          var freshYouth = Storage.getProfile(yId);
+          if (freshYouth) {
+            _renderRecordList(freshYouth);
+          }
+        }
+      });
+    }
   }
 
   /**

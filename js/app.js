@@ -583,7 +583,18 @@
         '<div class="dashboard-greeting-date">' + today + ' ' + weekday + '</div>' +
         '<div class="dashboard-greeting-hello">' + greeting + '，' + Utils.escapeHtml(user.name) + '</div>' +
       '</div>' +
-      '<button class="btn-create-task" id="btn-create-task-' + y.id + '" aria-label="新建任务">✚ 新建任务</button>' +
+    '</div>';
+
+    // AI 聊聊记录入口卡片
+    html += '<div class="ios-card-group">' +
+      '<div class="ios-card-row" data-action="chat-entry" style="cursor:pointer;">' +
+        '<div class="ios-card-row-icon" style="font-size:28px;background:rgba(139,168,136,0.12);border-radius:12px;">💬</div>' +
+        '<div class="ios-card-row-body">' +
+          '<div class="ios-card-row-title">AI聊聊记录</div>' +
+          '<div class="ios-card-row-subtitle">和 AI 说说最近发生的事，它会帮你整理成档案记录</div>' +
+        '</div>' +
+        '<span class="ios-card-row-arrow">›</span>' +
+      '</div>' +
     '</div>';
 
     // AI 发现区块（仅家长可见）
@@ -604,9 +615,6 @@
       }
       html += '</div>';
     }
-
-    // 任务看板（Kanban 三列：待办 / 进行中 / 已完成）
-    html += _renderTaskKanban(y, user);
 
     // 今日健康速报
     html += AnalyticsUI.renderHealthCard(y);
@@ -689,7 +697,7 @@
       return html;
     }
 
-    // 问候区（与家长/老师一致，右上角"新建任务"按钮）
+    // 问候区
     var hour = new Date().getHours();
     var greeting = hour < 6 ? '凌晨好' : hour < 12 ? '早上好' : hour < 18 ? '下午好' : '晚上好';
     var today = Utils.formatDate(new Date());
@@ -701,11 +709,43 @@
         '<div class="dashboard-greeting-date">' + today + ' ' + weekday + '</div>' +
         '<div class="dashboard-greeting-hello">' + greeting + '，' + Utils.escapeHtml(user.name) + '</div>' +
       '</div>' +
-      '<button class="btn-create-task" id="btn-create-task-' + youths[0].id + '" aria-label="新建任务">✚ 新建任务</button>' +
     '</div>';
 
-    // 任务看板（Kanban 三列：待办 / 进行中 / 已完成）
-    html += _renderTaskKanban(youths, user);
+    // AI 聊聊记录入口卡片
+    html += '<div class="ios-card-group">' +
+      '<div class="ios-card-row" data-action="chat-entry" style="cursor:pointer;">' +
+        '<div class="ios-card-row-icon" style="font-size:28px;background:rgba(139,168,136,0.12);border-radius:12px;">💬</div>' +
+        '<div class="ios-card-row-body">' +
+          '<div class="ios-card-row-title">AI聊聊记录</div>' +
+          '<div class="ios-card-row-subtitle">和 AI 说说最近发生的事，它会帮你整理成档案记录</div>' +
+        '</div>' +
+        '<span class="ios-card-row-arrow">›</span>' +
+      '</div>' +
+    '</div>';
+
+    // AI 发现区块（待审核发现）
+    var aiFindings = _getAIFindings(youths);
+    if (aiFindings.length > 0) {
+      html += '<div class="ios-card-group">';
+      html += '<div class="ios-card-group-header"><span>💡 AI 发现</span><span style="font-size:11px;color:var(--color-text-tertiary);">' + aiFindings.length + ' 条待审核</span></div>';
+      for (var fi = 0; fi < aiFindings.length; fi++) {
+        var f = aiFindings[fi];
+        html += '<div class="ios-card-row-static" style="display:flex;align-items:center;gap:8px;">' +
+          '<div style="flex:1;">' +
+            '<div class="ios-card-row-title" style="font-size:14px;">' + Utils.escapeHtml(f.text) + '</div>' +
+            '<div class="ios-card-row-subtitle">' + Utils.formatDate(f.timestamp) + ' · ' + (f.module === 'emotionBehavior' ? '😊 情绪行为' : f.module === 'workSupport' ? '💼 工作支持' : '💬 沟通') + '</div>' +
+          '</div>' +
+          '<button class="btn btn-sm" style="background:#34c759;color:white;border:none;border-radius:8px;padding:6px 12px;" data-finding-id="' + f.id + '" data-action="approve">✓ 采纳</button>' +
+          '<button class="btn btn-sm" style="background:rgba(255,255,255,0.04);color:var(--color-text-secondary);border:none;border-radius:8px;padding:6px 12px;" data-finding-id="' + f.id + '" data-action="reject">✕</button>' +
+        '</div>';
+      }
+      html += '</div>';
+    }
+
+    // 今日健康速报
+    if (youths.length > 0) {
+      html += AnalyticsUI.renderHealthCard(youths[0]);
+    }
 
     // 管理入口（含护理记录、速读卡等）
     html += '<div class="dashboard-section">' +
@@ -1032,7 +1072,13 @@
 
       Storage.addTask(youth.id, task);
       document.body.removeChild(overlay);
-      showDashboard({});
+      // 根据当前页面决定重渲染目标
+      var currentHash = window.location.hash.replace('#', '').split('?')[0];
+      if (currentHash === 'records') {
+        window.location.hash = 'records?youthId=' + encodeURIComponent(youth.id);
+      } else {
+        showDashboard({});
+      }
     });
   }
 
@@ -1545,6 +1591,18 @@
       });
     }
 
+    // AI 聊聊记录入口卡片（家长/影子老师主页）
+    var chatEntryRow = document.querySelector('[data-action="chat-entry"]');
+    if (chatEntryRow) {
+      chatEntryRow.addEventListener('click', function () {
+        var y = youths.length > 0 ? youths[0] : null;
+        if (y) {
+          AppState.selectYouth(y.id);
+          window.location.hash = 'chat?youthId=' + encodeURIComponent(y.id);
+        }
+      });
+    }
+
     // 档案入口按钮（替代速读卡按钮，速读卡已移至档案页）
 
     // 待记录提醒
@@ -1831,7 +1889,10 @@
   window.App = {
     registerRoute: registerRoute,
     getContainer: getContainer,
-    parseHash: parseHash
+    parseHash: parseHash,
+    renderTaskKanban: _renderTaskKanban,
+    showTaskForm: _showTaskForm,
+    nextKanbanStatus: _nextKanbanStatus
   };
 
   // DOMContentLoaded 初始化

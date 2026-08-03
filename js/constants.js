@@ -84,8 +84,8 @@ window.Constants = {
    * 底部导航项（导航短名 + 图标）
    */
   NAV_ITEMS: [
-    { page: 'dashboard', icon: 'icon-home', label: '首页' },
-    { page: 'records', icon: 'icon-records', label: '记录' },
+    { page: 'dashboard', icon: '💬', label: 'AI聊聊' },
+    { page: 'records', icon: '📋', label: '任务' },
     { page: 'profile', icon: 'icon-profile', label: '档案' },
     { page: 'analytics', icon: 'icon-analytics', label: '分析' },
     { page: 'management', icon: 'icon-management', label: '管理' }
