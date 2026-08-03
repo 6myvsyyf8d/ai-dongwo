@@ -71,17 +71,35 @@ window.YouthChat = (function () {
     for (var i = 0; i < state.messages.length; i++) {
       var msg = state.messages[i];
       if (msg.role === 'ai') {
-        html += '<div class="chat-bubble chat-bubble-ai">' + window.ChatMarkdown.render(msg.text) + '</div>';
+        // AI 气泡 + 🔊 重播按钮
+        html += '<div class="chat-bubble chat-bubble-ai">' +
+          window.ChatMarkdown.render(msg.text) +
+          '<button class="chat-bubble-speak-btn" data-speak-idx="' + i + '" title="朗读" aria-label="朗读">🔊</button>' +
+        '</div>';
       } else if (msg.role === 'user') {
         html += '<div class="chat-bubble chat-bubble-user">' + Utils.escapeHtml(msg.text) + '</div>';
       } else if (msg.role === 'task') {
-        html += '<div class="chat-task-card">' +
-          '<div class="chat-task-icon">📋</div>' +
-          '<div class="chat-task-body">' +
-            '<div class="chat-task-title">' + Utils.escapeHtml(msg.title || '任务提醒') + '</div>' +
-            '<div class="chat-task-desc">' + Utils.escapeHtml(msg.text) + '</div>' +
+        // 心青年任务卡片：图标 + 颜色 + 🔊 听任务 + ⭐ 完成
+        // 根据任务关键词分配图标
+        var taskIcon = '📋';
+        var taskColor = 'rgba(253,203,110,0.08)';
+        var taskBorder = 'rgba(253,203,110,0.2)';
+        var taskText = (msg.text || '').toLowerCase();
+        if (taskText.indexOf('吃') > -1 || taskText.indexOf('饭') > -1 || taskText.indexOf('药') > -1) {
+          taskIcon = '💊'; taskColor = 'rgba(255,69,58,0.08)'; taskBorder = 'rgba(255,69,58,0.2)';
+        } else if (taskText.indexOf('睡') > -1 || taskText.indexOf('起') > -1) {
+          taskIcon = '🌙'; taskColor = 'rgba(94,106,210,0.08)'; taskBorder = 'rgba(94,106,210,0.2)';
+        } else if (taskText.indexOf('出门') > -1 || taskText.indexOf('去') > -1 || taskText.indexOf('走') > -1) {
+          taskIcon = '🚶'; taskColor = 'rgba(52,199,89,0.08)'; taskBorder = 'rgba(52,199,89,0.2)';
+        } else if (taskText.indexOf('写') > -1 || taskText.indexOf('学') > -1) {
+          taskIcon = '📝'; taskColor = 'rgba(253,203,110,0.08)'; taskBorder = 'rgba(253,203,110,0.2)';
+        }
+        html += '<div class="youth-task-card" style="background:' + taskColor + ';border-color:' + taskBorder + ';">' +
+          '<div class="youth-task-icon">' + taskIcon + '</div>' +
+          '<div class="youth-task-body">' +
+            '<button class="youth-task-listen-btn" data-speak-task="' + Utils.escapeHtml(msg.text) + '" title="点我听听要做什么">🔊 点我听听要做什么</button>' +
           '</div>' +
-          '<button class="chat-task-done" data-task-id="' + (msg.taskId || '') + '">✓</button>' +
+          '<button class="youth-task-star-btn" data-task-id="' + (msg.taskId || '') + '" title="完成" aria-label="完成">⭐</button>' +
         '</div>';
       }
     }
@@ -130,6 +148,33 @@ window.YouthChat = (function () {
     }
   }
 
+  /**
+   * TTS 朗读文本（委托给 YouthTTS 模块）
+   */
+  function _speak(text) {
+    if (window.YouthTTS && typeof window.YouthTTS.speak === 'function') {
+      window.YouthTTS.speak(text);
+    }
+  }
+
+  /**
+   * TTS 语音反馈（操作确认）
+   */
+  function _speakFeedback(text) {
+    if (window.YouthTTS && typeof window.YouthTTS.speakFeedback === 'function') {
+      window.YouthTTS.speakFeedback(text);
+    }
+  }
+
+  /**
+   * 停止 TTS 朗读
+   */
+  function _stopSpeaking() {
+    if (window.YouthTTS && typeof window.YouthTTS.stopSpeaking === 'function') {
+      window.YouthTTS.stopSpeaking();
+    }
+  }
+
   function _bindEvents() {
     var input = document.getElementById('youth-chat-input');
     var sendBtn = document.getElementById('youth-chat-send');
@@ -139,6 +184,9 @@ window.YouthChat = (function () {
       var text = input.value.trim();
       if (!text) return;
       if (state.isAiCalling) return; // 防止重复发送
+
+      // 停止当前朗读
+      _stopSpeaking();
 
       state.messages.push({ role: 'user', text: text, timestamp: Utils.formatDateTime() });
       input.value = '';
@@ -197,6 +245,8 @@ window.YouthChat = (function () {
         _saveMessages();
         msgContainer.innerHTML = _renderMessages();
         msgContainer.scrollTop = msgContainer.scrollHeight;
+        // 自动朗读 AI 回复
+        _speak(aiReply);
       } catch (e) {
         // 流式中断/失败：移除 typing/streamBubble，降级到本地回复
         var typingErr = document.getElementById('ai-typing');
@@ -220,18 +270,45 @@ window.YouthChat = (function () {
       if (e.key === 'Enter') sendMessage();
     });
 
-    // 任务完成按钮
-    var doneBtns = msgContainer.querySelectorAll('.chat-task-done');
+    // 任务完成按钮（⭐）
+    var doneBtns = msgContainer.querySelectorAll('.youth-task-star-btn');
     for (var i = 0; i < doneBtns.length; i++) {
       doneBtns[i].addEventListener('click', function() {
         var taskId = this.getAttribute('data-task-id');
         if (taskId) {
           Storage.updateTask(state.youthId, taskId, { status: 'done' });
-          AppState.showToast('✅ 任务已完成！');
+          _speakFeedback('太棒了，任务完成啦！');
           // 移除任务卡片
           state.messages = state.messages.filter(function(m) { return m.taskId !== taskId; });
           _saveMessages();
           msgContainer.innerHTML = _renderMessages();
+        }
+      });
+    }
+
+    // 任务 🔊 朗读按钮
+    var taskListenBtns = msgContainer.querySelectorAll('.youth-task-listen-btn');
+    for (var j = 0; j < taskListenBtns.length; j++) {
+      taskListenBtns[j].addEventListener('click', function(e) {
+        e.stopPropagation();
+        var taskText = this.getAttribute('data-speak-task');
+        if (taskText) {
+          _speak(taskText);
+        }
+      });
+    }
+
+    // AI 气泡 🔊 重播按钮
+    var speakBtns = msgContainer.querySelectorAll('.chat-bubble-speak-btn');
+    for (var k = 0; k < speakBtns.length; k++) {
+      speakBtns[k].addEventListener('click', function(e) {
+        e.stopPropagation();
+        var idx = parseInt(this.getAttribute('data-speak-idx'), 10);
+        if (idx >= 0 && idx < state.messages.length) {
+          var aiMsg = state.messages[idx];
+          if (aiMsg && aiMsg.role === 'ai') {
+            _speak(aiMsg.text);
+          }
         }
       });
     }
@@ -300,16 +377,14 @@ window.YouthChat = (function () {
           recognition.onerror = function (event) {
             hasError = true;
             console.error('YouthChat: 语音识别错误', event.error, event.message);
-            if (!cancelled && window.AppState && window.AppState.showToast) {
-              window.AppState.showToast('语音识别失败');
-            }
+            _speakFeedback('没听清，再试一次吧');
             // 重置按钮状态
             holdBtn.classList.remove('holding', 'cancel');
             holdBtn.textContent = '按住 说话';
           };
           recognition.onend = function () {
-            if (!cancelled && !hasResult && !hasError && window.AppState && window.AppState.showToast) {
-              window.AppState.showToast('未识别到语音，请重试');
+            if (!cancelled && !hasResult && !hasError) {
+              _speakFeedback('没听清，再试一次吧');
             }
             // 重置按钮状态
             if (!hasResult) {

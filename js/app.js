@@ -280,6 +280,11 @@
     // 页头
     var headerHtml = _renderDashboardHeader();
 
+    // 心青年：确保 currentYouth 已设置，使底部导航的"我"链接能带 youthId
+    if (user.role === 'youth' && youths.length > 0) {
+      AppState.selectYouth(youths[0].id);
+    }
+
     // 按角色渲染内容
     var contentHtml = '';
     switch (user.role) {
@@ -467,19 +472,16 @@
       '</div>' +
     '</div>';
 
-    // 任务看板（与其他角色一致的 Kanban 三列视图，只显示分配给心青年的任务）
-    html += _renderTaskKanban(youth, user);
+    // 任务看板（与其他角色一致的 Kanban 三列视图，只显示分配给心青年的任务，心青年用简化版图标看板）
+    html += _renderTaskKanban(youth, user, { isYouth: true });
 
-    // 管理入口
+    // 管理入口（心青年简化版：图标 + 朗读）
     html += '<div class="dashboard-section">' +
-      '<div class="dashboard-section-title">📌 管理</div>' +
-      '<div class="management-portal">' +
-        '<button class="management-btn" data-youth-id="' + youth.id + '" data-action="profile">' +
-          '<span class="management-btn-icon">📋</span>' +
-          '<span class="management-btn-label">查看完整档案</span>' +
-          '<span class="management-btn-arrow">→</span>' +
-        '</button>' +
-      '</div>' +
+      '<button class="youth-mgmt-btn" data-youth-id="' + youth.id + '" data-action="profile">' +
+        '<span class="youth-mgmt-btn-icon">📋</span>' +
+        '<span class="youth-mgmt-btn-label">我的档案</span>' +
+        '<button class="youth-mgmt-btn-speak" data-speak-text="查看我的完整档案" title="朗读" aria-label="朗读">🔊</button>' +
+      '</button>' +
     '</div>';
 
     html += '<div class="dashboard-footer-space"></div>';
@@ -1051,7 +1053,7 @@
    * @param {object} youth - 心青年档案（用于 data-youth-id 和学生名展示）
    * @param {boolean} showYouthName - 是否在卡片上显示心青年名（多学生合并时）
    */
-  function _renderKanbanCard(task, youth, showYouthName) {
+  function _renderKanbanCard(task, youth, showYouthName, isYouth) {
     // 接收人
     var assigneeName = '';
     if (task.assigneeId) {
@@ -1071,12 +1073,7 @@
     }
 
     var nextStatus = _nextKanbanStatus(task.status);
-    // 按钮文案描述"点击后发生的动作"，按当前 status 索引
-    var actionLabels = { todo: '开始', in_progress: '完成', done: '重启' };
-    var actionLabel = actionLabels[task.status] || '推进';
-
     var isDone = task.status === 'done';
-    var cardClass = 'kanban-card' + (isDone ? ' kanban-card-done' : '');
 
     // 心青年角色：隐藏冗余的"心青年"负责人字样
     var currentUser = AppState.getState().currentUser;
@@ -1084,14 +1081,43 @@
       if (assigneeName === '心青年') assigneeName = '';
     }
 
-    var html = '<div class="' + cardClass + '" data-task-id="' + task.id + '" data-youth-id="' + youth.id + '">' +
-      // 多学生合并时在内容上方显示学生名小标签
+    // 心青年简化卡片
+    if (isYouth) {
+      // 根据任务关键词分配图标
+      var taskIcon = '📋';
+      var taskText = (task.content || '').toLowerCase();
+      if (taskText.indexOf('吃') > -1 || taskText.indexOf('饭') > -1 || taskText.indexOf('药') > -1) {
+        taskIcon = '💊';
+      } else if (taskText.indexOf('睡') > -1 || taskText.indexOf('起') > -1) {
+        taskIcon = '🌙';
+      } else if (taskText.indexOf('出门') > -1 || taskText.indexOf('去') > -1 || taskText.indexOf('走') > -1) {
+        taskIcon = '🚶';
+      } else if (taskText.indexOf('写') > -1 || taskText.indexOf('学') > -1) {
+        taskIcon = '📝';
+      }
+
+      var cardClass = 'youth-kanban-card' + (isDone ? ' kanban-card-done' : '');
+      var statusIcons = { todo: '▶️', in_progress: '✅', done: '🔄' };
+      var statusIcon = statusIcons[task.status] || '▶️';
+
+      return '<div class="' + cardClass + '" data-task-id="' + task.id + '" data-youth-id="' + youth.id + '">' +
+        '<div class="youth-kanban-icon">' + taskIcon + '</div>' +
+        '<button class="youth-kanban-listen-btn" data-speak-task="' + Utils.escapeHtml(task.content) + '" title="点我听听要做什么">🔊 听听要做什么</button>' +
+        '<button class="youth-kanban-status-btn" data-task-id="' + task.id + '" data-youth-id="' + youth.id + '" data-status="' + task.status + '" title="切换状态">' + statusIcon + '</button>' +
+      '</div>';
+    }
+
+    // 原有完整卡片渲染（非心青年）
+    var actionLabels = { todo: '开始', in_progress: '完成', done: '重启' };
+    var actionLabel = actionLabels[task.status] || '推进';
+
+    var cardClassOrig = 'kanban-card' + (isDone ? ' kanban-card-done' : '');
+
+    var html = '<div class="' + cardClassOrig + '" data-task-id="' + task.id + '" data-youth-id="' + youth.id + '">' +
       (showYouthName ? '<div class="kanban-card-youth-tag">' + Utils.escapeHtml(youth.name) + '</div>' : '') +
-      // 任务内容（主要信息）
       '<div class="kanban-card-content' + (isDone ? ' kanban-card-content-done' : '') + '">' +
         Utils.escapeHtml(task.content) +
       '</div>' +
-      // 负责人行
       '<div class="kanban-card-assignee">';
 
     if (assigneeName) {
@@ -1099,7 +1125,6 @@
     }
 
     html += '</div>' +
-      // 底部 meta：时间
       '<div class="kanban-card-meta">';
 
     if (timeText) {
@@ -1124,6 +1149,7 @@
   function _renderTaskKanban(youthOrYouths, currentUser, options) {
     options = options || {};
     var showYouthName = options.showYouthName || false;
+    var isYouth = options.isYouth || false;
     var youths = Array.isArray(youthOrYouths) ? youthOrYouths : [youthOrYouths];
 
     // 收集所有学生的今日任务
@@ -1174,16 +1200,20 @@
       '<span style="font-size:11px;color:var(--color-text-tertiary);font-weight:400;">' + allTasks.length + ' 条</span>' +
     '</div>';
 
-    html += '<div class="kanban-board">';
+    // 心青年用简化看板样式
+    var boardClass = isYouth ? 'kanban-board youth-kanban' : 'kanban-board';
+    html += '<div class="' + boardClass + '">';
 
-    // 渲染三列：单学生直接传 youth；多学生合并时需要把每张卡片对应的学生传进去
-    // 由于卡片可能在任意列，我们用 taskYouthMap 查找
+    // 渲染三列
     ['todo', 'in_progress', 'done'].forEach(function (s) {
       var columnTasks = columns[s];
       var titleMap = { todo: '待办', in_progress: '进行中', done: '已完成' };
+      var iconMap = { todo: '⏳', in_progress: '🏃', done: '⭐' };
+      var titleText = isYouth ? iconMap[s] : titleMap[s];
+
       html += '<div class="kanban-column kanban-column-' + s + '">' +
         '<div class="kanban-column-header">' +
-          '<span class="kanban-column-title">' + titleMap[s] + '</span>' +
+          '<span class="kanban-column-title">' + titleText + '</span>' +
           '<span class="kanban-column-count">' + columnTasks.length + '</span>' +
         '</div>' +
         '<div class="kanban-column-body">';
@@ -1194,7 +1224,7 @@
         for (var ci = 0; ci < columnTasks.length; ci++) {
           var t = columnTasks[ci];
           var taskYouth = taskYouthMap[t.id] || youths[0];
-          html += _renderKanbanCard(t, taskYouth, showYouthName);
+          html += _renderKanbanCard(t, taskYouth, showYouthName, isYouth);
         }
       }
       html += '</div></div>';
@@ -1545,6 +1575,77 @@
         var updated = Storage.updateTask(youthId, taskId, updates);
         if (updated) {
           showDashboard({});
+        }
+      });
+    }
+
+    // 心青年看板状态切换按钮（图标按钮 + 语音反馈）
+    var youthKanbanBtns = document.querySelectorAll('.youth-kanban-status-btn');
+    for (var yk = 0; yk < youthKanbanBtns.length; yk++) {
+      youthKanbanBtns[yk].addEventListener('click', function (e) {
+        e.stopPropagation();
+        var btn = this;
+        var taskId = btn.getAttribute('data-task-id');
+        var youthId = btn.getAttribute('data-youth-id');
+        var currentStatus = btn.getAttribute('data-status');
+        var nextStatus = _nextKanbanStatus(currentStatus);
+        var updates = { status: nextStatus };
+        if (nextStatus === 'done') {
+          updates.completedAt = Utils.formatDateTime();
+        } else if (nextStatus === 'todo') {
+          updates.completedAt = null;
+        }
+        var updated = Storage.updateTask(youthId, taskId, updates);
+        if (updated) {
+          // 语音确认
+          if (nextStatus === 'done') {
+            if (window.YouthTTS && window.YouthTTS.speakFeedback) {
+              window.YouthTTS.speakFeedback('太棒了，任务完成啦！');
+            }
+          } else if (nextStatus === 'in_progress') {
+            if (window.YouthTTS && window.YouthTTS.speakFeedback) {
+              window.YouthTTS.speakFeedback('开始做任务了，加油！');
+            }
+          }
+          showDashboard({});
+        }
+      });
+    }
+
+    // 心青年看板 🔊 朗读任务内容
+    var youthListenBtns = document.querySelectorAll('.youth-kanban-listen-btn');
+    for (var yl = 0; yl < youthListenBtns.length; yl++) {
+      youthListenBtns[yl].addEventListener('click', function (e) {
+        e.stopPropagation();
+        var taskText = this.getAttribute('data-speak-task');
+        if (taskText && window.YouthTTS && window.YouthTTS.speak) {
+          window.YouthTTS.speak(taskText);
+        }
+      });
+    }
+
+    // 心青年管理入口 🔊 朗读按钮
+    var mgmtSpeakBtns = document.querySelectorAll('.youth-mgmt-btn-speak');
+    for (var ms = 0; ms < mgmtSpeakBtns.length; ms++) {
+      mgmtSpeakBtns[ms].addEventListener('click', function (e) {
+        e.stopPropagation();
+        var text = this.getAttribute('data-speak-text');
+        if (text && window.YouthTTS && window.YouthTTS.speak) {
+          window.YouthTTS.speak(text);
+        }
+      });
+    }
+
+    // 心青年管理入口按钮（点击跳转档案页）
+    var mgmtBtns = document.querySelectorAll('.youth-mgmt-btn');
+    for (var mb = 0; mb < mgmtBtns.length; mb++) {
+      mgmtBtns[mb].addEventListener('click', function (e) {
+        // 如果点击的是 🔊 子按钮，不触发跳转
+        if (e.target && e.target.classList.contains('youth-mgmt-btn-speak')) return;
+        var youthId = this.getAttribute('data-youth-id');
+        if (youthId) {
+          AppState.selectYouth(youthId);
+          window.location.hash = 'profile?youthId=' + encodeURIComponent(youthId);
         }
       });
     }
