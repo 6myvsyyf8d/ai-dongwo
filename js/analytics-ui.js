@@ -179,44 +179,7 @@ window.AnalyticsUI = (function () {
 
   function _renderAnalyticsPage(youth) {
     var container = App.getContainer();
-
-    container.innerHTML =
-      '<div class="page-header">' +
-        '<span></span>' +
-        '<span class="page-title">分析</span>' +
-        '<span></span>' +
-      '</div>' +
-      '<div class="analytics-page">' +
-        // Tab 切换
-        '<div class="analytics-tabs">' +
-          '<button class="analytics-tab active" data-tab="daily">📅 日报</button>' +
-          '<button class="analytics-tab" data-tab="weekly">📈 周报</button>' +
-          '<button class="analytics-tab" data-tab="monthly">📊 月报</button>' +
-        '</div>' +
-        // 内容区
-        '<div class="analytics-content" id="analytics-content"></div>' +
-      '</div>';
-
-    // 渲染当前 Tab
-    _renderCurrentTab(youth);
-
-    // 绑定 Tab 切换
-    var tabs = container.querySelectorAll('.analytics-tab');
-    for (var i = 0; i < tabs.length; i++) {
-      tabs[i].addEventListener('click', function () {
-        var tab = this.getAttribute('data-tab');
-        _currentTab = tab;
-        _destroyCharts();
-
-        // 更新 active 状态
-        var allTabs = container.querySelectorAll('.analytics-tab');
-        for (var j = 0; j < allTabs.length; j++) {
-          allTabs[j].classList.toggle('active', allTabs[j].getAttribute('data-tab') === tab);
-        }
-
-        _renderCurrentTab(youth);
-      });
-    }
+    _renderAnalyticsPhoneLayout(youth, container);
   }
 
   function _renderCurrentTab(youth) {
@@ -350,6 +313,229 @@ window.AnalyticsUI = (function () {
     _bindRecordsSection(youth.id);
     // 绑定时间线洞察范围切换
     _bindTimelineRangeChips(youth);
+  }
+
+  // ========== 周报 Phone 卡片布局（照搬 AI懂我 数据分析样例） ==========
+
+  /**
+   * 渲染周报 phone 卡片布局
+   * 完全照搬样例的 UI 结构，使用项目焦糖色系
+   */
+  function _renderWeeklyPhoneLayout(youth, container) {
+    var weekEnd = _currentWeekStart ? _addDays(_currentWeekStart, 6) : Utils.formatDate(new Date());
+    if (!_currentWeekStart) _currentWeekStart = _getWeekStart(weekEnd);
+
+    var report = AnalyticsEngine.weeklyReport(youth.id, _currentWeekStart, weekEnd);
+
+    // 计算三列汇总指标
+    var positiveCount = 0;
+    for (var i = 0; i < report.emotionTrend.length; i++) {
+      if (report.emotionTrend[i].score !== null && report.emotionTrend[i].score > 0) positiveCount++;
+    }
+    var alertCount = report.alerts.length;
+
+    // 柱状图数据
+    var dayLabels = ['一', '二', '三', '四', '五', '六', '日'];
+    var barsHtml = '';
+    for (var i = 0; i < report.emotionTrend.length; i++) {
+      var et = report.emotionTrend[i];
+      var h = 15; // 默认最小高度
+      var isNegative = false;
+      if (et.score !== null) {
+        var absScore = Math.abs(et.score);
+        h = Math.min(95, 30 + absScore * 20);
+        if (et.score < 0) isNegative = true;
+      }
+      var barClass = isNegative ? 'phone-bar negative' : 'phone-bar';
+      barsHtml += '<div class="phone-bar-wrap">' +
+        '<div class="' + barClass + '" style="height:' + h + '%"></div>' +
+        '<div class="phone-day">' + dayLabels[i] + '</div>' +
+      '</div>';
+    }
+
+    // AI 发现：基于情绪总结和概览
+    var insightTitle = report.emotionSummary || '本周数据观察';
+    var insightDesc = report.overview || '';
+
+    // 支持经验：从模块趋势和异常中提取
+    var triggerText = '暂无明显触发情境';
+    var supportText = '保持当前支持策略';
+    var progressText = '数据收集中';
+    var triggerCount = '—';
+    var supportCount = '—';
+    var progressCount = '—';
+
+    if (report.alerts.length > 0) {
+      var alertTypes = [];
+      for (var j = 0; j < report.alerts.length; j++) {
+        if (report.alerts[j].type === 'mood') alertTypes.push('情绪波动');
+        else if (report.alerts[j].type === 'sleep') alertTypes.push('睡眠不足');
+        else if (report.alerts[j].type === 'appetite') alertTypes.push('食欲下降');
+        else if (report.alerts[j].type === 'gap') alertTypes.push('记录断档');
+        else alertTypes.push(report.alerts[j].text);
+      }
+      triggerText = alertTypes.join('、');
+      triggerCount = report.alerts.length + '次';
+    }
+
+    // 从模块趋势中找改善的模块
+    var improvingModules = [];
+    var decliningModules = [];
+    for (var k = 0; k < report.moduleTrends.length; k++) {
+      if (report.moduleTrends[k].trend === 'up') improvingModules.push(report.moduleTrends[k].label);
+      if (report.moduleTrends[k].trend === 'down') decliningModules.push(report.moduleTrends[k].label);
+    }
+    if (improvingModules.length > 0) {
+      supportText = improvingModules.join('、') + ' 模块记录增加';
+      supportCount = improvingModules.length + '个';
+    }
+
+    // 从环比数据中提取进步
+    if (report.comparison && report.comparison.totalRecords && report.comparison.totalRecords.trend === 'up') {
+      progressText = '本周记录数较上周增加 ' + report.comparison.totalRecords.change + ' 条';
+      progressCount = '+' + report.comparison.totalRecords.change;
+    } else if (report.recordDays >= 7) {
+      progressText = '本周保持每日记录，习惯稳定';
+      progressCount = '7/7';
+    } else if (report.recordDays >= 5) {
+      progressText = '本周记录 ' + report.recordDays + ' 天，接近全勤';
+      progressCount = report.recordDays + '/7';
+    }
+
+    // 建议操作：基于异常生成
+    var actionText = '根据本周数据，建议关注以下方面：' + (decliningModules.length > 0 ? decliningModules.join('、') + ' 模块记录减少，可适当增加关注。' : '各项指标整体平稳，继续保持当前记录习惯。');
+
+    var html = '<div class="analytics-phone">' +
+      // Sticky Topbar
+      '<header class="phone-topbar">' +
+        '<div class="phone-back" id="phone-back-btn">&lsaquo;</div>' +
+        '<div class="phone-title">数据分析</div>' +
+        '<div class="phone-filter" id="phone-filter-btn">近7天⌄</div>' +
+      '</header>' +
+      '<main class="phone-main">' +
+        // 身份条
+        '<section class="phone-person">' +
+          '<div>' +
+            '<div class="phone-person-name">' + Utils.escapeHtml(youth.name) + '的支持观察</div>' +
+            '<div class="phone-period">' + _currentWeekStart + ' — ' + weekEnd + ' · 由多方记录汇总</div>' +
+          '</div>' +
+          '<div class="phone-avatar">' + (youth.avatar || '🌻') + '</div>' +
+        '</section>' +
+        // 三列汇总指标
+        '<section class="phone-summary">' +
+          '<div class="phone-metric"><b>' + report.totalRecords + '</b><span>有效记录</span></div>' +
+          '<div class="phone-metric"><b>' + positiveCount + '</b><span>积极表现</span></div>' +
+          '<div class="phone-metric"><b>' + alertCount + '</b><span>值得关注</span></div>' +
+        '</section>' +
+        // 本周状态变化
+        '<div class="phone-section-title"><span>本周状态变化</span><small>按每日观察记录</small></div>' +
+        '<section class="phone-card">' +
+          '<div class="phone-chart">' +
+            '<div class="phone-gridline g1"></div>' +
+            '<div class="phone-gridline g2"></div>' +
+            '<div class="phone-gridline g3"></div>' +
+            '<div class="phone-bars">' + barsHtml + '</div>' +
+          '</div>' +
+          '<div class="phone-legend">' +
+            '<span><i class="phone-dot positive"></i>平稳/积极</span>' +
+            '<span><i class="phone-dot negative"></i>压力较高</span>' +
+          '</div>' +
+        '</section>' +
+        // AI 发现
+        '<div class="phone-section-title"><span>AI 发现</span><small>等待支持者确认</small></div>' +
+        '<section class="phone-insight">' +
+          '<div class="phone-insight-head">' +
+            '<div class="phone-ai-icon">✦</div>' +
+            '<div>' +
+              '<div class="phone-insight-title">' + Utils.escapeHtml(insightTitle) + '</div>' +
+              '<div class="phone-confidence">基于 ' + report.totalRecords + ' 条相关记录形成观察线索</div>' +
+            '</div>' +
+          '</div>' +
+          '<p>' + Utils.escapeHtml(insightDesc) + '</p>' +
+        '</section>' +
+        // 支持经验
+        '<div class="phone-section-title"><span>支持经验</span><small>不是诊断结论</small></div>' +
+        '<section class="phone-card phone-patterns">' +
+          '<div class="phone-pattern trigger">' +
+            '<div class="phone-pattern-icon">🌊</div>' +
+            '<div class="phone-pattern-main">' +
+              '<div class="phone-pattern-title">常见触发情境</div>' +
+              '<div class="phone-pattern-desc">' + Utils.escapeHtml(triggerText) + '</div>' +
+            '</div>' +
+            '<div class="phone-pattern-count">' + triggerCount + '</div>' +
+          '</div>' +
+          '<div class="phone-pattern support">' +
+            '<div class="phone-pattern-icon">🗓️</div>' +
+            '<div class="phone-pattern-main">' +
+              '<div class="phone-pattern-title">较有效的支持方法</div>' +
+              '<div class="phone-pattern-desc">' + Utils.escapeHtml(supportText) + '</div>' +
+            '</div>' +
+            '<div class="phone-pattern-count">' + supportCount + '</div>' +
+          '</div>' +
+          '<div class="phone-pattern progress">' +
+            '<div class="phone-pattern-icon">✨</div>' +
+            '<div class="phone-pattern-main">' +
+              '<div class="phone-pattern-title">本周进步</div>' +
+              '<div class="phone-pattern-desc">' + Utils.escapeHtml(progressText) + '</div>' +
+            '</div>' +
+            '<div class="phone-pattern-count">' + progressCount + '</div>' +
+          '</div>' +
+        '</section>' +
+        // 建议下一步
+        '<section class="phone-action">' +
+          '<b>💡 建议下一步</b>' +
+          '<p>' + Utils.escapeHtml(actionText) + '</p>' +
+          '<div class="phone-buttons">' +
+            '<div class="phone-btn secondary" id="phone-action-skip">暂不采用</div>' +
+            '<div class="phone-btn primary" id="phone-action-confirm">确认加入</div>' +
+          '</div>' +
+        '</section>' +
+        // 底部免责
+        '<div class="phone-note">AI 只提供观察线索与整理建议，最终判断由熟悉 ' + Utils.escapeHtml(youth.name) + ' 的本人、家长和支持者共同确认。</div>' +
+      '</main>' +
+    '</div>';
+
+    container.innerHTML = html;
+
+    // 绑定返回按钮
+    var backBtn = document.getElementById('phone-back-btn');
+    if (backBtn) {
+      backBtn.addEventListener('click', function () {
+        window.history.back();
+      });
+    }
+
+    // 绑定操作按钮
+    var skipBtn = document.getElementById('phone-action-skip');
+    var confirmBtn = document.getElementById('phone-action-confirm');
+    if (skipBtn) {
+      skipBtn.addEventListener('click', function () {
+        skipBtn.textContent = '已跳过';
+        skipBtn.style.opacity = '0.5';
+        skipBtn.style.pointerEvents = 'none';
+      });
+    }
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function () {
+        confirmBtn.textContent = '已加入 ✓';
+        confirmBtn.style.opacity = '0.7';
+        confirmBtn.style.pointerEvents = 'none';
+      });
+    }
+
+    // 绑定筛选按钮（切换周报日期范围）
+    var filterBtn = document.getElementById('phone-filter-btn');
+    if (filterBtn) {
+      filterBtn.addEventListener('click', function () {
+        // 简单切换：本周 → 上周
+        if (_currentWeekStart === _getWeekStart(Utils.formatDate(new Date()))) {
+          _currentWeekStart = _addDays(_getWeekStart(Utils.formatDate(new Date())), -7);
+        } else {
+          _currentWeekStart = _getWeekStart(Utils.formatDate(new Date()));
+        }
+        _renderWeeklyPhoneLayout(youth, container);
+      });
+    }
   }
 
   // ========== 周报 Tab ==========
