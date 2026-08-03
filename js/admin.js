@@ -235,7 +235,7 @@ window.Admin = (function () {
     var roles = [
       { key: 'parent', label: '👨‍👩‍👧 家长', icon: '👨‍👩‍👧' },
       { key: 'teacher', label: '👩‍🏫 老师', icon: '👩‍🏫' },
-      { key: 'caregiver', label: '🤝 照护者', icon: '🤝' },
+      { key: 'caregiver', label: '🤝 影子老师', icon: '🤝' },
       { key: 'youth', label: '🌻 心青年', icon: '🌻' },
       { key: 'government', label: '🏛️ 政府', icon: '🏛️' },
       { key: 'admin', label: '🛡️ 管理员', icon: '🛡️' }

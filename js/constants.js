@@ -13,7 +13,7 @@ window.Constants = {
     { value: 'youth', label: '心青年', icon: '🌻', desc: '心青年本人，可记录心情与愿望' },
     { value: 'parent', label: '家长', icon: '👨‍👩‍👧', desc: '家长/监护人，全档案读写与授权管理' },
     { value: 'teacher', label: '老师', icon: '📚', desc: '机构老师，ISP/行为干预/能力评估读写' },
-    { value: 'caregiver', label: '照护者', icon: '🤝', desc: '照护者/护工，安全速查与护理记录' },
+    { value: 'caregiver', label: '影子老师', icon: '🤝', desc: '影子老师，一对一陪伴支持与护理记录' },
     { value: 'government', label: '政府', icon: '🏛️', desc: '政府角色，仅查看宏观趋势看板' },
     { value: 'admin', label: '管理员', icon: '🛡️', desc: '系统管理员，管理用户与全局授权' }
   ],
@@ -25,7 +25,7 @@ window.Constants = {
     youth: '心青年',
     parent: '家长',
     teacher: '老师',
-    caregiver: '照护者',
+    caregiver: '影子老师',
     government: '政府',
     admin: '管理员'
   },

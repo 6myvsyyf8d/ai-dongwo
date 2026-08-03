@@ -85,7 +85,7 @@ async function classify(text, env) {
 
 // 生成对话回复 + 追问
 async function generateReply(history, youthName, youthProfile, env) {
-  let systemPrompt = `你是一位专业的特殊教育/照护工作者，正在与${youthName || '心青年'}的照护者对话。\n` +
+  let systemPrompt = `你是一位专业的特殊教育/影子老师，正在与${youthName || '心青年'}的影子老师对话。\n` +
     '你的任务是：\n' +
     '1. 以温暖、专业、不评判的口吻回应\n' +
     '2. 从对话中提取有价值的照护信息\n' +

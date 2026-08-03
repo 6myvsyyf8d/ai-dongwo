@@ -170,8 +170,8 @@ window.YouthChat = (function () {
    * 停止 TTS 朗读
    */
   function _stopSpeaking() {
-    if (window.YouthTTS && typeof window.YouthTTS.stopSpeaking === 'function') {
-      window.YouthTTS.stopSpeaking();
+    if (window.YouthTTS && typeof window.YouthTTS.stop === 'function') {
+      window.YouthTTS.stop();
     }
   }
 

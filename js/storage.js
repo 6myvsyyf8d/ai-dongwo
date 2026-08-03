@@ -493,7 +493,7 @@ window.Storage = (function () {
     for (var id in accounts) {
       var a = accounts[id];
       if (a.name === '小明爸爸') mingDad = a;
-      if (a.name === '小明保姆') mingNanny = a;
+      if (a.name === '小明影子老师') mingNanny = a;
       if (a.name === '王老师') teacherWang = a;
       if (a.name === '小明妈妈') mingMom = a;
     }
@@ -557,7 +557,7 @@ window.Storage = (function () {
       pinHash: '', institutionName: null, registeredAt: now, lastLoginAt: null, isActive: true
     };
     var mingNanny = {
-      id: Utils.generateUUID(), name: '小明保姆', phone: '13800138003', role: 'caregiver',
+      id: Utils.generateUUID(), name: '小明影子老师', phone: '13800138003', role: 'caregiver',
       pinHash: '', institutionName: null, registeredAt: now, lastLoginAt: null, isActive: true
     };
     var huaDad = {
@@ -569,7 +569,7 @@ window.Storage = (function () {
       pinHash: '', institutionName: null, registeredAt: now, lastLoginAt: null, isActive: true
     };
     var huaNanny = {
-      id: Utils.generateUUID(), name: '小花保姆', phone: '13800138006', role: 'caregiver',
+      id: Utils.generateUUID(), name: '小花影子老师', phone: '13800138006', role: 'caregiver',
       pinHash: '', institutionName: null, registeredAt: now, lastLoginAt: null, isActive: true
     };
     var teacherWang = {
@@ -639,14 +639,27 @@ window.Storage = (function () {
             { method: '给予选择', description: '提供两个选项让他自己选' }
           ],
           expressionDifficulties: '抽象概念理解困难，需要具体例子',
+          tipAbout: '小明对抽象的指令和突然的变化比较敏感，需要给他具体、可预测的信息',
+          tipCommon: '许多孤独症伙伴依赖可预测的规律和具体提示来理解世界，这不是固执，而是他们处理信息的方式',
           specialHabits: ['喜欢重复确认时间和安排', '紧张时会搓手'],
+          habitsTipAbout: '小明通过重复确认时间和搓手来让自己感到安心，这是他调节情绪的方式',
+          habitsTipCommon: '重复行为和自我刺激是孤独症伙伴调节感官和情绪的自然方式，强行制止反而会让他们更焦虑',
           sensoryPreferences: { avoid: ['突然的触碰', '大声喧哗'], prefer: ['规律的环境', '柔和的背景音乐'] }
         },
         emotionBehavior: {
           behaviorRedLines: [
-            { description: '被催促时会坐下不动拒绝配合', trigger: '时间压力', response: '给予额外时间，分解任务为小步骤', severity: 'medium' },
-            { description: '物品位置改变会不安踱步', trigger: '环境变化', response: '提前说明并一起调整物品位置', severity: 'low' },
-            { description: '游泳时突然被水溅到脸会恐慌', trigger: '水溅面部', response: '立即带离水面，用毛巾擦脸，轻声安抚', severity: 'high' }
+            { description: '被催促时会坐下不动拒绝配合', trigger: '时间压力', response: '给予额外时间，分解任务为小步骤', severity: 'medium',
+              story: '上次超市快关门时，爸爸急着说"快点快点"，小明就原地坐下了。直到爸爸蹲下来，一句一句说"我们先拿牛奶，再拿面包，然后回家"，他才站起来',
+              tipAbout: '对小明来说，催促会让他感到失控和焦虑，坐下不动是他保护自己的方式',
+              tipCommon: '时间压力和模糊指令是孤独症伙伴常见的焦虑来源，他们需要明确的步骤和充足的时间来处理信息' },
+            { description: '物品位置改变会不安踱步', trigger: '环境变化', response: '提前说明并一起调整物品位置', severity: 'low',
+              story: '有一次妈妈把沙发上的拼图收进了柜子，小明来回走了十几分钟，直到妈妈把拼图拿出来放回原处，他才平静下来',
+              tipAbout: '小明对物品的位置有很强的记忆和依赖，改变会让他感到不安',
+              tipCommon: '对环境和物品位置的执着是孤独症伙伴寻求安全感的常见方式，熟悉的环境能给他们带来确定性' },
+            { description: '游泳时突然被水溅到脸会恐慌', trigger: '水溅面部', response: '立即带离水面，用毛巾擦脸，轻声安抚', severity: 'high',
+              story: '上次游泳课，旁边的小朋友拍水玩，水花溅到小明脸上，他突然尖叫着往池边跑。教练用毛巾帮他擦干脸后，他才慢慢平静下来',
+              tipAbout: '小明对脸部的触觉特别敏感，水溅到脸上会让他感到强烈的恐慌',
+              tipCommon: '感官过敏是孤独症的常见特征，某些刺激对孤独症伙伴来说可能被放大数倍，这不是小题大做' }
           ],
           emotionTrend: [
             { date: Utils.formatDate(new Date(Date.now() - 6 * 86400000)), mood: 'good', note: '拼图完成很开心' },
@@ -718,14 +731,27 @@ window.Storage = (function () {
             { method: '正面引导', description: '多说"可以这样做"而非"不要那样"' }
           ],
           expressionDifficulties: '在陌生环境中不太敢开口说话',
+          tipAbout: '小花在熟悉的环境里很活泼，但面对陌生人或新环境时会变得安静，她需要时间慢慢适应',
+          tipCommon: '许多孤独症伙伴在新环境中需要更多时间来观察和适应，安静不代表不感兴趣，这是他们在用自己的节奏建立安全感',
           specialHabits: ['开心时会哼歌', '紧张时会反复整理头发'],
+          habitsTipAbout: '小花通过哼歌和整理头发来表达情绪，开心时哼歌是她的快乐信号，整理头发说明她需要一点支持',
+          habitsTipCommon: '自我调节行为是孤独症伙伴管理情绪的重要方式，这些行为不是"问题"，而是他们与外界沟通的桥梁',
           sensoryPreferences: { avoid: ['强光闪烁', '嘈杂环境'], prefer: ['柔和的音乐', '温暖的色调'] }
         },
         emotionBehavior: {
           behaviorRedLines: [
-            { description: '嘈杂环境中会捂耳朵并尖叫', trigger: '噪音刺激', response: '带至安静环境，轻声安抚，给耳机', severity: 'high' },
-            { description: '不喜欢被陌生人触碰头部', trigger: '身体接触', response: '从侧面接近，先打招呼再行动', severity: 'medium' },
-            { description: '画画被打断会情绪低落很久', trigger: '任务中断', response: '提前告知剩余时间，给缓冲期', severity: 'medium' }
+            { description: '嘈杂环境中会捂耳朵并尖叫', trigger: '噪音刺激', response: '带至安静环境，轻声安抚，给耳机', severity: 'high',
+              story: '上次商场搞活动，广播声和人群声混在一起，小花突然捂住耳朵尖叫起来。老师赶紧带她到商场的母婴室，关上门后她慢慢放下了手，还小声说了句"太吵了"',
+              tipAbout: '小花的听觉非常敏感，突然的或持续的噪音会让她感到剧烈的痛苦，尖叫是她求助的信号',
+              tipCommon: '听觉过敏是孤独症中常见的感官特征，普通音量对孤独症伙伴来说可能如同噪音轰炸，这不是任性' },
+            { description: '不喜欢被陌生人触碰头部', trigger: '身体接触', response: '从侧面接近，先打招呼再行动', severity: 'medium',
+              story: '有一次新来的志愿者想摸摸小花的头夸她画得好，小花立刻躲开了，之后一整节课都不愿意和那个志愿者说话。后来熟悉的老师从侧面走过去，先叫了她的名字，她才重新开始画画',
+              tipAbout: '小花对身体接触很敏感，尤其是头部，陌生人的触碰会让她感到被侵犯',
+              tipCommon: '触觉防御是孤独症伙伴常见的感官特征，尊重他们的身体边界是建立信任的第一步，而不是强迫适应' },
+            { description: '画画被打断会情绪低落很久', trigger: '任务中断', response: '提前告知剩余时间，给缓冲期', severity: 'medium',
+              story: '上周美术课还剩5分钟时，老师没说就收走了画具，小花趴在桌上不说话，直到下一节课都拒绝参与任何活动。后来老师学会了提前说"还有5分钟，可以把最后一笔画完"，她就会自己收好画具',
+              tipAbout: '对小花来说，画画是她表达自己最重要的方式，突然打断会让她觉得自己的表达不被尊重',
+              tipCommon: '许多孤独症伙伴对正在进行的任务有很强的专注力，突然切换会引发强烈的情绪反应，提前预告和缓冲期是关键' }
           ],
           emotionTrend: [
             { date: Utils.formatDate(new Date(Date.now() - 6 * 86400000)), mood: 'good', note: '画了一幅很漂亮的画' },
@@ -829,7 +855,7 @@ window.Storage = (function () {
     mingRecs.push(r(mingId, mingMom.id, 'parent', 'communicationGuide', '今天用两个选项让他选晚餐，他选了面条而不是饭', ['选择', '沟通'], 20));
     mingRecs.push(r(mingId, mingMom.id, 'parent', 'emotionBehavior', '今天主动帮忙摆碗筷，还说了谢谢，很暖心', ['积极', '礼貌'], 18));
     mingRecs.push(r(mingId, mingMom.id, 'parent', 'careMedical', '晚上睡觉前有点咳嗽，给喝了温水，观察中', ['健康', '注意'], 17));
-    // 小明保姆 — 工作日记录
+    // 小明影子老师 — 工作日记录
     mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'careMedical', '中午检查了菜单，确认没有海鲜和芒果，午餐吃了番茄炒蛋和米饭', ['饮食', '过敏'], 28));
     mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'emotionBehavior', '下午搭积木时被电话打断有点烦躁，给了5分钟缓冲后平静下来了', ['情绪', '自我调节'], 26));
     mingRecs.push(r(mingId, mingNanny.id, 'caregiver', 'workSupport', '游泳课表现很好，能自己漂浮5秒了，教练表扬了他', ['游泳', '进步'], 24));
@@ -902,7 +928,7 @@ window.Storage = (function () {
     huaRecs.push(r(huaId, huaMom.id, 'parent', 'communicationGuide', '今天用画表达了想去音乐教室的想法，画了钢琴和音符', ['沟通', '画画'], 20));
     huaRecs.push(r(huaId, huaMom.id, 'parent', 'emotionBehavior', '今天主动帮妈妈整理衣服，做得很认真，还哼着歌', ['积极', '主动'], 18));
     huaRecs.push(r(huaId, huaMom.id, 'parent', 'careMedical', '晚上有点咳嗽，给喝了温水，睡前吃了半片氯雷他定', ['健康', '用药'], 17));
-    // 小花保姆
+    // 小花影子老师
     huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'emotionBehavior', '下午做手工时外面施工噪音很大，有点烦躁，给了耳机后安静了', ['噪音', '应对'], 28));
     huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'workSupport', '唱歌课学了新歌，学得很快，还主动给其他小朋友示范', ['唱歌', '自信'], 26));
     huaRecs.push(r(huaId, huaNanny.id, 'caregiver', 'careMedical', '午餐避开了所有奶制品，给她准备了豆浆和素菜', ['饮食', '过敏'], 26));

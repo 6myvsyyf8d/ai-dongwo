@@ -244,7 +244,7 @@
     var user = AppState.currentUser;
     var youths = Permissions.getAccessibleYouths();
 
-    // 游离状态检测：老师/照护者无任何心青年档案
+    // 游离状态检测：老师/影子老师无任何心青年档案
     if (['teacher', 'caregiver'].indexOf(user.role) > -1) {
       if (youths.length === 0) {
         _renderUnboundDashboard(container, user);
@@ -301,7 +301,7 @@
   }
 
   /**
-   * 渲染游离状态首页（老师/照护者无任何心青年档案）
+   * 渲染游离状态首页（老师/影子老师无任何心青年档案）
    */
   function _renderUnboundDashboard(container, user) {
     var roleLabel = Constants.ROLE_LABELS[user.role] || user.role;
@@ -679,7 +679,7 @@
   }
 
   /**
-   * 照护者主页：每日交接 + 护理记录入口
+   * 影子老师主页：每日交接 + 护理记录入口
    */
   function _renderCaregiverDashboard(user, youths) {
     var html = '';
@@ -760,7 +760,7 @@
     var grants = Storage.getAccessGrants(youth.id);
     var seenIds = {};
 
-    // 接收人选项（包含心青年和照护者）
+    // 接收人选项（包含心青年和影子老师）
     var assigneeOptions = '<option value="">请选择接收人</option>';
     // 心青年本人
     if (youth.id !== currentUser.id) {
@@ -1141,7 +1141,7 @@
   }
 
   /**
-   * 渲染任务看板（Kanban 三列）— 用于照护者/家长/老师首页
+   * 渲染任务看板（Kanban 三列）— 用于影子老师/家长/老师首页
    * @param {object|Array} youthOrYouths - 单个心青年档案或数组（多学生合并）
    * @param {object} currentUser - 当前用户
    * @param {object} options - { showYouthName: boolean } 多学生合并时在卡片上显示学生名

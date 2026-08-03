@@ -51,8 +51,8 @@ window.Auth = (function () {
     var quickLoginHtml = '';
     if (accountList.length > 0) {
       // 家庭分组定义
-      var mingFamilyNames = ['小明爸爸', '小明妈妈', '小明保姆', '小明'];
-      var huaFamilyNames = ['小花爸爸', '小花妈妈', '小花保姆', '小花'];
+      var mingFamilyNames = ['小明爸爸', '小明妈妈', '小明影子老师', '小明'];
+      var huaFamilyNames = ['小花爸爸', '小花妈妈', '小花影子老师', '小花'];
       var mingGroup = accountList.filter(function (a) { return mingFamilyNames.indexOf(a.name) !== -1; });
       var huaGroup = accountList.filter(function (a) { return huaFamilyNames.indexOf(a.name) !== -1; });
       var otherAccounts = accountList.filter(function (a) {

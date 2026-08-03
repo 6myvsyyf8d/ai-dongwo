@@ -1,34 +1,37 @@
 /* analytics.css - 数据价值呈现样式 */
 /* 首页健康速报卡片 + 分析页 */
 
-/* ========== 首页健康速报卡片 ========== */
+/* ========== 首页活动亮点卡片 ========== */
+/* 对齐系统 .ios-card-group 设计模式：渐变背景 + 多层阴影 + 靛蓝冷调 */
 .health-card {
-  background: var(--color-bg-secondary);
+  background: var(--card-bg);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg);
-  box-shadow: var(--shadow-xs);
+  padding: 0;
+  box-shadow: var(--shadow-md);
   border: 1px solid var(--color-border-light);
   max-width: 100%;
-  margin-bottom: var(--spacing-lg);
+  margin: 0 8px 6px;
   cursor: pointer;
-  transition: box-shadow 0.2s ease;
+  overflow: hidden;
+  transition: box-shadow var(--transition-fast);
 }
 
 .health-card:hover {
-  box-shadow: var(--shadow-primary);
+  box-shadow: var(--shadow-xl);
 }
 
 .health-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--spacing-md);
+  padding: 12px 16px 8px;
 }
 
 .health-card-title {
-  font-size: var(--font-size-base);
+  font-size: var(--font-size-sm);
   font-weight: var(--font-weight-semibold);
   color: var(--color-text-primary);
+  letter-spacing: -0.01em;
 }
 
 .health-card-date {
@@ -36,323 +39,34 @@
   color: var(--color-text-tertiary);
 }
 
-/* 模块状态网格 */
-.health-module-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
-}
-
-.health-module-grid .health-module-item:nth-child(4),
-.health-module-grid .health-module-item:nth-child(5) {
-  grid-column: span 1;
-}
-
-.health-module-item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 10px 6px;
-  border-radius: var(--radius-lg);
-  background: rgba(255, 255, 255, 0.03);
-  border: 0.5px solid rgba(255, 255, 255, 0.04);
-  gap: 4px;
-  transition: background 0.2s, border-color 0.2s;
-}
-.health-module-item:active {
-  background: rgba(255, 255, 255, 0.06);
-}
-
-.health-module-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  background: rgba(255, 255, 255, 0.06);
-  margin-bottom: 2px;
-}
-
-.health-module-label {
-  font-size: var(--font-size-2xs);
-  color: var(--color-text-secondary);
-}
-
-.health-module-status {
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-medium);
-  padding: 1px 6px;
-  border-radius: var(--radius-full);
-}
-
-.health-status-normal .health-module-status {
-  color: var(--color-success);
-  background: rgba(52, 199, 89, 0.1);
-}
-
-.health-status-warning .health-module-status {
-  color: var(--color-warning);
-  background: rgba(255, 149, 0, 0.1);
-}
-
-.health-status-empty .health-module-status {
-  color: var(--color-text-tertiary);
-  background: rgba(142, 142, 147, 0.1);
-}
-
-/* ========== 通用健康概览卡片（表格行样式） ========== */
-.health-overview-card {
-  background: rgba(255, 255, 255, 0.03);
-  border-radius: var(--radius-lg);
-  border: 0.5px solid rgba(255, 255, 255, 0.06);
-  margin-bottom: var(--spacing-md);
-  overflow: hidden;
-}
-
-.health-overview-header {
-  padding: 10px var(--spacing-md);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-secondary);
-  border-bottom: 0.5px solid rgba(255, 255, 255, 0.04);
-  letter-spacing: 0.02em;
-}
-
-.health-overview-body {
-  padding: 2px 0;
-}
-
-/* 概览行 */
-.health-overview-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px var(--spacing-md);
-  gap: var(--spacing-md);
-  transition: background 0.15s ease;
-}
-
-.health-overview-row + .health-overview-row {
-  border-top: 0.5px solid rgba(255, 255, 255, 0.03);
-}
-
-.health-overview-row:hover {
-  background: rgba(255, 255, 255, 0.02);
-}
-
-/* 左侧：项目 */
-.health-overview-left {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  flex-shrink: 0;
-  min-width: 100px;
-}
-
-.health-overview-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 14px;
-  background: rgba(255, 255, 255, 0.06);
-  flex-shrink: 0;
-}
-
-.health-overview-label {
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  color: var(--color-text-primary);
-  white-space: nowrap;
-}
-
-/* 右侧：内容 */
-.health-overview-right {
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-sm);
-  flex: 1;
-  justify-content: flex-end;
-  min-width: 0;
-}
-
-/* 视觉化状态条 */
-.health-overview-bar {
-  width: 4px;
-  height: 24px;
-  border-radius: 2px;
-  flex-shrink: 0;
-  transition: background 0.3s ease;
-}
-
-.health-overview-bar.normal {
-  background: var(--color-success);
-}
-
-.health-overview-bar.warning {
-  background: var(--color-warning);
-}
-
-.health-overview-bar.empty {
-  background: rgba(142, 142, 147, 0.3);
-}
-
-/* 状态信息区 */
-.health-overview-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 2px;
-  min-width: 0;
-}
-
-.health-overview-status {
-  font-size: var(--font-size-2xs);
-  font-weight: var(--font-weight-medium);
-  padding: 1px 6px;
-  border-radius: var(--radius-full);
-  white-space: nowrap;
-}
-
-.health-overview-status.normal {
-  color: var(--color-success);
-  background: rgba(52, 199, 89, 0.1);
-}
-
-.health-overview-status.warning {
-  color: var(--color-warning);
-  background: rgba(255, 149, 0, 0.1);
-}
-
-.health-overview-status.empty {
-  color: var(--color-text-tertiary);
-  background: rgba(142, 142, 147, 0.1);
-}
-
-.health-overview-count {
-  font-size: 10px;
-  color: var(--color-text-tertiary);
-}
-
-/* 用药状态子标签 */
-.health-overview-med {
-  font-size: 10px;
-  padding: 1px 6px;
-  border-radius: var(--radius-full);
-  white-space: nowrap;
-}
-
-.health-overview-med.taken {
-  color: var(--color-success);
-  background: rgba(52, 199, 89, 0.08);
-}
-
-.health-overview-med.refused {
-  color: var(--color-danger);
-  background: rgba(255, 59, 48, 0.08);
-}
-
-.health-overview-med.recorded {
-  color: var(--color-text-secondary);
-  background: rgba(142, 142, 147, 0.08);
-}
-
-/* 异常预警行 */
-.health-alert-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: var(--spacing-sm) var(--spacing-md);
-  border-radius: var(--radius-md);
-  margin-bottom: var(--spacing-sm);
-  font-size: var(--font-size-xs);
-}
-
-.health-alert-clear {
-  background: rgba(52, 199, 89, 0.08);
-  color: var(--color-success);
-}
-
-.health-alert-warning {
-  background: rgba(255, 59, 48, 0.08);
-  color: var(--color-danger);
-}
-
-.health-alert-text {
-  flex: 1;
-}
-
-.health-alert-dots {
-  display: flex;
-  gap: 4px;
-}
-
-.health-alert-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: rgba(255, 59, 48, 0.3);
-  transition: background 0.3s;
-}
-
-.health-alert-dot.active {
-  background: var(--color-danger);
-}
-
-/* 底部统计 */
-.health-card-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding-top: var(--spacing-sm);
-  border-top: 0.5px solid var(--color-border-light);
-  font-size: var(--font-size-xs);
-}
-
-.health-footer-stat {
-  color: var(--color-text-secondary);
-}
-
-.health-footer-stat strong {
-  color: var(--color-text-primary);
-}
-
-.health-footer-link {
-  color: var(--color-primary);
-  font-weight: var(--font-weight-medium);
-}
-
-/* ========== 今日活动亮点标签 ========== */
+/* 活动标签容器 */
 .activity-tags {
   display: flex;
   flex-wrap: wrap;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-md);
+  gap: 8px;
+  padding: 0 16px 12px;
 }
 
+/* 活动标签 — 靛蓝冷调 pill */
 .activity-tag {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
+  padding: 8px 14px;
   border-radius: var(--radius-full);
-  background: rgba(255, 248, 240, 0.08);
-  border: 1px solid rgba(255, 200, 150, 0.18);
-  transition: background 0.2s ease, border-color 0.2s ease;
+  background: var(--color-primary-surface);
+  border: 0.5px solid rgba(94, 106, 210, 0.18);
+  transition: background var(--transition-fast), border-color var(--transition-fast), transform var(--transition-fast);
 }
 
 .activity-tag:hover {
-  background: rgba(255, 248, 240, 0.12);
-  border-color: rgba(255, 200, 150, 0.28);
+  background: rgba(94, 106, 210, 0.14);
+  border-color: rgba(94, 106, 210, 0.28);
+  transform: translateY(-1px);
 }
 
 .activity-tag-icon {
-  font-size: 18px;
+  font-size: 16px;
   line-height: 1;
   flex-shrink: 0;
 }
@@ -360,27 +74,58 @@
 .activity-tag-text {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: #E8D5C4;
+  color: var(--color-text-primary);
   white-space: nowrap;
 }
 
 .activity-tag-empty {
   background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.06);
 }
 
 .activity-tag-empty .activity-tag-text {
   color: var(--color-text-tertiary);
 }
 
+/* 鼓励语 */
 .activity-encouragement {
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
-  color: #E8D5C4;
+  color: var(--color-text-secondary);
   text-align: center;
-  padding: var(--spacing-sm) 0;
-  margin-bottom: var(--spacing-sm);
+  padding: 0 16px 12px;
   letter-spacing: 0.02em;
+}
+
+/* 底部统计 — 对齐 ios-card-row 分割线 */
+.health-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 16px;
+  border-top: 0.5px solid var(--color-border-light);
+  font-size: var(--font-size-xs);
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.health-footer-stat {
+  color: var(--color-text-tertiary);
+}
+
+.health-footer-stat strong {
+  color: var(--color-text-secondary);
+  font-weight: var(--font-weight-semibold);
+}
+
+.health-footer-link {
+  color: var(--color-primary-light);
+  font-weight: var(--font-weight-medium);
+  font-size: var(--font-size-xs);
+  transition: color var(--transition-fast);
+}
+
+.health-footer-link:hover {
+  color: var(--color-primary);
 }
 
 /* ========== 分析页 ========== */

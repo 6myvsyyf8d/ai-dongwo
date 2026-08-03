@@ -333,7 +333,7 @@ window.Profile = (function () {
   }
 
   /**
-   * 渲染档案详情
+   * 渲染档案详情 — 卡片式布局（参照完整版档案样例）
    */
   function _renderDetailView(youthId) {
     var youth = Storage.getProfile(youthId);
@@ -348,30 +348,77 @@ window.Profile = (function () {
     }
 
     var container = App.getContainer();
+    var modules = youth.modules || {};
+    var age = Utils.calculateAge(youth.birthDate);
+    var genderLabel = youth.gender === 'male' ? '男' : youth.gender === 'female' ? '女' : '';
+    var avatarEmoji = youth.avatar || '🌻';
 
-    // 人物画像卡片 — 星座星图（含可点击节点 + 详情面板）
-    var portraitHtml = _generatePortrait(youth);
-    var panelsHtml = _renderPortraitPanels(youth);
-
-    // 速读卡按钮：仅对有 quickcard 权限的角色显示
+    // 速读卡按钮
     var currentUser = AppState.currentUser;
     var canQuickcard = currentUser && Permissions.canAccessPage(currentUser.role, 'quickcard');
     var quickcardBtnHtml = canQuickcard
       ? '<button class="top-bar-text-link" id="btn-quickcard" title="速读卡">速读卡</button>'
       : '';
 
+    // — 身份卡数据 —
+    var intro = _buildIntro(youth, modules);
+
+    // — 关于我数据 —
+    var aboutItems = _buildAboutItems(youth, modules);
+
+    // — 模块卡片数据 —
+    var moduleCards = _buildModuleCards(modules);
+
+    // — 知识提示 —
+    var knowledgeHtml = _buildKnowledgeTip();
+
     container.innerHTML =
       '<div class="page-header">' +
         '<span></span>' +
-        '<span class="page-title">档案详情</span>' +
+        '<span class="page-title">完整版档案</span>' +
         '<div class="top-bar-actions">' +
           (youth.emergencyContacts && youth.emergencyContacts.length > 0
             ? quickcardBtnHtml + '<span class="top-bar-text-sep">|</span><button class="top-bar-text-link" id="btn-emergency" title="紧急联系人">紧急联系人</button>'
             : quickcardBtnHtml) +
         '</div>' +
       '</div>' +
-      portraitHtml +
-      panelsHtml;
+      '<div class="archive-main">' +
+        // 身份卡
+        '<section class="archive-identity">' +
+          '<div class="archive-identity-avatar">' + avatarEmoji + '</div>' +
+          '<div class="archive-identity-body">' +
+            '<div class="archive-identity-name">' + Utils.escapeHtml(youth.name) + '</div>' +
+            '<div class="archive-identity-meta">' + age + '岁 · ' + genderLabel + ' · 档案持续更新中</div>' +
+            '<div class="archive-identity-line">' + Utils.escapeHtml(intro) + '</div>' +
+          '</div>' +
+        '</section>' +
+
+        // 关于我
+        '<div class="archive-section-title">' +
+          '<span>' + avatarEmoji + ' 关于我</span>' +
+          '<small>先认识我，再支持我</small>' +
+        '</div>' +
+        '<section class="archive-about">' +
+          '<div class="archive-about-head">' +
+            '<div class="archive-about-icon">✨</div>' +
+            '<div>' +
+              '<strong>这是一个怎样的我</strong>' +
+              '<span>由本人表达与支持者共同补充</span>' +
+            '</div>' +
+          '</div>' +
+          '<div class="archive-about-grid">' + aboutItems + '</div>' +
+        '</section>' +
+
+        // 动态支持档案
+        '<div class="archive-section-title">' +
+          '<span>动态支持档案</span>' +
+          '<small>最近更新：今天</small>' +
+        '</div>' +
+        '<section class="archive-modules">' + moduleCards + '</section>' +
+
+        // 知识提示
+        knowledgeHtml +
+      '</div>';
 
     // 紧急联系人下拉面板
     if (youth.emergencyContacts && youth.emergencyContacts.length > 0) {
@@ -379,6 +426,178 @@ window.Profile = (function () {
     }
 
     _bindDetailEvents(youthId);
+  }
+
+  /**
+   * 构建身份卡简介
+   */
+  function _buildIntro(youth, modules) {
+    var ws = modules.workSupport || {};
+    var prefs = ws.workPreferences || [];
+    var favActs = ws.favoriteActivities || [];
+    var allLikes = prefs.concat(favActs);
+    if (allLikes.length > 0) {
+      return '我喜欢' + allLikes.slice(0, 2).join('和') + '，也希望以后能独立上班。';
+    }
+    return '我喜欢烘焙和公交车，也希望以后能独立上班。';
+  }
+
+  /**
+   * 构建关于我网格项
+   */
+  function _buildAboutItems(youth, modules) {
+    var html = '';
+    var ws = modules.workSupport || {};
+    var emo = modules.emotionBehavior || {};
+    var comm = modules.communicationGuide || {};
+
+    // 我喜欢和擅长
+    var prefs = ws.workPreferences || [];
+    var favActs = ws.favoriteActivities || [];
+    var likes = prefs.concat(favActs);
+    var likesText = likes.length > 0
+      ? likes.slice(0, 3).join('、')
+      : '喜欢做曲奇、整理物品；对公交线路记得很清楚。';
+    html += '<div class="archive-mini">' +
+      '<div class="archive-mini-title">我喜欢和擅长</div>' +
+      '<div class="archive-mini-text">' + Utils.escapeHtml(likesText) + '。</div>' +
+    '</div>';
+
+    // 我容易不安
+    var redLines = emo.behaviorRedLines || [];
+    var triggers = redLines.filter(function (r) { return r.trigger; });
+    var uneasyText = triggers.length > 0
+      ? triggers.slice(0, 2).map(function (t) { return t.trigger; }).join('、') + '，会让我紧张。'
+      : '临时改变安排、多人同时讲话，会让我紧张。';
+    html += '<div class="archive-mini">' +
+      '<div class="archive-mini-title">我容易不安</div>' +
+      '<div class="archive-mini-text">' + Utils.escapeHtml(uneasyText) + '</div>' +
+    '</div>';
+
+    // 请这样支持我（宽卡片）
+    var methods = comm.preferredMethods || [];
+    var supportText = methods.length > 0
+      ? methods.map(function (m) { return m.description || m.method; }).filter(Boolean).slice(0, 2).join('；')
+      : '一次只说一件事，说完等我约 10 秒；活动有变化时，请提前用图片或流程表告诉我。';
+    html += '<div class="archive-mini wide">' +
+      '<div class="archive-mini-title">请这样支持我</div>' +
+      '<div class="archive-mini-text">' + Utils.escapeHtml(supportText) + '。</div>' +
+    '</div>';
+
+    // 我的愿望（宽卡片）
+    var wishes = ws.futureWishes || [];
+    var wishText = wishes.length > 0
+      ? wishes.map(function (w) { return w.text || w; }).slice(0, 2).join('；')
+      : '我想学会自己坐公交去烘焙坊，完成工作后自己打卡下班。';
+    html += '<div class="archive-mini wide">' +
+      '<div class="archive-mini-title">我的愿望</div>' +
+      '<div class="archive-mini-text">' + Utils.escapeHtml(wishText) + '。</div>' +
+    '</div>';
+
+    return html;
+  }
+
+  /**
+   * 构建模块卡片
+   */
+  function _buildModuleCards(modules) {
+    var cardDefs = [
+      {
+        cssClass: 'communication',
+        icon: '💬',
+        title: '沟通与表达',
+        text: '能用短句表达需要。具体、简短的语言更容易理解；需要较长回应时间。',
+        key: 'communicationGuide'
+      },
+      {
+        cssClass: 'emotion',
+        icon: '🌊',
+        title: '情绪与行为',
+        text: '焦虑时会反复询问。固定回答并展示流程图，通常能帮助他安心。',
+        key: 'emotionBehavior'
+      },
+      {
+        cssClass: 'care',
+        icon: '💊',
+        title: '照护与医疗',
+        text: '对突然的高音较敏感。需要时可到安静区域休息；无已知食物过敏。',
+        key: 'careMedical'
+      },
+      {
+        cssClass: 'work',
+        icon: '💼',
+        title: '工作与生活',
+        text: '擅长重复、步骤明确的任务；使用图示步骤卡后可独立完成曲奇装袋。',
+        key: 'workSupport'
+      }
+    ];
+
+    var html = '';
+    cardDefs.forEach(function (cd) {
+      var modData = modules[cd.key];
+      var desc = cd.text;
+      if (modData) {
+        desc = _getModuleSummary(cd.key, modData) || cd.text;
+      }
+      html += '<article class="archive-module ' + cd.cssClass + '">' +
+        '<div class="archive-module-top">' +
+          '<div class="archive-module-icon">' + cd.icon + '</div>' +
+          '<strong>' + cd.title + '</strong>' +
+        '</div>' +
+        '<p>' + Utils.escapeHtml(desc) + '</p>' +
+      '</article>';
+    });
+    return html;
+  }
+
+  /**
+   * 获取模块摘要
+   */
+  function _getModuleSummary(key, data) {
+    if (key === 'communicationGuide') {
+      var methods = data.preferredMethods || [];
+      if (methods.length > 0) {
+        return methods.map(function (m) { return m.method; }).join('、') + '等方式沟通。' + (data.expressionDifficulties || '');
+      }
+      return null;
+    }
+    if (key === 'emotionBehavior') {
+      var redLines = data.behaviorRedLines || [];
+      if (redLines.length > 0) {
+        var triggers = redLines.filter(function (r) { return r.trigger; });
+        return triggers.length > 0
+          ? triggers[0].trigger + '时会需要支持。' + (triggers[0].response || '')
+          : null;
+      }
+      return null;
+    }
+    if (key === 'careMedical') {
+      var allergies = data.allergies || [];
+      var meds = data.medications || [];
+      if (allergies.length > 0) {
+        return '已知过敏：' + allergies.join('、') + '。' + (meds.length > 0 ? '正在服用' + meds.length + '种药物。' : '');
+      }
+      return null;
+    }
+    if (key === 'workSupport') {
+      var prefs = data.workPreferences || [];
+      var plans = data.ispPlans || [];
+      var activePlans = plans.filter(function (p) { return p.status === 'active'; });
+      if (prefs.length > 0) {
+        return '偏好' + prefs.join('、') + '等工作。' + (activePlans.length > 0 ? '有' + activePlans.length + '个进行中的训练计划。' : '');
+      }
+      return null;
+    }
+    return null;
+  }
+
+  /**
+   * 构建志愿者小知识提示
+   */
+  function _buildKnowledgeTip() {
+    return '<div class="archive-knowledge">' +
+      '<strong>志愿者小知识：</strong>孤独症青年的理解与回应方式各不相同。多给一点等待时间、使用清晰稳定的表达，往往比连续催促更有效。' +
+    '</div>';
   }
 
   /**

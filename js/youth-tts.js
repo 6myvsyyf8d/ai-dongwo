@@ -12,60 +12,32 @@ window.YouthTTS = (function () {
   /**
    * 朗读文本
    * @param {string} text - 要朗读的文本
-   * @param {object} [options] - 可选配置
-   * @param {number} [options.rate=0.9] - 语速 (0.1-10)
-   * @param {number} [options.pitch=1.0] - 音高 (0-2)
-   * @param {number} [options.volume=1.0] - 音量 (0-1)
    * @returns {boolean} 是否成功启动朗读
    */
-  function speak(text, options) {
+  function speak(text) {
     if (!text || typeof text !== 'string') return false;
 
-    // 检查浏览器支持
-    if (!window.speechSynthesis) {
-      console.warn('YouthTTS: 浏览器不支持 SpeechSynthesis');
-      return false;
-    }
+    if (!window.speechSynthesis) return false;
 
-    // 先停止当前朗读
-    stopSpeaking();
+    stop();
 
-    // 清理文本中的 markdown 标记
     var cleanText = text
-      .replace(/[*_~`#]/g, '')   // 移除 markdown 标记
-      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')  // 移除链接
-      .replace(/\n{2,}/g, '。')   // 多个换行变句号
-      .replace(/\n/g, '，')       // 单换行变逗号
-      .replace(/\s{2,}/g, ' ')    // 多余空格
+      .replace(/[*_~`#]/g, '')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')
+      .replace(/\n{2,}/g, '。')
+      .replace(/\n/g, '，')
+      .replace(/\s{2,}/g, ' ')
       .trim();
 
     if (!cleanText) return false;
 
-    options = options || {};
-    var rate = (options.rate != null) ? options.rate : 0.9;
-    var pitch = (options.pitch != null) ? options.pitch : 1.0;
-    var volume = (options.volume != null) ? options.volume : 1.0;
-
     var utterance = new SpeechSynthesisUtterance(cleanText);
     utterance.lang = 'zh-CN';
-    utterance.rate = rate;
-    utterance.pitch = pitch;
-    utterance.volume = volume;
+    utterance.rate = 0.9;
 
-    utterance.onstart = function () {
-      _speaking = true;
-    };
-
-    utterance.onend = function () {
-      _speaking = false;
-      _currentUtterance = null;
-    };
-
-    utterance.onerror = function (e) {
-      console.warn('YouthTTS: 朗读出错', e.error);
-      _speaking = false;
-      _currentUtterance = null;
-    };
+    utterance.onstart = function () { _speaking = true; };
+    utterance.onend = function () { _speaking = false; _currentUtterance = null; };
+    utterance.onerror = function () { _speaking = false; _currentUtterance = null; };
 
     _currentUtterance = utterance;
     window.speechSynthesis.speak(utterance);
@@ -75,7 +47,7 @@ window.YouthTTS = (function () {
   /**
    * 停止当前朗读
    */
-  function stopSpeaking() {
+  function stop() {
     if (window.speechSynthesis) {
       window.speechSynthesis.cancel();
     }
@@ -92,18 +64,18 @@ window.YouthTTS = (function () {
   }
 
   /**
-   * 语音反馈（操作确认）
+   * 语音反馈：先中断当前朗读再播新内容
    * @param {string} text - 简短反馈文本
    */
   function speakFeedback(text) {
     if (!text) return;
-    // 反馈用稍快语速
-    speak(text, { rate: 1.0, pitch: 1.1 });
+    stop();
+    speak(text);
   }
 
   return {
     speak: speak,
-    stopSpeaking: stopSpeaking,
+    stop: stop,
     isSpeaking: isSpeaking,
     speakFeedback: speakFeedback
   };

@@ -297,7 +297,7 @@ window.Permissions = (function () {
       if (record.recorderId === user.id) return true;
       if (user.role === 'youth') return true;
       if (user.role === 'parent') return AppState.currentGrants.length > 0;
-      // 照护者只能看到自己录入的 private 记录
+      // 影子老师只能看到自己录入的 private 记录
       if (user.role === 'caregiver') {
         return record.recorderId === user.id;
       }

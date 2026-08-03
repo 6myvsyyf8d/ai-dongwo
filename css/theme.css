@@ -1,960 +1,264 @@
 /* ================================================================
    AI懂我 · theme.css
-   双主题系统：暗色 (dark) / 暖色 (warm)
+   单主题系统：烘焙饼干 (cookie)
    ================================================================ */
 
-/* — 默认主题：暗色深空 — */
+/* — 默认主题：烘焙饼干 — */
 :root {
-  /* — Primary: 靛蓝 Indigo — */
-  --color-primary: #5E6AD2;
-  --color-primary-rgb: 94, 106, 210;
-  --color-primary-light: #6872D9;
-  --color-primary-dark: #4F5AC0;
-  --color-primary-surface: rgba(94, 106, 210, 0.10);
-  --color-primary-glow: rgba(94, 106, 210, 0.30);
+  /* — Primary: 烤焦糖色 Baked Caramel — */
+  --color-primary: #c47a3a;
+  --color-primary-rgb: 196, 122, 58;
+  --color-primary-light: #da9a4e;
+  --color-primary-dark: #a86228;
+  --color-primary-surface: rgba(196, 122, 58, 0.08);
+  --color-primary-glow: rgba(196, 122, 58, 0.20);
 
   /* — Accent / Secondary — */
-  --color-secondary: #9B85B8;
-  --color-accent: #D4A85A;
-  --color-success: #34C759;
-  --color-warning: #FDCB6E;
-  --color-warning-dark: #E08600;
-  --color-danger: #FF453A;
-  --color-danger-dark: #D63031;
+  --color-secondary: #b06a32;
+  --color-accent: #e8b060;
+  --color-success: #5a9e5a;
+  --color-warning: #da9a4e;
+  --color-warning-dark: #b06a32;
+  --color-danger: #d47060;
+  --color-danger-dark: #b84a3e;
 
-  /* — Text: 冷白文字体系 — */
-  --color-text-primary: #EDEDEF;
-  --color-text-secondary: #8A8F98;
-  --color-text-tertiary: rgba(255, 255, 255, 0.60);
-  --color-text-white: #FFFFFF;
+  /* — Text: 深巧克力色文字体系 — */
+  --color-text-primary: #3d2b1a;
+  --color-text-secondary: #8b6e50;
+  --color-text-tertiary: #bba88e;
+  --color-text-white: #fefaf5;
 
-  /* — Background: 近纯黑层次 — */
-  --color-bg-primary: #050506;
-  --color-bg-secondary: #0a0a0c;
-  --color-bg-tertiary: #0a0a0f;
-  --color-bg-deep: #020203;
-  --color-bg-overlay: rgba(0, 0, 0, 0.55);
-  --color-bg-warm: #0c0c14;
+  /* — Background: 黄油面团层次 — */
+  --color-bg-primary: #fef9f2;
+  --color-bg-secondary: #fef5e8;
+  --color-bg-tertiary: #fef2dc;
+  --color-bg-deep: #feeed0;
+  --color-bg-overlay: rgba(180, 110, 50, 0.06);
+  --color-bg-warm: #fef9f2;
 
-  /* — Surface: 半透明表面层 — */
-  --color-surface: rgba(255, 255, 255, 0.05);
-  --color-surface-hover: rgba(255, 255, 255, 0.08);
-
-  /* — Border: 微光边框 — */
-  --color-border: rgba(255, 255, 255, 0.10);
-  --color-border-light: rgba(255, 255, 255, 0.06);
-  --color-border-accent: rgba(94, 106, 210, 0.30);
-
-  /* — Misc: 辅助变量 — */
-  --color-card: #0a0a0c;
-  --color-separator: rgba(255, 255, 255, 0.08);
-
-  /* — Role colors — */
-  --color-role-youth: #5E6AD2;
-  --color-role-parent: #34C759;
-  --color-role-teacher: #FDCB6E;
-  --color-role-caregiver: #FF453A;
-  --color-role-government: #8A8F98;
-
-  /* — Module colors — */
-  --color-module-communicationGuide: #9B85B8;
-  --color-module-emotionBehavior: #FF453A;
-  --color-module-careMedical: #34C759;
-  --color-module-workSupport: #FDCB6E;
-  --color-module-relationshipMap: #B5A8D4;
-
-  /* — Shadow: 多层复合阴影系统 — */
-  --shadow-xs: 0 0 0 1px rgba(255,255,255,0.04), 0 1px 4px rgba(0,0,0,0.3);
-  --shadow-sm: 0 0 0 1px rgba(255,255,255,0.06), 0 2px 12px rgba(0,0,0,0.4), 0 0 20px rgba(0,0,0,0.2);
-  --shadow-md: 0 0 0 1px rgba(255,255,255,0.06), 0 2px 20px rgba(0,0,0,0.4), 0 0 40px rgba(0,0,0,0.2);
-  --shadow-lg: 0 0 0 1px rgba(255,255,255,0.08), 0 4px 28px rgba(0,0,0,0.5), 0 0 60px rgba(0,0,0,0.25);
-  --shadow-xl: 0 0 0 1px rgba(255,255,255,0.10), 0 8px 40px rgba(0,0,0,0.5), 0 0 80px rgba(94,106,210,0.10);
-  --shadow-inner: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
-
-  /* — 主色系阴影 — */
-  --shadow-primary: 0 0 0 1px rgba(94,106,210,0.50), 0 4px 12px rgba(94,106,210,0.30), inset 0 1px 0 0 rgba(255,255,255,0.20);
-  --shadow-primary-lg: 0 0 0 1px rgba(94,106,210,0.60), 0 6px 20px rgba(94,106,210,0.40), inset 0 1px 0 0 rgba(255,255,255,0.25);
-  --ring-primary: 0 0 0 3px rgba(94, 106, 210, 0.25);
-
-  /* — 主题特有样式变量 — */
-  --body-bg: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(94,106,210,0.08) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 30% 70%, rgba(94,106,210,0.04) 0%, transparent 50%), radial-gradient(ellipse 30% 25% at 70% 30%, rgba(100,120,220,0.04) 0%, transparent 50%), radial-gradient(ellipse at top, #0a0a0f 0%, #050506 50%, #020203 100%);
-  --body-bg-image: url('../assets/starry-bg.jpg') center/cover no-repeat fixed;
-  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
-  --card-radius: 16px;
-  --card-shadow: var(--shadow-md);
-  --btn-primary-bg: linear-gradient(135deg, #5E6AD2 0%, #4F5AC0 100%);
-  --btn-primary-bg-hover: linear-gradient(135deg, #6872D9 0%, #5E6AD2 100%);
-  --input-radius: 8px;
-  --input-bg: rgba(15, 15, 18, 0.8);
-  --input-focus-bg: rgba(15, 15, 18, 0.95);
-  --bubble-user-bg: var(--color-accent, #5E6AD2);
-  --bubble-user-radius: 18px 18px 4px 18px;
-  --bubble-ai-bg: rgba(255,255,255,0.04);
-  --bubble-ai-radius: 18px 18px 18px 4px;
-  --tag-radius: var(--radius-full);
-  --tag-border: 0.5px solid var(--color-border-light);
-  --tag-bg: var(--color-surface);
-  --bottom-nav-bg: rgba(10, 10, 12, 0.88);
-  --bottom-nav-border: 0.5px solid rgba(255,255,255,0.08);
-  --bottom-nav-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 24px rgba(0,0,0,0.5), 0 0 60px rgba(94,106,210,0.05);
-  --nav-item-color: rgba(255,255,255,0.65);
-  --nav-item-hover-color: rgba(255,255,255,0.85);
-  --nav-item-hover-bg: rgba(255,255,255,0.10);
-  /* 通用半透明层（替代硬编码 rgba(255,255,255,0.03~0.08)） */
-  --color-fill-subtle: rgba(255,255,255,0.03);
-  --color-fill-light: rgba(255,255,255,0.04);
-  --color-fill-medium: rgba(255,255,255,0.06);
-  --color-fill-strong: rgba(255,255,255,0.08);
-}
-
-/* — 显式暗色主题 — */
-[data-theme="dark"] {
-  --color-primary: #5E6AD2;
-  --color-primary-rgb: 94, 106, 210;
-  --color-primary-light: #6872D9;
-  --color-primary-dark: #4F5AC0;
-  --color-primary-surface: rgba(94, 106, 210, 0.10);
-  --color-primary-glow: rgba(94, 106, 210, 0.30);
-
-  --color-secondary: #9B85B8;
-  --color-accent: #D4A85A;
-  --color-success: #34C759;
-  --color-warning: #FDCB6E;
-  --color-warning-dark: #E08600;
-  --color-danger: #FF453A;
-  --color-danger-dark: #D63031;
-
-  --color-text-primary: #EDEDEF;
-  --color-text-secondary: #8A8F98;
-  --color-text-tertiary: rgba(255, 255, 255, 0.60);
-  --color-text-white: #FFFFFF;
-
-  --color-bg-primary: #050506;
-  --color-bg-secondary: #0a0a0c;
-  --color-bg-tertiary: #0a0a0f;
-  --color-bg-deep: #020203;
-  --color-bg-overlay: rgba(0, 0, 0, 0.55);
-  --color-bg-warm: #0c0c14;
-
-  --color-surface: rgba(255, 255, 255, 0.05);
-  --color-surface-hover: rgba(255, 255, 255, 0.08);
-
-  --color-border: rgba(255, 255, 255, 0.10);
-  --color-border-light: rgba(255, 255, 255, 0.06);
-  --color-border-accent: rgba(94, 106, 210, 0.30);
-
-  --color-card: #0a0a0c;
-  --color-separator: rgba(255, 255, 255, 0.08);
-
-  --color-role-youth: #5E6AD2;
-  --color-role-parent: #34C759;
-  --color-role-teacher: #FDCB6E;
-  --color-role-caregiver: #FF453A;
-  --color-role-government: #8A8F98;
-
-  --color-module-communicationGuide: #9B85B8;
-  --color-module-emotionBehavior: #FF453A;
-  --color-module-careMedical: #34C759;
-  --color-module-workSupport: #FDCB6E;
-  --color-module-relationshipMap: #B5A8D4;
-
-  --shadow-xs: 0 0 0 1px rgba(255,255,255,0.04), 0 1px 4px rgba(0,0,0,0.3);
-  --shadow-sm: 0 0 0 1px rgba(255,255,255,0.06), 0 2px 12px rgba(0,0,0,0.4), 0 0 20px rgba(0,0,0,0.2);
-  --shadow-md: 0 0 0 1px rgba(255,255,255,0.06), 0 2px 20px rgba(0,0,0,0.4), 0 0 40px rgba(0,0,0,0.2);
-  --shadow-lg: 0 0 0 1px rgba(255,255,255,0.08), 0 4px 28px rgba(0,0,0,0.5), 0 0 60px rgba(0,0,0,0.25);
-  --shadow-xl: 0 0 0 1px rgba(255,255,255,0.10), 0 8px 40px rgba(0,0,0,0.5), 0 0 80px rgba(94,106,210,0.10);
-  --shadow-inner: inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
-
-  --shadow-primary: 0 0 0 1px rgba(94,106,210,0.50), 0 4px 12px rgba(94,106,210,0.30), inset 0 1px 0 0 rgba(255,255,255,0.20);
-  --shadow-primary-lg: 0 0 0 1px rgba(94,106,210,0.60), 0 6px 20px rgba(94,106,210,0.40), inset 0 1px 0 0 rgba(255,255,255,0.25);
-  --ring-primary: 0 0 0 3px rgba(94, 106, 210, 0.25);
-
-  --body-bg: radial-gradient(ellipse 80% 50% at 50% 0%, rgba(94,106,210,0.08) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 30% 70%, rgba(94,106,210,0.04) 0%, transparent 50%), radial-gradient(ellipse 30% 25% at 70% 30%, rgba(100,120,220,0.04) 0%, transparent 50%), radial-gradient(ellipse at top, #0a0a0f 0%, #050506 50%, #020203 100%);
-  --card-bg: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.02) 100%);
-  --card-radius: 16px;
-  --card-shadow: var(--shadow-md);
-  --btn-primary-bg: linear-gradient(135deg, #5E6AD2 0%, #4F5AC0 100%);
-  --btn-primary-bg-hover: linear-gradient(135deg, #6872D9 0%, #5E6AD2 100%);
-  --input-radius: 8px;
-  --input-bg: rgba(15, 15, 18, 0.8);
-  --input-focus-bg: rgba(15, 15, 18, 0.95);
-  --bubble-user-bg: var(--color-accent, #5E6AD2);
-  --bubble-user-radius: 18px 18px 4px 18px;
-  --bubble-ai-bg: rgba(255,255,255,0.04);
-  --bubble-ai-radius: 18px 18px 18px 4px;
-  --tag-radius: var(--radius-full);
-  --tag-border: 0.5px solid var(--color-border-light);
-  --tag-bg: var(--color-surface);
-  --bottom-nav-bg: rgba(10, 10, 12, 0.88);
-  --bottom-nav-border: 0.5px solid rgba(255,255,255,0.08);
-  --bottom-nav-shadow: 0 0 0 1px rgba(255,255,255,0.06), 0 4px 24px rgba(0,0,0,0.5), 0 0 60px rgba(94,106,210,0.05);
-  --nav-item-color: rgba(255,255,255,0.65);
-  --nav-item-hover-color: rgba(255,255,255,0.85);
-  --nav-item-hover-bg: rgba(255,255,255,0.10);
-  --color-fill-subtle: rgba(255,255,255,0.03);
-  --color-fill-light: rgba(255,255,255,0.04);
-  --color-fill-medium: rgba(255,255,255,0.06);
-  --color-fill-strong: rgba(255,255,255,0.08);
-}
-
-/* — 暖色主题 — */
-[data-theme="warm"] {
-  --color-primary: #d97706;
-  --color-primary-rgb: 217, 119, 6;
-  --color-primary-light: #e5980b;
-  --color-primary-dark: #b45309;
-  --color-primary-surface: rgba(217, 119, 6, 0.08);
-  --color-primary-glow: rgba(217, 119, 6, 0.25);
-
-  --color-secondary: #92400e;
-  --color-accent: #d97706;
-  --color-success: #34C759;
-  --color-warning: #d97706;
-  --color-warning-dark: #b45309;
-  --color-danger: #FF453A;
-  --color-danger-dark: #D63031;
-
-  --color-text-primary: #1a1a1a;
-  --color-text-secondary: #8a6d4b;
-  --color-text-tertiary: rgba(138, 109, 75, 0.55);
-  --color-text-white: #78350f;
-
-  --color-bg-primary: #fffef9;
-  --color-bg-secondary: #fff8ed;
-  --color-bg-tertiary: #fef3e0;
-  --color-bg-deep: #fef3e0;
-  --color-bg-overlay: rgba(180, 83, 9, 0.08);
-  --color-bg-warm: #fffef9;
-
+  /* — Surface: 蛋白霜白表面 — */
   --color-surface: rgba(255, 255, 255, 0.85);
-  --color-surface-hover: rgba(255, 255, 255, 0.95);
-
-  --color-border: rgba(217, 119, 6, 0.15);
-  --color-border-light: rgba(217, 119, 6, 0.08);
-  --color-border-accent: rgba(217, 119, 6, 0.30);
-
-  --color-card: #fff5e8;
-  --color-separator: rgba(217, 119, 6, 0.08);
-
-  --color-role-youth: #d97706;
-  --color-role-parent: #34C759;
-  --color-role-teacher: #b45309;
-  --color-role-caregiver: #FF453A;
-  --color-role-government: #8A8F98;
-
-  --color-module-communicationGuide: #92400e;
-  --color-module-emotionBehavior: #FF453A;
-  --color-module-careMedical: #34C759;
-  --color-module-workSupport: #d97706;
-  --color-module-relationshipMap: #8a6d4b;
-
-  /* 暖色阴影 — 更柔和 */
-  --shadow-xs: 0 0 0 1px rgba(217,119,6,0.04), 0 1px 4px rgba(180,83,9,0.04);
-  --shadow-sm: 0 0 0 1px rgba(217,119,6,0.06), 0 2px 12px rgba(180,83,9,0.06), 0 0 20px rgba(180,83,9,0.04);
-  --shadow-md: 0 0 0 1px rgba(217,119,6,0.06), 0 2px 16px rgba(180,83,9,0.06), 0 8px 32px rgba(180,83,9,0.04);
-  --shadow-lg: 0 0 0 1px rgba(217,119,6,0.08), 0 4px 20px rgba(180,83,9,0.08), 0 0 40px rgba(180,83,9,0.05);
-  --shadow-xl: 0 0 0 1px rgba(217,119,6,0.10), 0 8px 32px rgba(180,83,9,0.08), 0 0 60px rgba(217,119,6,0.06);
-  --shadow-inner: inset 0 1px 0 0 rgba(255, 255, 255, 0.40);
-
-  --shadow-primary: 0 0 0 1px rgba(217,119,6,0.50), 0 4px 12px rgba(217,119,6,0.30), inset 0 1px 0 0 rgba(255,255,255,0.40);
-  --shadow-primary-lg: 0 0 0 1px rgba(217,119,6,0.60), 0 6px 20px rgba(217,119,6,0.40), inset 0 1px 0 0 rgba(255,255,255,0.45);
-  --ring-primary: 0 0 0 3px rgba(217, 119, 6, 0.25);
-
-  /* 暖色主题特有样式变量 */
-  --body-bg: radial-gradient(ellipse 60% 50% at 50% 30%, #fffef9 0%, #fff8ed 40%, #fef3e0 100%);
-  --body-bg-image: none;
-  --card-bg: #fff5e8;
-  --card-radius: 20px;
-  --card-shadow: var(--shadow-md);
-  --btn-primary-bg: linear-gradient(135deg, #d97706 0%, #c2410c 100%);
-  --btn-primary-bg-hover: linear-gradient(135deg, #e5980b 0%, #d97706 100%);
-  --input-radius: 20px;
-  --input-bg: rgba(255, 255, 255, 0.75);
-  --input-focus-bg: rgba(255, 255, 255, 0.92);
-  --bubble-user-bg: linear-gradient(135deg, #d97706, #c2410c);
-  --bubble-user-radius: 20px 20px 6px 20px;
-  --bubble-ai-bg: rgba(255, 255, 255, 0.70);
-  --bubble-ai-radius: 20px 20px 20px 6px;
-  --tag-radius: 9999px;
-  --tag-border: 0.5px solid rgba(217, 119, 6, 0.15);
-  --tag-bg: rgba(217, 119, 6, 0.06);
-  --bottom-nav-bg: rgba(255, 255, 255, 0.92);
-  --bottom-nav-border: 0.5px solid rgba(217, 119, 6, 0.15);
-  --bottom-nav-shadow: 0 0 0 1px rgba(217,119,6,0.06), 0 4px 24px rgba(180,83,9,0.08), 0 0 60px rgba(217,119,6,0.05);
-  --nav-item-color: rgba(140, 90, 50, 0.50);
-  --nav-item-hover-color: rgba(140, 90, 50, 0.75);
-  --nav-item-hover-bg: rgba(217, 119, 6, 0.08);
-  --color-fill-subtle: rgba(217,119,6,0.03);
-  --color-fill-light: rgba(217,119,6,0.04);
-  --color-fill-medium: rgba(217,119,6,0.06);
-  --color-fill-strong: rgba(217,119,6,0.08);
-}
-/* — Figma 珊瑚橘主题 — */
-[data-theme="figma"] {
-  --color-primary: #b04000;
-  --color-primary-rgb: 176, 64, 0;
-  --color-primary-light: #d08000;
-  --color-primary-dark: #8a2e00;
-  --color-primary-surface: rgba(176, 64, 0, 0.06);
-  --color-primary-glow: rgba(176, 64, 0, 0.15);
-
-  --color-secondary: #d08000;
-  --color-accent: #f0b000;
-  --color-success: #34C759;
-  --color-warning: #f0b000;
-  --color-warning-dark: #d08000;
-  --color-danger: #FF453A;
-  --color-danger-dark: #D63031;
-
-  --color-text-primary: #413f37;
-  --color-text-secondary: #8a8273;
-  --color-text-tertiary: #b5ae9e;
-  --color-text-white: #fafaf7;
-
-  --color-bg-primary: #fef6e2;
-  --color-bg-secondary: #fef3d8;
-  --color-bg-tertiary: #fef0d0;
-  --color-bg-deep: #fef0d0;
-  --color-bg-overlay: rgba(176, 64, 0, 0.04);
-  --color-bg-warm: #fef6e2;
-
-  --color-surface: rgba(255, 255, 255, 0.90);
   --color-surface-hover: rgba(255, 255, 255, 0.98);
 
-  --color-border: rgba(176, 64, 0, 0.08);
-  --color-border-light: rgba(176, 64, 0, 0.08);
-  --color-border-accent: rgba(176, 64, 0, 0.20);
+  /* — Border: 烤盘边缘 — */
+  --color-border: rgba(196, 122, 58, 0.12);
+  --color-border-light: rgba(196, 122, 58, 0.06);
+  --color-border-accent: rgba(196, 122, 58, 0.22);
 
+  /* — Misc — */
   --color-card: #ffffff;
-  --color-separator: #d4c8b0;
+  --color-separator: #e8d5c0;
 
-  --color-role-youth: #b04000;
-  --color-role-parent: #34C759;
-  --color-role-teacher: #d08000;
-  --color-role-caregiver: #FF453A;
-  --color-role-government: #8a8273;
+  /* — Role colors — */
+  --color-role-youth: #c47a3a;
+  --color-role-parent: #5a9e5a;
+  --color-role-teacher: #b06a32;
+  --color-role-caregiver: #d47060;
+  --color-role-government: #8b6e50;
 
-  --color-module-communicationGuide: #b04000;
-  --color-module-emotionBehavior: #d08000;
-  --color-module-careMedical: #34C759;
-  --color-module-workSupport: #f0b000;
-  --color-module-relationshipMap: #8a8273;
+  /* — Module colors — */
+  --color-module-communicationGuide: #b06a32;
+  --color-module-emotionBehavior: #da9a4e;
+  --color-module-careMedical: #5a9e5a;
+  --color-module-workSupport: #e8b060;
+  --color-module-relationshipMap: #8b6e50;
 
-  /* Figma 阴影 — 轻柔暖调 */
-  --shadow-xs: 0 0 0 1px rgba(176,64,0,0.03), 0 1px 2px rgba(176,64,0,0.04);
-  --shadow-sm: 0 0 0 1px rgba(176,64,0,0.04), 0 1px 3px rgba(176,64,0,0.04), 0 4px 12px rgba(176,64,0,0.06);
-  --shadow-md: 0 0 0 1px rgba(176,64,0,0.04), 0 2px 6px rgba(176,64,0,0.04), 0 6px 20px rgba(176,64,0,0.06);
-  --shadow-lg: 0 0 0 1px rgba(176,64,0,0.05), 0 4px 12px rgba(176,64,0,0.05), 0 8px 28px rgba(176,64,0,0.08);
-  --shadow-xl: 0 0 0 1px rgba(176,64,0,0.06), 0 6px 16px rgba(176,64,0,0.06), 0 12px 40px rgba(176,64,0,0.10);
-  --shadow-inner: inset 0 1px 0 0 rgba(255, 255, 255, 0.60);
+  /* — Shadow: 蓬松起酥阴影 — */
+  --shadow-xs: 0 0 0 1px rgba(196,122,58,0.04), 0 1px 3px rgba(160,90,40,0.06);
+  --shadow-sm: 0 0 0 1px rgba(196,122,58,0.05), 0 2px 6px rgba(160,90,40,0.06), 0 4px 18px rgba(160,90,40,0.08);
+  --shadow-md: 0 0 0 1px rgba(196,122,58,0.05), 0 3px 8px rgba(160,90,40,0.06), 0 6px 22px rgba(160,90,40,0.10), 0 12px 36px rgba(160,90,40,0.06);
+  --shadow-lg: 0 0 0 1px rgba(196,122,58,0.06), 0 4px 12px rgba(160,90,40,0.08), 0 10px 28px rgba(160,90,40,0.12), 0 18px 48px rgba(160,90,40,0.08);
+  --shadow-xl: 0 0 0 1px rgba(196,122,58,0.08), 0 6px 18px rgba(160,90,40,0.10), 0 14px 38px rgba(160,90,40,0.14), 0 24px 64px rgba(196,122,58,0.10);
+  --shadow-inner: inset 0 1px 0 0 rgba(255, 255, 255, 0.75);
 
-  --shadow-primary: 0 0 0 1px rgba(176,64,0,0.30), 0 2px 8px rgba(176,64,0,0.15), inset 0 1px 0 0 rgba(255,255,255,0.30);
-  --shadow-primary-lg: 0 0 0 1px rgba(176,64,0,0.40), 0 4px 14px rgba(176,64,0,0.25), inset 0 1px 0 0 rgba(255,255,255,0.35);
-  --ring-primary: 0 0 0 3px rgba(176, 64, 0, 0.15);
+  /* — 主色系阴影 — */
+  --shadow-primary: 0 0 0 1px rgba(196,122,58,0.35), 0 3px 10px rgba(196,122,58,0.22), 0 6px 20px rgba(196,122,58,0.12), inset 0 1px 0 0 rgba(255,255,255,0.40);
+  --shadow-primary-lg: 0 0 0 1px rgba(196,122,58,0.45), 0 4px 14px rgba(196,122,58,0.28), 0 8px 28px rgba(196,122,58,0.16), inset 0 1px 0 0 rgba(255,255,255,0.45);
+  --ring-primary: 0 0 0 3px rgba(196, 122, 58, 0.18);
 
-  /* Figma 主题特有样式变量 */
-  --body-bg: #fef6e2;
+  /* — 主题特有样式变量 — */
+  --body-bg: radial-gradient(ellipse 70% 50% at 50% 35%, #fef9f2 0%, #fef5e8 35%, #fef2dc 70%, #feeed0 100%);
   --body-bg-image: none;
   --card-bg: #ffffff;
-  --card-radius: 16px;
-  --card-shadow: var(--shadow-sm);
-  --btn-primary-bg: #b04000;
-  --btn-primary-bg-hover: #d08000;
-  --input-radius: 12px;
-  --input-bg: rgba(255, 255, 255, 0.85);
+  --card-radius: 20px;
+  --card-shadow: var(--shadow-md);
+  --btn-primary-bg: linear-gradient(135deg, #c47a3a 0%, #b06a32 100%);
+  --btn-primary-bg-hover: linear-gradient(135deg, #da9a4e 0%, #c47a3a 100%);
+  --input-radius: 16px;
+  --input-bg: rgba(255, 255, 255, 0.88);
   --input-focus-bg: #ffffff;
-  --bubble-user-bg: #b04000;
-  --bubble-user-radius: 16px 16px 4px 16px;
+  --bubble-user-bg: linear-gradient(135deg, #c47a3a, #b06a32);
+  --bubble-user-radius: 18px 18px 4px 18px;
   --bubble-ai-bg: #ffffff;
-  --bubble-ai-radius: 16px 16px 16px 4px;
+  --bubble-ai-radius: 18px 18px 18px 4px;
   --tag-radius: var(--radius-full);
-  --tag-border: 0.5px solid rgba(176, 64, 0, 0.10);
-  --tag-bg: rgba(176, 64, 0, 0.04);
-  --bottom-nav-bg: rgba(255, 255, 255, 0.95);
-  --bottom-nav-border: 0.5px solid rgba(176, 64, 0, 0.06);
-  --bottom-nav-shadow: 0 -1px 0 rgba(176,64,0,0.04), 0 -4px 16px rgba(176,64,0,0.04);
-  --nav-item-color: #8a8273;
-  --nav-item-hover-color: #5c5548;
-  --nav-item-hover-bg: rgba(176, 64, 0, 0.06);
-  --color-fill-subtle: rgba(176, 64, 0, 0.02);
-  --color-fill-light: rgba(176, 64, 0, 0.03);
-  --color-fill-medium: rgba(176, 64, 0, 0.05);
-  --color-fill-strong: rgba(176, 64, 0, 0.07);
+  --tag-border: 0.5px solid rgba(196, 122, 58, 0.12);
+  --tag-bg: rgba(196, 122, 58, 0.05);
+  --bottom-nav-bg: rgba(255, 255, 255, 0.94);
+  --bottom-nav-border: 0.5px solid rgba(196, 122, 58, 0.08);
+  --bottom-nav-shadow: 0 -1px 0 rgba(196,122,58,0.05), 0 -4px 20px rgba(160,90,40,0.08);
+  --nav-item-color: #bba88e;
+  --nav-item-hover-color: #5c3d28;
+  --nav-item-hover-bg: rgba(196, 122, 58, 0.08);
+  --color-fill-subtle: rgba(196, 122, 58, 0.03);
+  --color-fill-light: rgba(196, 122, 58, 0.05);
+  --color-fill-medium: rgba(196, 122, 58, 0.07);
+  --color-fill-strong: rgba(196, 122, 58, 0.10);
 }
 
 /* ================================================================
-   暖色主题特有全局样式覆盖
+   饼干 (Cookie) 主题
+   烘焙甜点灵感 — 黄油面团底色 × 烤纹纹理 × 蓬松起酥阴影
+   像刚出炉的曲奇饼干：温暖 / 松软 / 有颗粒感 / 层次分明
    ================================================================ */
 
-/* — Sparkle 闪烁动画 — */
-@keyframes sparkle-warm {
-  0%, 100% { opacity: 0.3; transform: scale(0.8); }
-  50% { opacity: 1; transform: scale(1.2); }
-}
-@keyframes float-warm {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-8px); }
+/* — 烘焙纹理 SVG 注入 — */
+[data-theme="cookie"] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.025;
+  background-image: url("data:image/svg+xml,%3Csvg width='400' height='400' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-size: 400px 400px;
 }
 
-/* — 暖色渐变文字 — */
-[data-theme="warm"] .text-gradient {
-  background: linear-gradient(135deg, #b45309 0%, #d97706 40%, #f59e0b 70%, #fbbf24 100%);
+[data-theme="cookie"] {
+  /* — Primary: 烤焦糖色 Baked Caramel — */
+  --color-primary: #c47a3a;
+  --color-primary-rgb: 196, 122, 58;
+  --color-primary-light: #da9a4e;
+  --color-primary-dark: #a86228;
+  --color-primary-surface: rgba(196, 122, 58, 0.08);
+  --color-primary-glow: rgba(196, 122, 58, 0.20);
+
+  /* — Accent / Secondary — */
+  --color-secondary: #b06a32;
+  --color-accent: #e8b060;
+  --color-success: #5a9e5a;
+  --color-warning: #da9a4e;
+  --color-warning-dark: #b06a32;
+  --color-danger: #d47060;
+  --color-danger-dark: #b84a3e;
+
+  /* — Text: 深巧克力色文字体系 — */
+  --color-text-primary: #3d2b1a;
+  --color-text-secondary: #8b6e50;
+  --color-text-tertiary: #bba88e;
+  --color-text-white: #fefaf5;
+
+  /* — Background: 黄油面团层次 — */
+  --color-bg-primary: #fef9f2;
+  --color-bg-secondary: #fef5e8;
+  --color-bg-tertiary: #fef2dc;
+  --color-bg-deep: #feeed0;
+  --color-bg-overlay: rgba(180, 110, 50, 0.06);
+  --color-bg-warm: #fef9f2;
+
+  /* — Surface: 蛋白霜白表面 — */
+  --color-surface: rgba(255, 255, 255, 0.85);
+  --color-surface-hover: rgba(255, 255, 255, 0.98);
+
+  /* — Border: 烤盘边缘 — */
+  --color-border: rgba(196, 122, 58, 0.12);
+  --color-border-light: rgba(196, 122, 58, 0.06);
+  --color-border-accent: rgba(196, 122, 58, 0.22);
+
+  /* — Misc — */
+  --color-card: #ffffff;
+  --color-separator: #e8d5c0;
+
+  /* — Role colors — */
+  --color-role-youth: #c47a3a;
+  --color-role-parent: #5a9e5a;
+  --color-role-teacher: #b06a32;
+  --color-role-caregiver: #d47060;
+  --color-role-government: #8b6e50;
+
+  /* — Module colors — */
+  --color-module-communicationGuide: #b06a32;
+  --color-module-emotionBehavior: #da9a4e;
+  --color-module-careMedical: #5a9e5a;
+  --color-module-workSupport: #e8b060;
+  --color-module-relationshipMap: #8b6e50;
+
+  /* — Shadow: 蓬松起酥阴影 — 仿面团发酵隆起感 — */
+  --shadow-xs: 0 0 0 1px rgba(196,122,58,0.04), 0 1px 3px rgba(160,90,40,0.06);
+  --shadow-sm: 0 0 0 1px rgba(196,122,58,0.05), 0 2px 6px rgba(160,90,40,0.06), 0 4px 18px rgba(160,90,40,0.08);
+  --shadow-md: 0 0 0 1px rgba(196,122,58,0.05), 0 3px 8px rgba(160,90,40,0.06), 0 6px 22px rgba(160,90,40,0.10), 0 12px 36px rgba(160,90,40,0.06);
+  --shadow-lg: 0 0 0 1px rgba(196,122,58,0.06), 0 4px 12px rgba(160,90,40,0.08), 0 10px 28px rgba(160,90,40,0.12), 0 18px 48px rgba(160,90,40,0.08);
+  --shadow-xl: 0 0 0 1px rgba(196,122,58,0.08), 0 6px 18px rgba(160,90,40,0.10), 0 14px 38px rgba(160,90,40,0.14), 0 24px 64px rgba(196,122,58,0.10);
+  --shadow-inner: inset 0 1px 0 0 rgba(255, 255, 255, 0.75);
+
+  /* — 主色系阴影：烤炉热光 — */
+  --shadow-primary: 0 0 0 1px rgba(196,122,58,0.35), 0 3px 10px rgba(196,122,58,0.22), 0 6px 20px rgba(196,122,58,0.12), inset 0 1px 0 0 rgba(255,255,255,0.40);
+  --shadow-primary-lg: 0 0 0 1px rgba(196,122,58,0.45), 0 4px 14px rgba(196,122,58,0.28), 0 8px 28px rgba(196,122,58,0.16), inset 0 1px 0 0 rgba(255,255,255,0.45);
+  --ring-primary: 0 0 0 3px rgba(196, 122, 58, 0.18);
+
+  /* — 主题特有样式变量 — */
+  --body-bg: radial-gradient(ellipse 70% 50% at 50% 35%, #fef9f2 0%, #fef5e8 35%, #fef2dc 70%, #feeed0 100%);
+  --body-bg-image: none;
+  --card-bg: #ffffff;
+  --card-radius: 20px;
+  --card-shadow: var(--shadow-md);
+  --btn-primary-bg: linear-gradient(135deg, #c47a3a 0%, #b06a32 100%);
+  --btn-primary-bg-hover: linear-gradient(135deg, #da9a4e 0%, #c47a3a 100%);
+  --input-radius: 16px;
+  --input-bg: rgba(255, 255, 255, 0.88);
+  --input-focus-bg: #ffffff;
+  --bubble-user-bg: linear-gradient(135deg, #c47a3a, #b06a32);
+  --bubble-user-radius: 18px 18px 4px 18px;
+  --bubble-ai-bg: #ffffff;
+  --bubble-ai-radius: 18px 18px 18px 4px;
+  --tag-radius: var(--radius-full);
+  --tag-border: 0.5px solid rgba(196, 122, 58, 0.12);
+  --tag-bg: rgba(196, 122, 58, 0.05);
+  --bottom-nav-bg: rgba(255, 255, 255, 0.94);
+  --bottom-nav-border: 0.5px solid rgba(196, 122, 58, 0.08);
+  --bottom-nav-shadow: 0 -1px 0 rgba(196,122,58,0.05), 0 -4px 20px rgba(160,90,40,0.08);
+  --nav-item-color: #bba88e;
+  --nav-item-hover-color: #5c3d28;
+  --nav-item-hover-bg: rgba(196, 122, 58, 0.08);
+  --color-fill-subtle: rgba(196, 122, 58, 0.03);
+  --color-fill-light: rgba(196, 122, 58, 0.05);
+  --color-fill-medium: rgba(196, 122, 58, 0.07);
+  --color-fill-strong: rgba(196, 122, 58, 0.10);
+}
+
+/* ================================================================
+   饼干主题：烘焙甜点全局样式覆盖
+   烤纹纹理 + 蓬松起酥阴影 + 焦糖渐变 + 糖霜高光
+   ================================================================ */
+
+/* — 渐变文字：焦糖拉丝 — */
+[data-theme="cookie"] .text-gradient {
+  background: linear-gradient(135deg, #b06a32 0%, #c47a3a 40%, #da9a4e 70%, #e8b060 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* 去除星空背景，使用纯奶油渐变 */
-[data-theme="warm"] body {
+/* — 页面背景：面团暖白 + 烤炉光晕 — */
+[data-theme="cookie"] body {
   background: var(--body-bg);
+  position: relative;
 }
 
-[data-theme="warm"] html {
+[data-theme="cookie"] html {
   background-color: var(--color-bg-primary);
 }
 
-/* — 页面头部：毛玻璃暖色顶栏 — */
-[data-theme="warm"] .page-header {
-  background: rgba(255, 254, 249, 0.88);
+/* — 页面头部：糖霜毛玻璃顶栏 — */
+[data-theme="cookie"] .page-header {
+  background: rgba(254, 249, 242, 0.92);
   border-bottom: 1px solid var(--color-border-light);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
 
-/* — 卡片：毛玻璃 + 琥珀微光 — */
-[data-theme="warm"] .card {
-  background: var(--card-bg);
-  border-radius: var(--card-radius);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  box-shadow: var(--card-shadow);
-  border: 1px solid var(--color-border-light);
-}
-
-/* — 按钮：琥珀渐变胶囊 — */
-[data-theme="warm"] .btn-primary {
-  background: var(--btn-primary-bg);
-  border-radius: 9999px;
-  box-shadow: var(--shadow-primary);
-}
-[data-theme="warm"] .btn-primary:hover:not(:disabled) {
-  background: var(--btn-primary-bg-hover);
-  box-shadow: var(--shadow-primary-lg);
-}
-[data-theme="warm"] .btn-secondary {
-  border-radius: 9999px;
-}
-[data-theme="warm"] .btn-outline {
-  border-radius: 9999px;
-}
-[data-theme="warm"] .btn {
-  border-radius: 9999px;
-}
-[data-theme="warm"] .btn-sm {
-  border-radius: 9999px;
-}
-
-/* — 输入框：暖色圆角 — */
-[data-theme="warm"] input,
-[data-theme="warm"] select,
-[data-theme="warm"] textarea {
-  background: var(--input-bg);
-  border-radius: var(--input-radius);
-  border-color: rgba(245, 158, 11, 0.15);
-}
-[data-theme="warm"] input:focus,
-[data-theme="warm"] select:focus,
-[data-theme="warm"] textarea:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12), 0 0 20px rgba(245, 158, 11, 0.06);
-  background: var(--input-focus-bg);
-}
-[data-theme="warm"] input::placeholder,
-[data-theme="warm"] textarea::placeholder {
-  color: var(--color-text-secondary);
-}
-
-/* — 底部导航：毛玻璃琥珀胶囊 — */
-[data-theme="warm"] .bottom-nav {
-  background: var(--bottom-nav-bg);
-  border: var(--bottom-nav-border);
-  border-radius: 24px;
-  box-shadow: var(--bottom-nav-shadow);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-}
-[data-theme="warm"] .bottom-nav-item {
-  border-radius: 12px;
-}
-[data-theme="warm"] .bottom-nav-item.active {
-  color: var(--color-primary);
-  background: rgba(217, 119, 6, 0.12);
-}
-
-/* — 聊天气泡：琥珀渐变 — */
-[data-theme="warm"] .chat-bubble-user {
-  background: var(--bubble-user-bg);
-  border-radius: var(--bubble-user-radius);
-  color: #fff;
-  box-shadow: 0 2px 12px rgba(245,158,11,0.20);
-}
-[data-theme="warm"] .chat-bubble-ai,
-[data-theme="warm"] .chat-bubble-bot {
-  background: var(--bubble-ai-bg);
-  border-radius: var(--bubble-ai-radius);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(245,158,11,0.08);
-  color: var(--color-text-primary);
-}
-
-/* — 标签/徽章：琥珀药丸 — */
-[data-theme="warm"] .badge,
-[data-theme="warm"] .ios-tag,
-[data-theme="warm"] .youth-card-tag {
-  border-radius: var(--tag-radius);
-  border: var(--tag-border);
-  background: var(--tag-bg);
-  color: var(--color-text-primary);
-}
-
-/* — Toast：暖色毛玻璃 — */
-[data-theme="warm"] .toast {
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--color-text-primary);
-  box-shadow: 0 0 0 1px rgba(245,158,11,0.08), 0 4px 16px rgba(180,83,9,0.10);
-}
-
-/* — 用户卡片 / 心青年卡片：毛玻璃 — */
-[data-theme="warm"] .user-card,
-[data-theme="warm"] .youth-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--color-border-light);
-}
-[data-theme="warm"] .youth-card:hover {
-  border-color: var(--color-border);
-  background: var(--color-surface-hover);
-}
-
-/* — 创建按钮 — */
-[data-theme="warm"] .create-btn {
-  border-color: rgba(245, 158, 11, 0.12);
-  background: var(--color-surface);
-  border-radius: 20px;
-}
-[data-theme="warm"] .create-btn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-  background: var(--color-primary-surface);
-}
-
-/* — 速读卡 — */
-[data-theme="warm"] .quickcard-footer {
-  background: var(--card-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-/* — 健康速报卡片 — */
-[data-theme="warm"] .glance-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-/* — 教师工作台 — */
-[data-theme="warm"] .workbench-student-card {
-  background: var(--card-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-}
-
-/* — 首页问候光晕 — */
-[data-theme="warm"] .home-greeting-glow {
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(245,158,11,0.06) 0%, transparent 70%);
-}
-
-/* — 记录页：对话采集入口 — */
-[data-theme="warm"] .records-page .chat-entry-card {
-  background: rgba(255, 255, 255, 0.85);
-  border: 1px solid rgba(245, 158, 11, 0.10);
-  border-radius: 20px;
-}
-
-/* — 管理页 — */
-[data-theme="warm"] .manage-page .card {
-  background: rgba(255, 255, 255, 0.85);
-}
-[data-theme="warm"] .manage-page .grant-section {
-  background: rgba(255, 255, 255, 0.80);
-  border: 1px solid rgba(245, 158, 11, 0.06);
-}
-
-/* — 分析页 — */
-[data-theme="warm"] .analytics-page .chart-card {
-  background: rgba(255, 255, 255, 0.85);
-}
-
-/* — 档案页模块卡片 — */
-[data-theme="warm"] .profile-module-card {
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 0 40px rgba(245, 158, 11, 0.04);
-}
-
-/* — 档案页头像卡片 — */
-[data-theme="warm"] .portrait-card {
-  background: linear-gradient(175deg, var(--color-bg-secondary) 0%, var(--color-bg-primary) 40%, #fef3e0 100%);
-  box-shadow: 0 0 0 1px rgba(245,158,11,0.04), 0 4px 32px rgba(180,83,9,0.08), 0 0 80px rgba(245,158,11,0.04);
-  border-radius: 20px;
-}
-
-/* — 详情面板 — */
-[data-theme="warm"] .detail-panel {
-  background: rgba(255, 254, 249, 0.97);
-  border-color: rgba(245, 158, 11, 0.08);
-  box-shadow: 0 -8px 40px rgba(180, 83, 9, 0.10);
-}
-
-/* — 紧急联系人下拉 — */
-[data-theme="warm"] .emergency-dropdown {
-  background: rgba(255, 254, 249, 0.97);
-  border-color: rgba(245, 158, 11, 0.08);
-  box-shadow: 0 8px 32px rgba(180, 83, 9, 0.10), 0 0 0 1px rgba(245,158,11,0.05);
-}
-[data-theme="warm"] .emergency-bar-toggle {
-  background: rgba(255, 254, 249, 0.9) !important;
-  border-color: rgba(245, 158, 11, 0.08) !important;
-}
-[data-theme="warm"] .emergency-bar-item {
-  background: rgba(255, 254, 249, 0.9) !important;
-  border-color: rgba(245, 158, 11, 0.06) !important;
-}
-[data-theme="warm"] .emergency-bar-item:hover {
-  background: rgba(245, 158, 11, 0.06) !important;
-}
-
-/* — 创建任务按钮 — */
-[data-theme="warm"] .btn-create-task {
-  background: rgba(245, 158, 11, 0.08);
-  border-color: rgba(245, 158, 11, 0.25);
-  color: var(--color-primary);
-}
-[data-theme="warm"] .btn-create-task:hover {
-  background: rgba(245, 158, 11, 0.15);
-  border-color: rgba(245, 158, 11, 0.40);
-}
-
-/* — 星座星图 — */
-[data-theme="warm"] .star-field {
-  background: radial-gradient(ellipse 80% 50% at 50% 45%, rgba(245,158,11,0.06) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 30% 70%, rgba(245,158,11,0.04) 0%, transparent 50%), radial-gradient(ellipse 30% 25% at 70% 30%, rgba(245,158,11,0.04) 0%, transparent 50%);
-}
-
-/* — 快捷操作按钮 — */
-[data-theme="warm"] .quick-action-btn,
-[data-theme="warm"] .management-btn {
-  background: var(--card-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px;
-}
-
-/* — iOS 卡片组 — */
-[data-theme="warm"] .ios-card-group {
-  background: var(--card-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px;
-}
-
-/* — 看板列 — */
-[data-theme="warm"] .kanban-column {
-  background: rgba(245, 158, 11, 0.03);
-  border-color: rgba(245, 158, 11, 0.08);
-  border-radius: 16px;
-}
-[data-theme="warm"] .kanban-card {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(245, 158, 11, 0.08);
-  box-shadow: 0 0 0 1px rgba(245,158,11,0.03), 0 2px 12px rgba(180,83,9,0.06);
-  border-radius: 16px;
-}
-[data-theme="warm"] .kanban-card:hover {
-  background: rgba(255, 255, 255, 0.95);
-  border-color: rgba(245, 158, 11, 0.15);
-}
-[data-theme="warm"] .kanban-status-btn[data-status="todo"] {
-  background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.30);
-  color: var(--color-warning);
-}
-[data-theme="warm"] .kanban-status-btn[data-status="in_progress"] {
-  background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.30);
-  color: var(--color-primary-light);
-}
-
-/* — 矩阵记录 — */
-[data-theme="warm"] .matrix-wrap {
-  background: var(--card-bg);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  border-radius: 20px;
-}
-[data-theme="warm"] .matrix-form-sheet {
-  background: linear-gradient(180deg, rgba(255,254,249,0.98) 0%, rgba(255,248,237,0.99) 100%);
-  box-shadow: 0 -4px 24px rgba(180,83,9,0.10);
-  border-color: rgba(245,158,11,0.08);
-}
-[data-theme="warm"] .matrix-input-tab.active {
-  background: rgba(255, 255, 255, 0.85);
-  color: var(--color-text-primary);
-}
-[data-theme="warm"] .matrix-input-tabs {
-  background: rgba(245, 158, 11, 0.04);
-}
-[data-theme="warm"] .matrix-btn-submit {
-  background: var(--btn-primary-bg);
-  border-radius: 9999px;
-}
-[data-theme="warm"] .matrix-quick-tag.selected {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
-}
-
-/* — 时间轴 — */
-[data-theme="warm"] .timeline-strip-dot:hover::after {
-  background: rgba(255, 254, 249, 0.95);
-  border-color: rgba(245, 158, 11, 0.08);
-  box-shadow: 0 4px 16px rgba(180, 83, 9, 0.08);
-}
-[data-theme="warm"] .timeline-range-chip.active {
-  background: rgba(245, 158, 11, 0.12);
-  border-color: rgba(245, 158, 11, 0.30);
-}
-
-/* — 星期选择 — */
-[data-theme="warm"] .weekday-chip.selected {
-  background: var(--btn-primary-bg);
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 1px rgba(245, 158, 11, 0.5), 0 2px 8px rgba(245, 158, 11, 0.3);
-}
-
-/* — 任务类型选择 — */
-[data-theme="warm"] .task-type-option.selected {
-  border-color: var(--type-color, var(--color-primary));
-  box-shadow: inset 0 0 0 1px var(--type-color, var(--color-primary)), 0 0 0 1px rgba(245, 158, 11, 0.10), 0 4px 20px rgba(180, 83, 9, 0.08);
-}
-[data-theme="warm"] .task-type-option.selected .task-type-badge {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) inset, 0 0 16px rgba(245, 158, 11, 0.30);
-}
-[data-theme="warm"] .task-type-option.selected .task-type-name {
-  color: var(--type-color, var(--color-primary));
-}
-
-/* — 心青年对话 — */
-[data-theme="warm"] .youth-chat-header {
-  background: linear-gradient(135deg, rgba(245,158,11,0.08), rgba(245,158,11,0.04));
-}
-[data-theme="warm"] .youth-chat-input {
-  border-radius: 20px;
-  border-color: rgba(245, 158, 11, 0.15);
-}
-[data-theme="warm"] .youth-chat-input:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.12);
-}
-[data-theme="warm"] .youth-chat-send {
-  border-radius: 20px;
-  background: var(--btn-primary-bg);
-}
-[data-theme="warm"] .youth-chat-input-bar {
-  background: rgba(255, 255, 255, 0.85);
-  border-color: rgba(245, 158, 11, 0.08);
-}
-[data-theme="warm"] .chat-task-card {
-  background: rgba(245, 158, 11, 0.06);
-  border-color: rgba(245, 158, 11, 0.15);
-}
-
-/* ================================================================
-   暖色主题：覆盖 main.css 中硬编码的 rgba(255,255,255,...)
-   在暖色奶油背景下，这些白色半透明会变成刺眼白斑
-   ================================================================ */
-
-/* 页面内容区背景 */
-[data-theme="warm"] #page-container,
-[data-theme="warm"] .page-content {
-  background: transparent;
-}
-
-/* 顶部栏按钮 */
-[data-theme="warm"] .top-bar-btn {
-  background: var(--color-fill-light);
-  border: 0.5px solid var(--color-border-light);
-  color: var(--color-text-secondary);
-}
-[data-theme="warm"] .top-bar-btn:hover {
-  background: var(--color-fill-strong);
-  color: var(--color-text-primary);
-}
-
-/* 顶部文字链接 */
-[data-theme="warm"] .top-bar-text-link {
-  color: var(--color-text-secondary);
-}
-[data-theme="warm"] .top-bar-text-link:hover {
-  color: var(--color-text-primary);
-}
-
-/* 返回按钮 */
-[data-theme="warm"] .btn-back {
-  color: var(--color-text-secondary);
-}
-[data-theme="warm"] .btn-back:active {
-  background: var(--color-fill-light);
-}
-
-/* 用户头像 */
-[data-theme="warm"] .user-card-avatar {
-  background: var(--color-fill-light);
-  border-color: var(--color-border-light);
-}
-
-/* 心青年卡片头像 */
-[data-theme="warm"] .youth-card-avatar {
-  background: var(--color-fill-light);
-}
-
-/* 心青年卡片概要 */
-[data-theme="warm"] .youth-card-summary {
-  background: var(--color-fill-light);
-  color: var(--color-text-secondary);
-}
-
-/* 头部用户角色标签 */
-[data-theme="warm"] .header-user-role {
-  background: var(--color-fill-light);
-}
-
-/* 聊天消息区 */
-[data-theme="warm"] .chat-messages {
-  background: transparent;
-}
-
-/* 系统消息气泡 */
-[data-theme="warm"] .chat-bubble-system {
-  background: var(--color-fill-light);
-  color: var(--color-text-secondary);
-}
-
-/* 详情面板关闭按钮 */
-[data-theme="warm"] .detail-panel-close {
-  background: var(--color-fill-medium);
-  border: 1px solid var(--color-border);
-  color: var(--color-text-secondary);
-}
-[data-theme="warm"] .detail-panel-close:hover {
-  background: var(--color-fill-strong);
-  color: var(--color-text-primary);
-}
-
-/* 下拉面板通用 */
-[data-theme="warm"] .dropdown-panel {
-  background: rgba(255, 254, 249, 0.97);
-  border: 0.5px solid var(--color-border-light);
-  box-shadow: 0 8px 32px rgba(180,83,9,0.10), 0 0 0 1px rgba(245,158,11,0.05);
-}
-
-/* 分隔线 */
-[data-theme="warm"] .divider {
-  border-color: var(--color-border-light);
-}
-
-/* 空状态 */
-[data-theme="warm"] .empty-state {
-  color: var(--color-text-secondary);
-}
-
-/* 健康速报：无用药 */
-[data-theme="warm"] .health-med-none {
-  background: var(--color-fill-subtle);
-  border-color: var(--color-border-light);
-}
-
-/* 健康速报：空关系 */
-[data-theme="warm"] .health-rel-empty {
-  background: var(--color-fill-light);
-  color: var(--color-text-secondary);
-}
-
-/* — 解决 rgba(255,255,255,0.xx) 在暖色背景下的白斑问题 — */
-/* 任何在暖色模式下仍应保持半透明层的元素，统一用琥珀色调 */
-[data-theme="warm"] .section-divider,
-[data-theme="warm"] hr {
-  border-color: var(--color-border-light);
-}
-
-/* 页脚分隔线 */
-[data-theme="warm"] .page-footer {
-  border-top: 1px solid var(--color-border-light);
-}
-
-/* — 政府仪表盘 — */
-[data-theme="warm"] .government-card {
-  border: 1px solid var(--color-border-light);
-  background: var(--card-bg);
-}
-[data-theme="warm"] .government-stat {
-  background: var(--color-fill-subtle);
-}
-[data-theme="warm"] .government-stat:hover {
-  background: var(--color-fill-light);
-}
-[data-theme="warm"] .government-chart {
-  background: var(--color-fill-medium);
-}
-[data-theme="warm"] .government-header {
-  background: var(--color-fill-strong);
-}
-[data-theme="warm"] .government-table {
-  background: var(--color-fill-subtle);
-}
-
-/* — 顶部栏分隔符 — */
-[data-theme="warm"] .top-bar-separator {
-  color: var(--color-text-tertiary);
-}
-
-/* — 健康速报区域 — */
-[data-theme="warm"] .health-section {
-  border-top-color: var(--color-border-light);
-}
-
-/* ================================================================
-   Figma 珊瑚橘主题特有全局样式覆盖
-   纯白实底 + 轻柔暖调阴影，无毛玻璃半透明
-   ================================================================ */
-
-[data-theme="figma"] body {
-  background: var(--body-bg);
-}
-
-[data-theme="figma"] html {
-  background-color: var(--color-bg-primary);
-}
-
-/* — 页面头部：纯白顶栏 — */
-[data-theme="figma"] .page-header {
-  background: rgba(255, 255, 255, 0.90);
-  border-bottom: 1px solid var(--color-border-light);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-}
-
-/* — 卡片：纯白实底 + 暖调轻阴影 — */
-[data-theme="figma"] .card {
+/* — 卡片：纯白起酥 + 蓬松多层阴影 — */
+[data-theme="cookie"] .card {
   background: var(--card-bg);
   border-radius: var(--card-radius);
   box-shadow: var(--card-shadow);
@@ -963,136 +267,144 @@
   -webkit-backdrop-filter: none;
 }
 
-/* — 按钮：纯色珊瑚，不做胶囊化 — */
-[data-theme="figma"] .btn-primary {
+/* — 按钮：焦糖胶囊 + 烤炉热光 — */
+[data-theme="cookie"] .btn-primary {
   background: var(--btn-primary-bg);
-  border-radius: 10px;
+  border-radius: 9999px;
   box-shadow: var(--shadow-primary);
+  color: #fff;
 }
-[data-theme="figma"] .btn-primary:hover:not(:disabled) {
+[data-theme="cookie"] .btn-primary:hover:not(:disabled) {
   background: var(--btn-primary-bg-hover);
   box-shadow: var(--shadow-primary-lg);
+  transform: translateY(-1px);
 }
-[data-theme="figma"] .btn-secondary {
-  border-radius: 10px;
+[data-theme="cookie"] .btn-primary:active:not(:disabled) {
+  transform: translateY(0);
 }
-[data-theme="figma"] .btn-outline {
-  border-radius: 10px;
+[data-theme="cookie"] .btn-secondary {
+  border-radius: 9999px;
 }
-[data-theme="figma"] .btn {
-  border-radius: 10px;
+[data-theme="cookie"] .btn-outline {
+  border-radius: 9999px;
 }
-[data-theme="figma"] .btn-sm {
-  border-radius: 8px;
+[data-theme="cookie"] .btn {
+  border-radius: 9999px;
+}
+[data-theme="cookie"] .btn-sm {
+  border-radius: 9999px;
 }
 
-/* — 输入框 — */
-[data-theme="figma"] input,
-[data-theme="figma"] select,
-[data-theme="figma"] textarea {
+/* — 输入框：烤盘圆角 — */
+[data-theme="cookie"] input,
+[data-theme="cookie"] select,
+[data-theme="cookie"] textarea {
   background: var(--input-bg);
   border-radius: var(--input-radius);
-  border-color: rgba(176, 64, 0, 0.10);
+  border-color: rgba(196, 122, 58, 0.12);
 }
-[data-theme="figma"] input:focus,
-[data-theme="figma"] select:focus,
-[data-theme="figma"] textarea:focus {
+[data-theme="cookie"] input:focus,
+[data-theme="cookie"] select:focus,
+[data-theme="cookie"] textarea:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(176, 64, 0, 0.08);
+  box-shadow: 0 0 0 3px rgba(196, 122, 58, 0.12), 0 0 20px rgba(196, 122, 58, 0.06);
   background: var(--input-focus-bg);
 }
-[data-theme="figma"] input::placeholder,
-[data-theme="figma"] textarea::placeholder {
+[data-theme="cookie"] input::placeholder,
+[data-theme="cookie"] textarea::placeholder {
   color: var(--color-text-secondary);
 }
 
-/* — 底部导航：纯白底 + 顶部分隔线 — */
-[data-theme="figma"] .bottom-nav {
+/* — 底部导航：糖霜毛玻璃 + 烤盘边框 — */
+[data-theme="cookie"] .bottom-nav {
   background: var(--bottom-nav-bg);
   border: var(--bottom-nav-border);
-  border-radius: 16px;
+  border-radius: 22px;
   box-shadow: var(--bottom-nav-shadow);
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
-[data-theme="figma"] .bottom-nav-item {
-  border-radius: 12px;
+[data-theme="cookie"] .bottom-nav-item {
+  border-radius: 14px;
 }
-[data-theme="figma"] .bottom-nav-item.active {
+[data-theme="cookie"] .bottom-nav-item.active {
   color: var(--color-primary);
-  background: rgba(176, 64, 0, 0.06);
+  background: rgba(196, 122, 58, 0.10);
 }
 
-/* — 聊天气泡 — */
-[data-theme="figma"] .chat-bubble-user {
+/* — 聊天气泡：焦糖用户 / 蛋白霜AI — */
+[data-theme="cookie"] .chat-bubble-user {
   background: var(--bubble-user-bg);
   border-radius: var(--bubble-user-radius);
   color: #fff;
-  box-shadow: 0 1px 4px rgba(176,64,0,0.15);
+  box-shadow: 0 2px 12px rgba(196,122,58,0.20), 0 4px 20px rgba(176,106,50,0.08);
 }
-[data-theme="figma"] .chat-bubble-ai,
-[data-theme="figma"] .chat-bubble-bot {
+[data-theme="cookie"] .chat-bubble-ai,
+[data-theme="cookie"] .chat-bubble-bot {
   background: var(--bubble-ai-bg);
   border-radius: var(--bubble-ai-radius);
-  border: 1px solid rgba(176,64,0,0.06);
+  border: 1px solid rgba(196,122,58,0.08);
   color: var(--color-text-primary);
+  box-shadow: var(--shadow-xs);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 
-/* — 标签/徽章 — */
-[data-theme="figma"] .badge,
-[data-theme="figma"] .ios-tag,
-[data-theme="figma"] .youth-card-tag {
+/* — 标签/徽章：曲奇碎屑 — */
+[data-theme="cookie"] .badge,
+[data-theme="cookie"] .ios-tag,
+[data-theme="cookie"] .youth-card-tag {
   border-radius: var(--tag-radius);
   border: var(--tag-border);
   background: var(--tag-bg);
   color: var(--color-text-primary);
 }
 
-/* — Toast — */
-[data-theme="figma"] .toast {
-  background: rgba(255, 255, 255, 0.97);
+/* — Toast：糖霜漂浮 — */
+[data-theme="cookie"] .toast {
+  background: rgba(255, 255, 255, 0.98);
   color: var(--color-text-primary);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-lg);
 }
 
-/* — 用户卡片 / 心青年卡片 — */
-[data-theme="figma"] .user-card,
-[data-theme="figma"] .youth-card {
+/* — 用户卡片 / 心青年卡片：起酥外层 — */
+[data-theme="cookie"] .user-card,
+[data-theme="cookie"] .youth-card {
   background: var(--card-bg);
   border: 1px solid var(--color-border-light);
   box-shadow: var(--shadow-sm);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-[data-theme="figma"] .youth-card:hover {
+[data-theme="cookie"] .youth-card:hover {
   border-color: var(--color-border);
   box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
   background: #fff;
 }
 
 /* — 创建按钮 — */
-[data-theme="figma"] .create-btn {
+[data-theme="cookie"] .create-btn {
   border-color: var(--color-border);
   background: var(--color-surface);
-  border-radius: 16px;
+  border-radius: 20px;
 }
-[data-theme="figma"] .create-btn:hover {
+[data-theme="cookie"] .create-btn:hover {
   border-color: var(--color-primary);
   color: var(--color-primary);
   background: var(--color-primary-surface);
+  transform: translateY(-1px);
 }
 
 /* — 速读卡 — */
-[data-theme="figma"] .quickcard-footer {
+[data-theme="cookie"] .quickcard-footer {
   background: var(--card-bg);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 
 /* — 健康速报卡片 — */
-[data-theme="figma"] .glance-card {
+[data-theme="cookie"] .glance-card {
   background: var(--card-bg);
   box-shadow: var(--shadow-sm);
   backdrop-filter: none;
@@ -1100,95 +412,122 @@
 }
 
 /* — 教师工作台 — */
-[data-theme="figma"] .workbench-student-card {
+[data-theme="cookie"] .workbench-student-card {
   background: var(--card-bg);
   box-shadow: var(--shadow-sm);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 
-/* — 首页问候光晕 — */
-[data-theme="figma"] .home-greeting-glow {
-  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(176,64,0,0.03) 0%, transparent 70%);
+/* — 首页问候光晕：烤炉暖光 — */
+[data-theme="cookie"] .home-greeting-glow {
+  background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(196,122,58,0.08) 0%, rgba(196,122,58,0.03) 40%, transparent 70%);
 }
 
 /* — 记录页 — */
-[data-theme="figma"] .records-page .chat-entry-card {
+[data-theme="cookie"] .records-page .chat-entry-card {
   background: var(--card-bg);
-  border: 1px solid rgba(176, 64, 0, 0.08);
-  border-radius: 16px;
+  border: 1px solid rgba(196, 122, 58, 0.08);
+  border-radius: 20px;
 }
 
 /* — 管理页 — */
-[data-theme="figma"] .manage-page .card {
+[data-theme="cookie"] .manage-page .card {
   background: var(--card-bg);
 }
-[data-theme="figma"] .manage-page .grant-section {
-  background: rgba(255, 255, 255, 0.80);
-  border: 1px solid rgba(176, 64, 0, 0.04);
+[data-theme="cookie"] .manage-page .grant-section {
+  background: rgba(255, 255, 255, 0.82);
+  border: 1px solid rgba(196, 122, 58, 0.05);
 }
 
 /* — 分析页 — */
-[data-theme="figma"] .analytics-page .chart-card {
+[data-theme="cookie"] .analytics-page .chart-card {
   background: var(--card-bg);
 }
 
 /* — 档案页模块卡片 — */
-[data-theme="figma"] .profile-module-card {
+[data-theme="cookie"] .profile-module-card {
   background: var(--card-bg);
   box-shadow: var(--shadow-sm);
 }
 
 /* — 档案页头像卡片 — */
-[data-theme="figma"] .portrait-card {
+[data-theme="cookie"] .portrait-card {
   background: linear-gradient(175deg, var(--color-bg-secondary) 0%, var(--card-bg) 50%, var(--color-bg-primary) 100%);
   box-shadow: var(--shadow-sm);
 }
 
 /* — 详情面板 — */
-[data-theme="figma"] .detail-panel {
-  background: rgba(255, 255, 255, 0.98);
+[data-theme="cookie"] .detail-panel {
+  background: rgba(254, 249, 242, 0.98);
   border-color: var(--color-border-light);
-  box-shadow: 0 -4px 20px rgba(176, 64, 0, 0.06);
+  box-shadow: 0 -4px 28px rgba(160, 90, 40, 0.10);
 }
 
 /* — 紧急联系人 — */
-[data-theme="figma"] .emergency-dropdown {
+[data-theme="cookie"] .emergency-dropdown {
   background: rgba(255, 255, 255, 0.98);
   border-color: var(--color-border-light);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
 }
-[data-theme="figma"] .emergency-bar-toggle {
-  background: rgba(255, 255, 255, 0.92) !important;
+[data-theme="cookie"] .emergency-dropdown-header {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-border-light);
+}
+[data-theme="cookie"] .emergency-dropdown-close {
+  color: var(--color-text-tertiary);
+}
+[data-theme="cookie"] .emergency-dropdown-close:hover {
+  color: var(--color-text-primary);
+}
+[data-theme="cookie"] .emergency-dropdown-item {
+  color: var(--color-text-primary);
+}
+[data-theme="cookie"] .emergency-dropdown-item:hover {
+  background: var(--color-primary-surface);
+}
+[data-theme="cookie"] .emergency-dropdown-item-name {
+  color: var(--color-text-primary);
+}
+[data-theme="cookie"] .emergency-dropdown-item-relation {
+  color: var(--color-text-secondary);
+}
+[data-theme="cookie"] .emergency-dropdown-item-phone {
+  color: var(--color-primary);
+}
+[data-theme="cookie"] .emergency-bar-toggle {
+  background: rgba(254, 249, 242, 0.94) !important;
   border-color: var(--color-border-light) !important;
 }
-[data-theme="figma"] .emergency-bar-item {
-  background: rgba(255, 255, 255, 0.92) !important;
+[data-theme="cookie"] .emergency-bar-item {
+  background: rgba(254, 249, 242, 0.94) !important;
   border-color: var(--color-border-light) !important;
 }
-[data-theme="figma"] .emergency-bar-item:hover {
-  background: rgba(176, 64, 0, 0.04) !important;
+[data-theme="cookie"] .emergency-bar-item:hover {
+  background: rgba(196, 122, 58, 0.06) !important;
 }
 
 /* — 创建任务按钮 — */
-[data-theme="figma"] .btn-create-task {
-  background: rgba(176, 64, 0, 0.05);
-  border-color: rgba(176, 64, 0, 0.15);
+[data-theme="cookie"] .btn-create-task {
+  background: rgba(196, 122, 58, 0.06);
+  border-color: rgba(196, 122, 58, 0.18);
   color: var(--color-primary);
 }
-[data-theme="figma"] .btn-create-task:hover {
-  background: rgba(176, 64, 0, 0.10);
-  border-color: rgba(176, 64, 0, 0.30);
+[data-theme="cookie"] .btn-create-task:hover {
+  background: rgba(196, 122, 58, 0.12);
+  border-color: rgba(196, 122, 58, 0.35);
 }
 
-/* — 星座星图 — */
-[data-theme="figma"] .star-field {
-  background: radial-gradient(ellipse 80% 50% at 50% 45%, rgba(176,64,0,0.03) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 30% 70%, rgba(176,64,0,0.02) 0%, transparent 50%);
+/* — 星座星图：烤盘底纹 — */
+[data-theme="cookie"] .star-field {
+  background: radial-gradient(ellipse 80% 50% at 50% 45%, rgba(196,122,58,0.05) 0%, transparent 60%), radial-gradient(ellipse 40% 30% at 30% 70%, rgba(196,122,58,0.03) 0%, transparent 50%);
 }
 
 /* — 快捷操作按钮 — */
-[data-theme="figma"] .quick-action-btn,
-[data-theme="figma"] .management-btn {
+[data-theme="cookie"] .quick-action-btn,
+[data-theme="cookie"] .management-btn {
   background: var(--card-bg);
   box-shadow: var(--shadow-sm);
   backdrop-filter: none;
@@ -1196,7 +535,7 @@
 }
 
 /* — iOS 卡片组 — */
-[data-theme="figma"] .ios-card-group {
+[data-theme="cookie"] .ios-card-group {
   background: var(--card-bg);
   box-shadow: var(--shadow-sm);
   backdrop-filter: none;
@@ -1204,244 +543,250 @@
 }
 
 /* — 看板 — */
-[data-theme="figma"] .kanban-column {
-  background: rgba(176, 64, 0, 0.02);
+[data-theme="cookie"] .kanban-column {
+  background: rgba(196, 122, 58, 0.03);
   border-color: var(--color-border-light);
 }
-[data-theme="figma"] .kanban-card {
+[data-theme="cookie"] .kanban-card {
   background: var(--card-bg);
   border-color: var(--color-border-light);
   box-shadow: var(--shadow-sm);
 }
-[data-theme="figma"] .kanban-card:hover {
+[data-theme="cookie"] .kanban-card:hover {
   background: #fff;
   border-color: var(--color-border);
   box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
-[data-theme="figma"] .kanban-status-btn[data-status="todo"] {
-  background: rgba(176, 64, 0, 0.08);
-  border-color: rgba(176, 64, 0, 0.20);
+[data-theme="cookie"] .kanban-status-btn[data-status="todo"] {
+  background: rgba(196, 122, 58, 0.10);
+  border-color: rgba(196, 122, 58, 0.25);
   color: var(--color-primary);
 }
-[data-theme="figma"] .kanban-status-btn[data-status="in_progress"] {
-  background: rgba(176, 64, 0, 0.08);
-  border-color: rgba(176, 64, 0, 0.20);
+[data-theme="cookie"] .kanban-status-btn[data-status="in_progress"] {
+  background: rgba(196, 122, 58, 0.10);
+  border-color: rgba(196, 122, 58, 0.25);
   color: var(--color-primary-light);
 }
 
 /* — 矩阵记录 — */
-[data-theme="figma"] .matrix-wrap {
+[data-theme="cookie"] .matrix-wrap {
   background: var(--card-bg);
   box-shadow: var(--shadow-sm);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
-[data-theme="figma"] .matrix-form-sheet {
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 -4px 20px rgba(176, 64, 0, 0.06);
+[data-theme="cookie"] .matrix-form-sheet {
+  background: rgba(254, 249, 242, 0.98);
+  box-shadow: 0 -4px 28px rgba(160, 90, 40, 0.10);
   border-color: var(--color-border-light);
 }
-[data-theme="figma"] .matrix-input-tab.active {
+[data-theme="cookie"] .matrix-input-tab.active {
   background: #fff;
   color: var(--color-text-primary);
 }
-[data-theme="figma"] .matrix-input-tabs {
-  background: rgba(176, 64, 0, 0.03);
+[data-theme="cookie"] .matrix-input-tabs {
+  background: rgba(196, 122, 58, 0.04);
 }
-[data-theme="figma"] .matrix-btn-submit {
+[data-theme="cookie"] .matrix-btn-submit {
   background: var(--btn-primary-bg);
-  border-radius: 10px;
+  border-radius: 9999px;
 }
-[data-theme="figma"] .matrix-quick-tag.selected {
+[data-theme="cookie"] .matrix-quick-tag.selected {
   background: var(--color-primary);
   border-color: var(--color-primary);
 }
 
 /* — 时间轴 — */
-[data-theme="figma"] .timeline-strip-dot:hover::after {
-  background: rgba(255, 255, 255, 0.98);
+[data-theme="cookie"] .timeline-strip-dot:hover::after {
+  background: rgba(254, 249, 242, 0.98);
   border-color: var(--color-border-light);
   box-shadow: var(--shadow-sm);
 }
-[data-theme="figma"] .timeline-range-chip.active {
-  background: rgba(176, 64, 0, 0.08);
-  border-color: rgba(176, 64, 0, 0.20);
+[data-theme="cookie"] .timeline-range-chip.active {
+  background: rgba(196, 122, 58, 0.10);
+  border-color: rgba(196, 122, 58, 0.25);
 }
 
 /* — 星期选择 — */
-[data-theme="figma"] .weekday-chip.selected {
+[data-theme="cookie"] .weekday-chip.selected {
   background: var(--color-primary);
   border-color: var(--color-primary);
   box-shadow: var(--shadow-primary);
 }
 
 /* — 任务类型选择 — */
-[data-theme="figma"] .task-type-option.selected {
+[data-theme="cookie"] .task-type-option.selected {
   border-color: var(--type-color, var(--color-primary));
-  box-shadow: inset 0 0 0 1px var(--type-color, var(--color-primary)), 0 0 0 1px rgba(176, 64, 0, 0.06), 0 2px 12px rgba(176, 64, 0, 0.06);
+  box-shadow: inset 0 0 0 1px var(--type-color, var(--color-primary)), 0 0 0 1px rgba(196, 122, 58, 0.08), 0 2px 16px rgba(160, 90, 40, 0.10);
 }
-[data-theme="figma"] .task-type-option.selected .task-type-badge {
-  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) inset, 0 0 12px rgba(176, 64, 0, 0.15);
+[data-theme="cookie"] .task-type-option.selected .task-type-badge {
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.15) inset, 0 0 16px rgba(196, 122, 58, 0.22);
 }
-[data-theme="figma"] .task-type-option.selected .task-type-name {
+[data-theme="cookie"] .task-type-option.selected .task-type-name {
   color: var(--type-color, var(--color-primary));
 }
 
 /* — 心青年对话 — */
-[data-theme="figma"] .youth-chat-header {
-  background: linear-gradient(135deg, rgba(176,64,0,0.04), rgba(176,64,0,0.02));
+[data-theme="cookie"] .youth-chat-header {
+  background: linear-gradient(135deg, rgba(196,122,58,0.06), rgba(196,122,58,0.03));
 }
-[data-theme="figma"] .youth-chat-input {
-  border-radius: 12px;
-  border-color: rgba(176, 64, 0, 0.10);
+[data-theme="cookie"] .youth-chat-input {
+  border-radius: 16px;
+  border-color: rgba(196, 122, 58, 0.12);
 }
-[data-theme="figma"] .youth-chat-input:focus {
+[data-theme="cookie"] .youth-chat-input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(176, 64, 0, 0.08);
+  box-shadow: 0 0 0 3px rgba(196, 122, 58, 0.12);
 }
-[data-theme="figma"] .youth-chat-send {
-  border-radius: 10px;
+[data-theme="cookie"] .youth-chat-send {
+  border-radius: 9999px;
   background: var(--btn-primary-bg);
 }
-[data-theme="figma"] .youth-chat-input-bar {
-  background: rgba(255, 255, 255, 0.95);
+[data-theme="cookie"] .youth-chat-input-bar {
+  background: rgba(255, 255, 255, 0.94);
   border-color: var(--color-border-light);
 }
-[data-theme="figma"] .chat-task-card {
-  background: rgba(176, 64, 0, 0.04);
-  border-color: rgba(176, 64, 0, 0.10);
+[data-theme="cookie"] .chat-task-card {
+  background: rgba(196, 122, 58, 0.05);
+  border-color: rgba(196, 122, 58, 0.12);
 }
 
 /* — 页面内容区 — */
-[data-theme="figma"] #page-container,
-[data-theme="figma"] .page-content {
+[data-theme="cookie"] #page-container,
+[data-theme="cookie"] .page-content {
   background: transparent;
 }
 
 /* — 顶部栏按钮 — */
-[data-theme="figma"] .top-bar-btn {
+[data-theme="cookie"] .top-bar-btn {
   background: var(--color-fill-light);
   border: 0.5px solid var(--color-border-light);
   color: var(--color-text-secondary);
 }
-[data-theme="figma"] .top-bar-btn:hover {
+[data-theme="cookie"] .top-bar-btn:hover {
   background: var(--color-fill-strong);
   color: var(--color-text-primary);
 }
 
 /* — 顶部文字链接 — */
-[data-theme="figma"] .top-bar-text-link {
-  color: var(--color-text-secondary);
-}
-[data-theme="figma"] .top-bar-text-link:hover {
+[data-theme="cookie"] .top-bar-text-link {
   color: var(--color-text-primary);
+}
+[data-theme="cookie"] .top-bar-text-link:hover {
+  color: var(--color-primary);
+}
+
+/* — 顶部栏分隔符 — */
+[data-theme="cookie"] .top-bar-text-sep {
+  color: var(--color-border);
 }
 
 /* — 返回按钮 — */
-[data-theme="figma"] .btn-back {
+[data-theme="cookie"] .btn-back {
   color: var(--color-text-secondary);
 }
-[data-theme="figma"] .btn-back:active {
+[data-theme="cookie"] .btn-back:active {
   background: var(--color-fill-light);
 }
 
 /* — 头像 — */
-[data-theme="figma"] .user-card-avatar {
+[data-theme="cookie"] .user-card-avatar {
   background: var(--color-fill-light);
   border-color: var(--color-border-light);
 }
-[data-theme="figma"] .youth-card-avatar {
+[data-theme="cookie"] .youth-card-avatar {
   background: var(--color-fill-light);
 }
-[data-theme="figma"] .youth-card-summary {
+[data-theme="cookie"] .youth-card-summary {
   background: var(--color-fill-light);
   color: var(--color-text-secondary);
 }
-[data-theme="figma"] .header-user-role {
+[data-theme="cookie"] .header-user-role {
   background: var(--color-fill-light);
 }
 
 /* — 聊天消息区 — */
-[data-theme="figma"] .chat-messages {
+[data-theme="cookie"] .chat-messages {
   background: transparent;
 }
-[data-theme="figma"] .chat-bubble-system {
+[data-theme="cookie"] .chat-bubble-system {
   background: var(--color-fill-light);
   color: var(--color-text-secondary);
 }
 
 /* — 详情面板关闭按钮 — */
-[data-theme="figma"] .detail-panel-close {
+[data-theme="cookie"] .detail-panel-close {
   background: var(--color-fill-medium);
   border: 1px solid var(--color-border);
   color: var(--color-text-secondary);
 }
-[data-theme="figma"] .detail-panel-close:hover {
+[data-theme="cookie"] .detail-panel-close:hover {
   background: var(--color-fill-strong);
   color: var(--color-text-primary);
 }
 
 /* — 下拉面板 — */
-[data-theme="figma"] .dropdown-panel {
-  background: rgba(255, 255, 255, 0.98);
+[data-theme="cookie"] .dropdown-panel {
+  background: rgba(254, 249, 242, 0.98);
   border: 0.5px solid var(--color-border-light);
   box-shadow: var(--shadow-md);
 }
 
 /* — 分隔线 — */
-[data-theme="figma"] .divider,
-[data-theme="figma"] hr {
+[data-theme="cookie"] .divider,
+[data-theme="cookie"] hr {
   border-color: var(--color-border-light);
 }
-[data-theme="figma"] .section-divider {
+[data-theme="cookie"] .section-divider {
   border-color: var(--color-border-light);
 }
 
 /* — 空状态 — */
-[data-theme="figma"] .empty-state {
+[data-theme="cookie"] .empty-state {
   color: var(--color-text-secondary);
 }
 
 /* — 健康速报 — */
-[data-theme="figma"] .health-med-none {
+[data-theme="cookie"] .health-med-none {
   background: var(--color-fill-subtle);
   border-color: var(--color-border-light);
 }
-[data-theme="figma"] .health-rel-empty {
+[data-theme="cookie"] .health-rel-empty {
   background: var(--color-fill-light);
   color: var(--color-text-secondary);
 }
-[data-theme="figma"] .health-section {
+[data-theme="cookie"] .health-section {
   border-top-color: var(--color-border-light);
 }
 
 /* — 页脚 — */
-[data-theme="figma"] .page-footer {
+[data-theme="cookie"] .page-footer {
   border-top: 1px solid var(--color-border-light);
 }
 
 /* — 顶部栏分隔符 — */
-[data-theme="figma"] .top-bar-separator {
+[data-theme="cookie"] .top-bar-separator {
   color: var(--color-text-tertiary);
 }
 
 /* — 政府仪表盘 — */
-[data-theme="figma"] .government-card {
+[data-theme="cookie"] .government-card {
   border: 1px solid var(--color-border-light);
   background: var(--card-bg);
 }
-[data-theme="figma"] .government-stat {
+[data-theme="cookie"] .government-stat {
   background: var(--color-fill-subtle);
 }
-[data-theme="figma"] .government-stat:hover {
+[data-theme="cookie"] .government-stat:hover {
   background: var(--color-fill-light);
 }
-[data-theme="figma"] .government-chart {
+[data-theme="cookie"] .government-chart {
   background: var(--color-fill-medium);
 }
-[data-theme="figma"] .government-header {
+[data-theme="cookie"] .government-header {
   background: var(--color-fill-strong);
 }
-[data-theme="figma"] .government-table {
+[data-theme="cookie"] .government-table {
   background: var(--color-fill-subtle);
 }
