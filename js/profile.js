@@ -88,6 +88,47 @@ window.Profile = (function () {
               '<div class="form-hint">用于档案唯一标识，数据仅存储在本地浏览器</div>' +
             '</div>' +
             '<div class="form-group">' +
+              '<label class="form-label">居住区域</label>' +
+              '<input type="text" class="form-input" id="pf-region" placeholder="如：阳光社区" maxlength="100">' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">残疾类型</label>' +
+              '<input type="text" class="form-input" id="pf-disability-type" placeholder="如：智力障碍、孤独症" maxlength="50">' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">残疾等级</label>' +
+              '<select class="form-input" id="pf-disability-level">' +
+                '<option value="">请选择</option>' +
+                '<option value="一级">一级</option>' +
+                '<option value="二级">二级</option>' +
+                '<option value="三级">三级</option>' +
+                '<option value="四级">四级</option>' +
+              '</select>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">就学状态</label>' +
+              '<select class="form-input" id="pf-school-status">' +
+                '<option value="">请选择</option>' +
+                '<option value="就学中">就学中</option>' +
+                '<option value="已毕业">已毕业</option>' +
+                '<option value="未入学">未入学</option>' +
+              '</select>' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">学校名称</label>' +
+              '<input type="text" class="form-input" id="pf-school-name" placeholder="学校名称（选填）" maxlength="100">' +
+            '</div>' +
+            '<div class="form-group">' +
+              '<label class="form-label">就业状态</label>' +
+              '<select class="form-input" id="pf-work-status">' +
+                '<option value="">请选择</option>' +
+                '<option value="待业">待业</option>' +
+                '<option value="庇护性就业">庇护性就业</option>' +
+                '<option value="支持性就业">支持性就业</option>' +
+                '<option value="竞争性就业">竞争性就业</option>' +
+              '</select>' +
+            '</div>' +
+            '<div class="form-group">' +
               '<label class="form-label">头像标识</label>' +
               '<div class="gender-selector">' +
                 '<div class="gender-option" data-avatar="🌻"><div class="gender-icon">🌻</div></div>' +
@@ -291,6 +332,12 @@ window.Profile = (function () {
       gender: gender,
       birthDate: birthDate,
       avatar: avatar,
+      region: document.getElementById('pf-region').value.trim(),
+      disabilityType: document.getElementById('pf-disability-type').value.trim(),
+      disabilityLevel: document.getElementById('pf-disability-level').value,
+      schoolStatus: document.getElementById('pf-school-status').value,
+      schoolName: document.getElementById('pf-school-name').value.trim(),
+      workStatus: document.getElementById('pf-work-status').value,
       lifeCycleStatus: 'created',
       currentGuardianId: guardianId || null,
       emergencyContacts: validContacts,
@@ -363,6 +410,24 @@ window.Profile = (function () {
     // — 身份卡数据 —
     var intro = _buildIntro(youth, modules);
 
+    // — 人口字段 —
+    var demoFields = [];
+    if (youth.region) demoFields.push({ label: '居住区域', value: youth.region });
+    if (youth.disabilityType) demoFields.push({ label: '残疾类型', value: youth.disabilityType });
+    if (youth.disabilityLevel) demoFields.push({ label: '残疾等级', value: youth.disabilityLevel });
+    if (youth.schoolStatus) demoFields.push({ label: '就学状态', value: youth.schoolStatus });
+    if (youth.schoolName) demoFields.push({ label: '学校名称', value: youth.schoolName });
+    if (youth.workStatus) demoFields.push({ label: '就业状态', value: youth.workStatus });
+    var demoHtml = '';
+    if (demoFields.length > 0) {
+      demoHtml = '<div class="archive-identity-demo">';
+      for (var di = 0; di < demoFields.length; di++) {
+        demoHtml += '<span class="archive-identity-demo-item"><span class="archive-identity-demo-label">' + Utils.escapeHtml(demoFields[di].label) + '</span><span class="archive-identity-demo-value">' + Utils.escapeHtml(demoFields[di].value) + '</span></span>';
+        if (di < demoFields.length - 1) demoHtml += '<span class="archive-identity-demo-sep">·</span>';
+      }
+      demoHtml += '</div>';
+    }
+
     // — 关于我数据 —
     var aboutItems = _buildAboutItems(youth, modules);
 
@@ -390,6 +455,7 @@ window.Profile = (function () {
             '<div class="archive-identity-name">' + Utils.escapeHtml(youth.name) + '</div>' +
             '<div class="archive-identity-meta">' + age + '岁 · ' + genderLabel + ' · 档案持续更新中</div>' +
             '<div class="archive-identity-line">' + Utils.escapeHtml(intro) + '</div>' +
+            demoHtml +
           '</div>' +
         '</section>' +
 
