@@ -180,7 +180,7 @@ window.Government = (function () {
         '<span class="page-title">政府趋势看板</span>' +
         '<div class="top-bar-actions">' +
           '<span class="header-version">v1.0_20260803-2</span>' +
-          '<button class="top-bar-btn" id="btn-logout" style="color: var(--color-danger);">退出</button>' +
+          '<button class="top-bar-btn gov-logout-btn" id="btn-logout">退出</button>' +
         '</div>' +
       '</div>' +
       '<div class="gov-page">' +
@@ -220,6 +220,10 @@ window.Government = (function () {
           '<div class="gov-chart-header"><span class="gov-chart-title">性别分布</span></div>' +
           '<div class="gov-chart-canvas-wrapper"><canvas id="gender-chart"></canvas></div>' +
         '</div>' +
+        // 退出登录
+        '<div class="gov-logout-section">' +
+          '<button class="gov-logout-btn" id="btn-logout-bottom">退出登录</button>' +
+        '</div>' +
       '</div>';
 
     _renderAgeDistribution(stats.ageGroups);
@@ -229,11 +233,16 @@ window.Government = (function () {
 
     // 退出登录按钮
     var logoutBtn = document.getElementById('btn-logout');
+    var logoutBtnBottom = document.getElementById('btn-logout-bottom');
+    function doLogout() {
+      AppState.logout();
+      window.location.hash = 'login';
+    }
     if (logoutBtn) {
-      logoutBtn.addEventListener('click', function () {
-        AppState.logout();
-        window.location.hash = 'login';
-      });
+      logoutBtn.addEventListener('click', doLogout);
+    }
+    if (logoutBtnBottom) {
+      logoutBtnBottom.addEventListener('click', doLogout);
     }
   }
 

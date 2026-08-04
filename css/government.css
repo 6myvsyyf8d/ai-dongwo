@@ -312,6 +312,46 @@
   }
 }
 
+/* 退出登录按钮（顶部栏） */
+.gov-logout-btn.top-bar-btn {
+  background: rgba(212, 112, 96, 0.12);
+  color: var(--color-danger);
+  border-color: rgba(212, 112, 96, 0.2);
+  font-weight: 600;
+}
+.gov-logout-btn.top-bar-btn:hover {
+  background: rgba(212, 112, 96, 0.2);
+  color: var(--color-danger-dark);
+}
+
+/* 退出登录区域（底部） */
+.gov-logout-section {
+  padding: var(--spacing-xl) 0 var(--spacing-3xl);
+  text-align: center;
+}
+
+.gov-logout-section .gov-logout-btn {
+  display: inline-block;
+  padding: 12px 48px;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(212, 112, 96, 0.25);
+  background: rgba(212, 112, 96, 0.08);
+  color: var(--color-danger);
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+.gov-logout-section .gov-logout-btn:hover {
+  background: rgba(212, 112, 96, 0.15);
+  border-color: var(--color-danger);
+}
+.gov-logout-section .gov-logout-btn:active {
+  transform: scale(0.97);
+  background: rgba(212, 112, 96, 0.2);
+}
+
 @media (max-width: 480px) {
   .gov-stats-grid {
     grid-template-columns: 1fr;
